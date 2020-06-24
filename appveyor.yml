@@ -1,0 +1,73 @@
+# Build worker image (VM template)
+image: Visual Studio 2019
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - date /T & time /T
+  - git config --global core.autocrlf input
+  - cmake --version
+
+branches:
+  only:
+  - master
+
+clone_depth: 5
+
+version: '{build}'
+
+platform:
+  - x64
+
+configuration:
+  - Release
+  - Debug
+
+environment:
+  MSBUILD_FLAGS: /verbosity:minimal /maxcpucount
+  matrix:
+    - generator: "Visual Studio 16 2019"
+
+matrix:
+  fast_finish: true
+
+install:
+  - git submodule update --init --recursive
+  
+build_script:
+  # generate build script
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - dir
+  # Make MUtils first
+  - git clone https://github.com/cmaughan/MUtils
+  - cd MUtils
+  - ./prebuild.bat
+  - config_all.bat
+  - build_all.bat
+  - cd.. 
+  # Now make nodegraph
+  - mkdir build
+  - cd build
+  - >
+    cmake %APPVEYOR_BUILD_FOLDER%
+    -G "%generator%" 
+    -DCMAKE_INSTALL_PREFIX=./zep
+  - cmake --build . --target ALL_BUILD --config %configuration% -- /nologo /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+test_script:
+    - ps: |
+        cd C:\projects\nodegraph\build\$env:CONFIGURATION
+        # Unforunately Tracy is messing with running unit tests on AppVeyor, so only run them release for now
+        if ($env:CONFIGURATION -eq "Release") {
+          .\unittests.exe -r junit > unit_tests_report.xml
+          $wc = New-Object 'System.Net.WebClient'
+          $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path unit_tests_report.xml))
+        }
+
+after_build:
+  # set compiler var
+  - if "%generator%"=="Visual Studio 16" (set COMPILER="VC16")
+  # switch to project build folder and zip "tutorials" folder
+  - cd C:\projects\nodegraph\build
+  - 7z a -tzip -mx9 "nodegraph-%configuration%-%APPVEYOR_BUILD_VERSION%.zip" %configuration%
+  - appveyor PushArtifact "nodegraph-%configuration%-%APPVEYOR_BUILD_VERSION%.zip"
+
