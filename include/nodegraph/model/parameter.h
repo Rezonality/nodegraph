@@ -3,12 +3,12 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <variant>
 #include <vector>
-#include <unordered_set>
-#include <functional>
 
 namespace NodeGraph
 {
@@ -395,6 +395,29 @@ struct ParameterValue
         return v;
     };
 
+    template <>
+    std::string To() const
+    {
+        switch (type)
+        {
+        case ParameterType::Double:
+            return std::to_string(dVal);
+        case ParameterType::Float:
+            return std::to_string(fVal);
+        case ParameterType::Int64:
+            return std::to_string(iVal);
+        case ParameterType::Bool:
+            return std::to_string(bVal);
+        case ParameterType::ControlData:
+            return ":Control";
+        case ParameterType::FlowData:
+            return ":Flow";
+        default:
+        case ParameterType::String:
+            return sVal;
+        }
+    }
+
     template <class T>
     void SetFrom(const T& value)
     {
@@ -529,16 +552,15 @@ public:
     }
 
     explicit Parameter(const Parameter& rhs)
-        : m_value(rhs.m_value),
-        m_initValue(rhs.m_initValue),
-        m_attributes(rhs.m_attributes),
-        m_currentTick(rhs.m_currentTick),
-        m_generation(rhs.m_generation),
-        m_endValue(rhs.m_endValue),
-        m_startTick(rhs.m_startTick),
-        m_lerpTicks(rhs.m_lerpTicks)
+        : m_value(rhs.m_value)
+        , m_initValue(rhs.m_initValue)
+        , m_attributes(rhs.m_attributes)
+        , m_currentTick(rhs.m_currentTick)
+        , m_generation(rhs.m_generation)
+        , m_endValue(rhs.m_endValue)
+        , m_startTick(rhs.m_startTick)
+        , m_lerpTicks(rhs.m_lerpTicks)
     {
-
     }
 
     explicit Parameter(float val, const ParameterAttributes& attrib = ParameterAttributes{})
@@ -620,6 +642,12 @@ public:
             throw std::invalid_argument("Can't request control data with GetValue");
         }
         return m_value.To<T>();
+    }
+
+    template <>
+    std::string To() const
+    {
+        return m_value.To<std::string>();
     }
 
     virtual IFlowData* GetFlowData() const
@@ -765,7 +793,7 @@ public:
             fnCB(pShadow);
             pShadow = pShadow->m_pNextShadow;
         };
-        
+
         pShadow = m_pPrevShadow;
         while (pShadow)
         {
@@ -814,7 +842,7 @@ public:
 
         // Walk outwards to the shadow variables
         if (m_pNextShadow)
-        { 
+        {
             m_pNextShadow->SetShadow(*this, true);
         }
 
@@ -906,7 +934,7 @@ public:
         {
             throw std::invalid_argument("Parameter not allowed to be this");
         }
-   
+
         // Insert onto the end
         auto pEnd = pParam;
         while (pEnd->m_pNextShadow != nullptr)
@@ -939,7 +967,7 @@ protected:
     int64_t m_currentTick = 0;
 
     uint64_t m_generation = 0;
-   
+
     // Shadow parameters
     Parameter* m_pNextShadow = nullptr;
     Parameter* m_pPrevShadow = nullptr;

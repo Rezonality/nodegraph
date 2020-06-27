@@ -280,7 +280,6 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
     float channelGap = 10;
     float fontSize = 24.0f * (knobSize / 120.0f);
 
-    auto& label = param.GetName();
     auto& attrib = param.GetAttributes();
 
     // Normalized value 0->1
@@ -298,6 +297,16 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
     {
         // Make integer steps a bit more fluid
         rangePerDelta /= 2.0f;
+    }
+
+    std::string label;
+    if (!attrib.labels.empty())
+    {
+        label = attrib.labels[0];
+    }
+    else
+    {
+        label = param.GetName();
     }
 
     auto region = NRectf(pos.x - knobSize * .5f, pos.y - knobSize * .5f, knobSize, knobSize);
