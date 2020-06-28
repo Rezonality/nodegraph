@@ -28,7 +28,7 @@ Node::~Node()
     }
 }
 
-void Node::ConnectTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
+void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
 {
     if (m_outputs.size() <= (size_t)outputIndex)
     {
@@ -62,13 +62,13 @@ void Node::ConnectTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
         if (m_outputs[outputIndex]->GetType() == ParameterType::FlowData)
         {
             int size = (int)pDest->GetFlowInputs().size();
-            pDest->AddInput(std::string("FlowIn_") + std::to_string(size), (IFlowData*)nullptr);
+            pDest->AddInput(std::string("Flow_") + std::to_string(size), (IFlowData*)nullptr);
             inputIndex = size;
         }
         else if (m_outputs[outputIndex]->GetType() == ParameterType::ControlData)
         {
             int size = (int)pDest->GetControlInputs().size();
-            pDest->AddInput(std::string("ControlIn_") + std::to_string(size), (IControlData*)nullptr);
+            pDest->AddInput(std::string("Control_") + std::to_string(size), (IControlData*)nullptr);
             inputIndex = size;
         }
         else
@@ -84,59 +84,78 @@ void Node::ConnectTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
 
 void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::string& inName)
 {
-    std::string inputName = inName;
-    if (inputName.empty())
+    std::string searchOutputName;
+    if (!outputName.empty())
     {
-        inputName = outputName;
+        searchOutputName = outputName;
+    }
+    else
+    {
+        searchOutputName = "Flow";
     }
 
     Pin* pOut = nullptr;
     for (auto& pPin : m_outputs)
     {
-        if (pPin->GetName() == outputName)
+        if (pPin->GetName() == searchOutputName)
         {
             pOut = pPin;
             break;
         }
     }
-    
+
     if (pOut == nullptr)
     {
-        throw std::invalid_argument("Can't find output pin: " + outputName);
+        throw std::invalid_argument("Can't find output pin: " + searchOutputName);
     }
-   
+
     Pin* pIn = nullptr;
-    if (inputName != str_AutoGen)
+    if (!inName.empty() && inName != str_AutoGen)
     {
+        // Provided a name for the input, find it
         for (auto& pPin : pDest->GetInputs())
         {
-            if (pPin->GetName() == inputName)
+            if (pPin->GetName() == inName)
+            {
+                pIn = pPin;
+                break;
+            }
+        }
+        if (pIn == nullptr)
+        {
+            throw std::invalid_argument("Can't find input pin: " + inName);
+        }
+    }
+    else
+    {
+        // Try to match output name
+        for (auto& pPin : pDest->GetInputs())
+        {
+            if (pPin->GetName() == searchOutputName)
             {
                 pIn = pPin;
                 break;
             }
         }
 
-        if (pIn == nullptr)
+        // Auto gen or nothing
+        if (!pIn)
         {
-            throw std::invalid_argument("Can't find target pin: " + inputName);
-        }
-    }
-    else
-    {
-        if (pOut->GetType() == ParameterType::FlowData)
-        {
-            int size = (int)pDest->GetFlowInputs().size();
-            pIn = pDest->AddInput(std::string("FlowIn_") + std::to_string(size), (IFlowData*)nullptr);
-        }
-        else if (pOut->GetType() == ParameterType::ControlData)
-        {
-            int size = (int)pDest->GetControlInputs().size();
-            pIn = pDest->AddInput(std::string("ControlIn_") + std::to_string(size), (IControlData*)nullptr);
-        }
-        else
-        {
-            throw std::invalid_argument("Can only generate inputs of flow data type");
+            // Auto connecting flow
+            if (pOut->GetType() == ParameterType::FlowData)
+            {
+                int size = (int)pDest->GetFlowInputs().size();
+                pIn = pDest->AddInput(std::string("Flow_") + std::to_string(size), (IFlowData*)nullptr);
+            }
+            else if (pOut->GetType() == ParameterType::ControlData)
+            {
+                int size = (int)pDest->GetControlInputs().size();
+                pIn = pDest->AddInput(std::string("Control_") + std::to_string(size), (IControlData*)nullptr);
+            }
+            else
+            {
+                throw std::invalid_argument("Can only generate inputs of flow data type");
+            }
         }
     }
 
@@ -149,7 +168,7 @@ void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::stri
     {
         throw std::invalid_argument("Can't connect more than one signal to the same input");
     }
-    
+
     if (pOut->GetSource() != nullptr)
     {
         throw std::invalid_argument("Can't connect more than one signal to the same input");

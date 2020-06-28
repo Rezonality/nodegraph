@@ -73,8 +73,8 @@ public:
 
     virtual ~Node();
 
-    void ConnectTo(Node* pTarget, uint32_t outPin = 0, int32_t targetPin = 0);
-    void ConnectTo(Node* pDest, const std::string& outputName, const std::string& inputName = "");
+    void ConnectIndexTo(Node* pTarget, uint32_t outPin = 0, int32_t targetPin = 0);
+    void ConnectTo(Node* pDest, const std::string& outputName = "Flow", const std::string& inputName = "");
 
     virtual void Compute();
 
