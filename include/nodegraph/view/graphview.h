@@ -66,6 +66,9 @@ public:
         return m_canvas;
     }
 
+    bool IsCaptured() const { return m_pCaptureParam != nullptr; }
+    Graph& GetGraph() const { return m_graph; }
+
 private:
     enum class InputDirection
     {

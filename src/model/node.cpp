@@ -28,6 +28,15 @@ Node::~Node()
     }
 }
 
+void Node::ClearDecorators()
+{
+    for (auto& decorator : m_decorators)
+    {
+        delete decorator;
+    }
+    m_decorators.clear();
+}
+
 void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
 {
     if (m_outputs.size() <= (size_t)outputIndex)

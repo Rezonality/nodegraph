@@ -57,6 +57,13 @@ bool GraphView::ShowNode(const Node* pNode) const
             return true;
         }
     }
+
+    for (auto& decorator : pNode->GetDecorators())
+    {
+        if (!decorator->gridLocation.Empty())
+            return true;
+    }
+
     if (!pNode->GetCustomViewCells().Empty())
         return true;
 
@@ -677,6 +684,8 @@ void GraphView::Show(const NVec2i& displaySize)
 
         NVec2f gridSize(0);
 
+        pWorld->PreDraw();
+
         auto pins = pWorld->GetInputs();
         pins.insert(pins.end(), pWorld->GetOutputs().begin(), pWorld->GetOutputs().end());
 
@@ -686,6 +695,12 @@ void GraphView::Show(const NVec2i& displaySize)
                 continue;
             gridSize.x = std::max(gridSize.x, pInput->GetViewCells().Right());
             gridSize.y = std::max(gridSize.y, pInput->GetViewCells().Bottom());
+        }
+
+        for (auto& pDecorator : pWorld->GetDecorators())
+        {
+            gridSize.x = std::max(gridSize.x, pDecorator->gridLocation.Right());
+            gridSize.y = std::max(gridSize.y, pDecorator->gridLocation.Bottom());
         }
 
         // Account for custom

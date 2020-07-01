@@ -726,9 +726,14 @@ public:
         return m_value.type;
     }
 
-    void SetLerpSamples(uint64_t lerpTicks)
+    void SetLerpSamples(uint32_t lerpTicks)
     {
         m_lerpTicks = lerpTicks;
+    }
+
+    uint32_t GetLerpSamples() const
+    {
+        return m_lerpTicks;
     }
 
     template <class T>
@@ -958,7 +963,7 @@ protected:
     ParameterAttributes m_attributes;
 
     // How many ticks to lerp
-    int64_t m_lerpTicks = 0;
+    int32_t m_lerpTicks = 0;
 
     // Starting tick for a new lerp
     int64_t m_startTick = 0;

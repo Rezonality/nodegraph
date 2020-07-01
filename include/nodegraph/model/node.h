@@ -156,6 +156,8 @@ public:
         return m_decorators;
     }
 
+    void ClearDecorators();
+
     virtual const MUtils::NVec2f GetGridScale() const
     {
         return m_gridScale;
@@ -171,6 +173,7 @@ public:
         m_viewCells = cells;
     }
 
+    virtual void PreDraw() {};
     virtual void DrawCustom(GraphView& view, Canvas& canvas, const MUtils::NRectf&) { };
     virtual void DrawCustomPin(GraphView& view, Canvas& canvas, const MUtils::NRectf&, Pin& pin) { };
 

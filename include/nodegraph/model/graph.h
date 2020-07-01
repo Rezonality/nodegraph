@@ -15,14 +15,14 @@
 namespace NodeGraph
 {
 
-// A collection of nodes
+// A collection of nodes that can be computed
 class Graph
 {
 public:
     Graph();
     virtual ~Graph();
 
-    void Destroy();
+    virtual void Destroy();
 
     // Use this method to create nodes and add them to the m_graph
     template <typename T, typename... Args>
@@ -61,9 +61,9 @@ public:
     void Visit(Node& node, PinDir dir, ParameterType type, std::function<bool(Node&)> fn);
 
     // Get the list of pins that could be on the UI
-    std::vector<Pin*> GetControlSurface() const;
+    virtual std::vector<Pin*> GetControlSurface() const;
 
-    void Compute(const std::vector<Node*>& nodes, int64_t numTicks);
+    virtual void Compute(const std::vector<Node*>& nodes, int64_t numTicks);
 
     const std::set<std::shared_ptr<Node>>& GetNodes() const { return nodes; }
 
@@ -74,6 +74,7 @@ public:
    
     const std::vector<Node*>& GetOutputNodes() const { return m_outputNodes; }
     void SetOutputNoes(const std::vector<Node*>& nodes) { m_outputNodes = nodes; }
+
 protected:
     std::set<std::shared_ptr<Node>> nodes;
     std::vector<Node*> m_displayNodes;
