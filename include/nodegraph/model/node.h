@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
-#include <string>
 #include <functional>
+#include <string>
+#include <vector>
 
 #include <ctti/type_id.hpp>
 
@@ -18,16 +18,19 @@ class GraphView;
 class Canvas;
 class Node;
 
-#define DECLARE_NODE(className, APIName)                  \
-    static ctti::type_id_t TypeID()                         \
-    {                                                       \
-        return ctti::type_id<className>();                  \
-    }                                                       \
-    virtual ctti::type_id_t GetType() const override        \
-    {                                                       \
-        return TypeID();                                    \
-    } \
-    virtual const char* GetAPIName() const override { return #APIName; }
+#define DECLARE_NODE(className, APIName)             \
+    static ctti::type_id_t TypeID()                  \
+    {                                                \
+        return ctti::type_id<className>();           \
+    }                                                \
+    virtual ctti::type_id_t GetType() const override \
+    {                                                \
+        return TypeID();                             \
+    }                                                \
+    virtual const char* GetAPIName() const override  \
+    {                                                \
+        return #APIName;                             \
+    }
 
 constexpr auto str_AutoGen = "auto";
 
@@ -42,11 +45,11 @@ enum class DecoratorType
 struct NodeDecorator
 {
     NodeDecorator(DecoratorType t, const std::string& name)
-        : type(t),
-        strName(name)
+        : type(t)
+        , strName(name)
     {
     }
-    
+
     NodeDecorator(DecoratorType t)
         : type(t)
     {
@@ -62,14 +65,12 @@ class Node
 {
 public:
     explicit Node(Graph& m_graph, const std::string& name)
-        : m_strName(name),
-        m_graph(m_graph),
-        m_Id(CurrentId++)
-    {
-    };
+        : m_strName(name)
+        , m_graph(m_graph)
+        , m_Id(CurrentId++){};
 
     Node(const Node& node) = delete;
-    const Node& operator =(const Node& Node) = delete;
+    const Node& operator=(const Node& Node) = delete;
 
     virtual ~Node();
 
@@ -79,106 +80,96 @@ public:
     virtual void Compute();
 
     // Set
-    void SetGeneration(uint64_t gen) { m_generation = gen; }
+    void SetGeneration(uint64_t gen)
+    {
+        m_generation = gen;
+    }
 
     // Get
     virtual ctti::type_id_t GetType() const = 0;
     virtual const char* GetAPIName() const = 0;
-    const std::string& GetName() const { return m_strName; }
-    const std::vector<Pin*>& GetInputs() const { return m_inputs; }
-    const std::vector<Pin*>& GetOutputs() const { return m_outputs; }
-    const uint64_t GetGeneration() const { return m_generation; }
-    
-    const std::vector<Pin*>& GetControlInputs() const { return m_controlInputs; }
-    const std::vector<Pin*>& GetControlOutputs() const { return m_controlOutputs; }
-    
-    const std::vector<Pin*>& GetFlowInputs() const { return m_flowInputs; }
-    const std::vector<Pin*>& GetFlowOutputs() const { return m_flowOutputs; }
+    const std::string& GetName() const
+    {
+        return m_strName;
+    }
+    const std::vector<Pin*>& GetInputs() const
+    {
+        return m_inputs;
+    }
+    const std::vector<Pin*>& GetOutputs() const
+    {
+        return m_outputs;
+    }
+    const uint64_t GetGeneration() const
+    {
+        return m_generation;
+    }
+
+    const std::vector<Pin*>& GetControlInputs() const
+    {
+        return m_controlInputs;
+    }
+    const std::vector<Pin*>& GetControlOutputs() const
+    {
+        return m_controlOutputs;
+    }
+
+    const std::vector<Pin*>& GetFlowInputs() const
+    {
+        return m_flowInputs;
+    }
+    const std::vector<Pin*>& GetFlowOutputs() const
+    {
+        return m_flowOutputs;
+    }
 
     Pin* GetPin(const std::string& name) const;
 
     // Make an output pin
-    template<class T>
+    template <class T>
     Pin* AddOutput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
         m_outputs.push_back(new Pin(*this, PinDir::Output, strName, val, attrib));
+        m_graph.SetLayoutModified(true);
         return m_outputs[m_outputs.size() - 1];
     }
-    
-    Pin* AddOutput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{})
-    {
-        auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
-        m_outputs.push_back(pPin);
-        m_flowOutputs.push_back(pPin);
-        return pPin;
-    }
-    
-    Pin* AddOutput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib = ParameterAttributes{})
-    {
-        auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
-        m_outputs.push_back(pPin);
-        m_controlOutputs.push_back(pPin);
-        return pPin;
-    }
+
+    Pin* AddOutput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{});
+    Pin* AddOutput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib = ParameterAttributes{});
 
     // Make an input pin
-    template<class T>
+    template <class T>
     Pin* AddInput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
         m_inputs.push_back(new Pin(*this, PinDir::Input, strName, val, attrib));
+        m_graph.SetLayoutModified(true);
         return m_inputs[m_inputs.size() - 1];
     }
-    
-    Pin* AddInput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{})
-    {
-        auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
-        m_inputs.push_back(pPin);
-        m_flowInputs.push_back(pPin);
-        return pPin;
-    }
-    
-    Pin* AddInput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib = ParameterAttributes{})
-    {
-        auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
-        m_inputs.push_back(pPin);
-        m_controlInputs.push_back(pPin);
-        return pPin;
-    }
 
-    NodeDecorator* AddDecorator(NodeDecorator* decorator)
-    {
-        m_decorators.push_back(decorator);
-        return decorator;
-    }
+    Pin* AddInput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{});
+    Pin* AddInput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib = ParameterAttributes{});
 
-    const std::vector<NodeDecorator*>& GetDecorators() const
-    {
-        return m_decorators;
-    }
+    NodeDecorator* AddDecorator(NodeDecorator* decorator);
 
+    const std::vector<NodeDecorator*>& GetDecorators() const;
     void ClearDecorators();
 
-    virtual const MUtils::NVec2f GetGridScale() const
+    virtual const MUtils::NVec2f GetGridScale() const;
+    const MUtils::NRectf& GetCustomViewCells() const;
+    void SetCustomViewCells(const MUtils::NRectf& cells);
+
+    virtual void PreDraw(){};
+    virtual void DrawCustom(GraphView& view, Canvas& canvas, const MUtils::NRectf&){};
+    virtual void DrawCustomPin(GraphView& view, Canvas& canvas, const MUtils::NRectf&, Pin& pin){};
+
+    bool IsHidden() const
     {
-        return m_gridScale;
+        return m_hidden;
     }
-
-    const MUtils::NRectf& GetCustomViewCells() const
+    void SetHidden(bool hidden)
     {
-        return m_viewCells;
+        m_hidden = hidden;
     }
-
-    void SetCustomViewCells(const MUtils::NRectf& cells)
-    {
-        m_viewCells = cells;
-    }
-
-    virtual void PreDraw() {};
-    virtual void DrawCustom(GraphView& view, Canvas& canvas, const MUtils::NRectf&) { };
-    virtual void DrawCustomPin(GraphView& view, Canvas& canvas, const MUtils::NRectf&, Pin& pin) { };
-
-    bool IsHidden() const { return m_hidden; }
-    void SetHidden(bool hidden) { m_hidden = hidden; }
 
     Graph& GetGraph() const
     {
@@ -221,4 +212,4 @@ public:
     }
 };
 
-} /// NodeGraph
+} // namespace NodeGraph

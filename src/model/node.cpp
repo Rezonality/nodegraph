@@ -2,6 +2,7 @@
 
 #include "mutils/logger/logger.h"
 
+#include "nodegraph/model/graph.h"
 #include "nodegraph/model/node.h"
 #include "nodegraph/model/pin.h"
 
@@ -89,6 +90,8 @@ void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
     // Connect it up
     m_outputs[outputIndex]->AddTarget(pDest->GetInputs()[inputIndex]);
     pDest->GetInputs()[inputIndex]->SetSource(m_outputs[outputIndex]);
+
+    m_graph.SetLayoutModified(true);
 }
 
 void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::string& inName)
@@ -186,6 +189,8 @@ void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::stri
     // Connect it up
     pOut->AddTarget(pIn);
     pIn->SetSource(pOut);
+
+    m_graph.SetLayoutModified(true);
 }
 
 void Node::Compute()
@@ -212,6 +217,67 @@ Pin* Node::GetPin(const std::string& name) const
         }
     }
     return nullptr;
+}
+Pin* Node::AddInput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
+{
+    auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
+    m_inputs.push_back(pPin);
+    m_flowInputs.push_back(pPin);
+    m_graph.SetLayoutModified(true);
+    return pPin;
+}
+
+Pin* Node::AddInput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
+{
+    auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
+    m_inputs.push_back(pPin);
+    m_controlInputs.push_back(pPin);
+    m_graph.SetLayoutModified(true);
+    return pPin;
+}
+
+Pin* Node::AddOutput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
+{
+    auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
+    m_outputs.push_back(pPin);
+    m_flowOutputs.push_back(pPin);
+    m_graph.SetLayoutModified(true);
+    return pPin;
+}
+
+Pin* Node::AddOutput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
+{
+    auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
+    m_outputs.push_back(pPin);
+    m_controlOutputs.push_back(pPin);
+    m_graph.SetLayoutModified(true);
+    return pPin;
+}
+
+NodeDecorator* Node::AddDecorator(NodeDecorator* decorator)
+{
+    m_decorators.push_back(decorator);
+    return decorator;
+}
+
+const std::vector<NodeDecorator*>& Node::GetDecorators() const
+{
+    return m_decorators;
+}
+
+const MUtils::NVec2f Node::GetGridScale() const
+{
+    return m_gridScale;
+}
+
+const MUtils::NRectf& Node::GetCustomViewCells() const
+{
+    return m_viewCells;
+}
+
+void Node::SetCustomViewCells(const MUtils::NRectf& cells)
+{
+    m_viewCells = cells;
 }
 
 } // namespace NodeGraph

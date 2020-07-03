@@ -31,6 +31,7 @@ public:
         auto pNode = std::make_shared<T>(*this, std::forward<Args>(args)...);
         nodes.insert(pNode);
         m_displayNodes.push_back(pNode.get());
+        SetLayoutModified(true);
         return pNode.get();
     }
 
@@ -75,12 +76,16 @@ public:
     const std::vector<Node*>& GetOutputNodes() const { return m_outputNodes; }
     void SetOutputNoes(const std::vector<Node*>& nodes) { m_outputNodes = nodes; }
 
+    void SetLayoutModified(bool modified) { m_layoutModified = modified; }
+    bool IsLayoutModified() const { return m_layoutModified; }
+
 protected:
     std::set<std::shared_ptr<Node>> nodes;
     std::vector<Node*> m_displayNodes;
     uint64_t currentGeneration = 1;
     TPool m_threadPool;
     std::vector<Node*> m_outputNodes;
+    bool m_layoutModified = false;
 }; // Graph
 
 } // namespace NodeGraph
