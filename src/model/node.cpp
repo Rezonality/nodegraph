@@ -29,6 +29,11 @@ Node::~Node()
     }
 }
 
+void Node::SetGraphModified()
+{
+    m_graph.SetLayoutModified(true);
+}
+
 void Node::ClearDecorators()
 {
     for (auto& decorator : m_decorators)
