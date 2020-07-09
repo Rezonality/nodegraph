@@ -140,9 +140,6 @@ void GraphView::EvaluateDragDelta(Pin& param, float rangePerDelta, InputDirectio
     }
 
     const auto& attrib = param.GetAttributes();
-    const double fMin = 0.0;
-    const double fMax = 1.0;
-    const double fRange = fMax - fMin;
     auto startValue = m_pStartValue->Normalized();
     auto const& state = m_canvas.GetInputState();
 
@@ -158,7 +155,7 @@ void GraphView::EvaluateDragDelta(Pin& param, float rangePerDelta, InputDirectio
     {
         if (fStep == 0.0)
         {
-            fStep = std::abs(1.0 / (param.GetAttributes().max.To<double>() - param.GetAttributes().min.To<double>()));
+            fStep = std::abs(1.0 / (attrib.max.To<double>() - attrib.min.To<double>()));
             fStep += std::numeric_limits<double>::epsilon();
         }
     }
@@ -181,7 +178,6 @@ void GraphView::EvaluateDragDelta(Pin& param, float rangePerDelta, InputDirectio
 
 void GraphView::CheckInput(Pin& param, const NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir)
 {
-    const auto& attrib = param.GetAttributes();
     if (param.GetSource() == nullptr)
     {
         captured = CheckCapture(param, region, hover);
@@ -454,7 +450,6 @@ SliderData GraphView::DrawSlider(NRectf region, Pin& param)
     float fMax = 1.0f;
     float fCurrentVal = (float)param.Normalized();
     float fStep = (float)param.NormalizedStep();
-    float fOrigin = (float)param.NormalizedOrigin();
 
     float fRange = std::max(fMax - fMin, std::numeric_limits<float>::epsilon());
     float fThumb = attrib.thumb.To<float>();
@@ -478,9 +473,6 @@ SliderData GraphView::DrawSlider(NRectf region, Pin& param)
 
     // Clamp to sensible range
     auto fVal = std::clamp(fCurrentVal, fMin, fMax);
-
-    // Clamp origin too
-    fOrigin = std::clamp(fOrigin, fMin, fMax);
 
     NRectf thumbRect = NRectf(region.Left() + fVal * fRegionWidthNoThumb,
         region.Top(),
@@ -535,10 +527,6 @@ void GraphView::DrawButton(NRectf region, Pin& param)
     NVec4f fontColor(.8f, .8f, .8f, 1.0f);
 
     auto& attrib = param.GetAttributes();
-
-    float fMin = attrib.min.To<float>();
-    float fMax = attrib.max.To<float>();
-    float fRange = fMax - fMin;
 
     // Draw the shadow
     m_canvas.FillRoundedRect(region, node_borderRadius, shadowColor);
@@ -672,7 +660,6 @@ void GraphView::Show(const NVec2i& displaySize)
     NVec2f currentPos(node_borderPad, node_borderPad);
     NVec4f nodeColor(.5f, .5f, .5f, 1.0f);
     NVec4f pinBGColor(.2f, .2f, .2f, 1.0f);
-    float nodeGap = 10.0f;
 
     float maxHeightNode = 0.0f;
 

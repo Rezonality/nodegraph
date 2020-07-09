@@ -1,5 +1,8 @@
 #include <imgui/imgui.h>
 #include <nodegraph/view/canvas.h>
+#include <mutils/logger/logger.h>
+
+using namespace MUtils;
 
 namespace NodeGraph
 {
@@ -9,6 +12,7 @@ inline CanvasInputState& canvas_imgui_update_state(CanvasInputState& state, cons
     auto mousePos = ImGui::GetIO().MousePos;
 
     state.mousePos = MUtils::NVec2f(mousePos.x - region.Left(), mousePos.y - region.Top());
+    
     for (uint32_t i = 0; i < MOUSE_MAX; i++)
     {
         state.buttonClicked[i] = ImGui::GetIO().MouseClicked[i];

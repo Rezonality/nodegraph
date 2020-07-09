@@ -555,11 +555,11 @@ public:
         : m_value(rhs.m_value)
         , m_initValue(rhs.m_initValue)
         , m_attributes(rhs.m_attributes)
-        , m_currentTick(rhs.m_currentTick)
-        , m_generation(rhs.m_generation)
         , m_endValue(rhs.m_endValue)
-        , m_startTick(rhs.m_startTick)
+        , m_currentTick(rhs.m_currentTick)
         , m_lerpTicks(rhs.m_lerpTicks)
+        , m_startTick(rhs.m_startTick)
+        , m_generation(rhs.m_generation)
     {
     }
 

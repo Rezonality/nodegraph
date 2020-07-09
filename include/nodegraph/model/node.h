@@ -23,6 +23,10 @@ class Node;
     {                                                \
         return ctti::type_id<className>();           \
     }                                                \
+    static const char* StaticAPIName()               \
+    {                                                \
+        return #APIName;                             \
+    }                                                \
     virtual ctti::type_id_t GetType() const override \
     {                                                \
         return TypeID();                             \

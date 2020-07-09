@@ -7,7 +7,7 @@ using namespace NodeGraph;
 class TestNode : public Node
 {
 public:
-    DECLARE_NODE(TestNode, adder);
+    DECLARE_NODE(TestNode, test);
 
     TestNode(Graph& m_graph)
         : Node(m_graph, "Adder")

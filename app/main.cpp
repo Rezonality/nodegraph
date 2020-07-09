@@ -21,7 +21,7 @@ using namespace NodeGraph;
 class TestNode : public Node
 {
 public:
-    DECLARE_NODE(TestNode, adder);
+    DECLARE_NODE(TestNode, test);
 
     TestNode(Graph& m_graph)
         : Node(m_graph, "UI Test")
@@ -157,7 +157,7 @@ public:
         vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
         auto path = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
-        auto font = nvgCreateFont(vg, "sans", path.string().c_str());
+        nvgCreateFont(vg, "sans", path.string().c_str());
 
         m_spCanvas = std::make_shared<CanvasVG>(vg);
         m_spGraphView = std::make_shared<GraphView>(m_graph, *m_spCanvas);
@@ -256,7 +256,6 @@ private:
     NVGcontext* vg = nullptr;
     MUtils::AppFBO m_fbo;
     NVec2i m_displaySize = 0;
-    bool m_slowDrag = false;
 };
 
 App theApp;
