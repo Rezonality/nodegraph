@@ -160,7 +160,7 @@ public:
         nvgCreateFont(vg, "sans", path.string().c_str());
 
         m_spCanvas = std::make_shared<CanvasVG>(vg);
-        m_spGraphView = std::make_shared<GraphView>(m_graph, *m_spCanvas);
+        m_spGraphView = std::make_shared<GraphView>(std::vector<Graph*> { &m_graph }, * m_spCanvas);
         m_spGraphView->BuildNodes();
     }
 

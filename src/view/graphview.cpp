@@ -72,18 +72,21 @@ bool GraphView::ShowNode(const Node* pNode) const
 
 void GraphView::BuildNodes()
 {
-    const auto& ins = m_graph.GetDisplayNodes();
-    for (auto& pNode : ins)
+    for (auto& pGraph : m_graphs)
     {
-        if (mapWorldToView.find(pNode) == mapWorldToView.end())
+        const auto& ins = pGraph->GetDisplayNodes();
+        for (auto& pNode : ins)
         {
-            if (ShowNode(pNode))
+            if (mapWorldToView.find(pNode) == mapWorldToView.end())
             {
-                auto spViewNode = std::make_shared<ViewNode>(pNode);
-                spViewNode->pos = NVec2f(50, 50);
+                if (ShowNode(pNode))
+                {
+                    auto spViewNode = std::make_shared<ViewNode>(pNode);
+                    spViewNode->pos = NVec2f(50, 50);
 
-                mapWorldToView[pNode] = spViewNode;
-                mapInputOrder[m_currentInputIndex++] = pNode;
+                    mapWorldToView[pNode] = spViewNode;
+                    mapInputOrder[m_currentInputIndex++] = pNode;
+                }
             }
         }
     }

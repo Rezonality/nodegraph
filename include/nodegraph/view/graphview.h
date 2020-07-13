@@ -35,8 +35,8 @@ struct LabelInfo
 class GraphView
 {
 public:
-    GraphView(Graph& m_graph, Canvas& canvas)
-        : m_graph(m_graph)
+    GraphView(const std::vector<Graph*>& graphs, Canvas& canvas)
+        : m_graphs(graphs)
         , m_canvas(canvas)
     {
         vg = static_cast<CanvasVG&>(canvas).GetVG();
@@ -67,7 +67,7 @@ public:
     }
 
     bool IsCaptured() const { return m_pCaptureParam != nullptr; }
-    Graph& GetGraph() const { return m_graph; }
+    const std::vector<Graph*>& GetGraphs() const { return m_graphs; }
 
 private:
     enum class InputDirection
@@ -80,7 +80,7 @@ private:
     void CheckInput(Pin& param, const MUtils::NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir);
 
 private:
-    Graph& m_graph;
+    std::vector<Graph*> m_graphs;
     std::map<Node*, std::shared_ptr<ViewNode>> mapWorldToView;
     std::map<uint32_t, Node*> mapInputOrder;
 
