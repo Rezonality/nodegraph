@@ -7,14 +7,14 @@ set(COMPANY "NodeGraph")
 set(COPYRIGHT "Copyright (c) 2019 Chris Maughan. All rights reserved.")
 set(IDENTIFIER "com.nodegraph")
 
+set(APP_ROOT ${CMAKE_CURRENT_LIST_DIR})
+
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_LIST_DIR}/cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/demo_common.cmake)
 
-set(NODEGRAPH_APP_ROOT ${CMAKE_CURRENT_LIST_DIR}/../)
-
 set(NODEGRAPH_APP_SOURCE
-    ${NODEGRAPH_ROOT}/app/main.cpp
-    ${NODEGRAPH_ROOT}/app/CMakeLists.txt
+    ${APP_ROOT}/main.cpp
+    ${APP_ROOT}/CMakeLists.txt
     )
 
 set(RESOURCE_FOLDER ${CMAKE_CURRENT_LIST_DIR}/res)
@@ -28,7 +28,7 @@ add_executable (${APP_NAME}
 
 target_include_directories(${APP_NAME}
     PRIVATE
-    ${NODEGRAPH_ROOT}/app
+    ${CMAKE_CURRENT_LIST_DIR} 
     ${CMAKE_BINARY_DIR}
     )
 

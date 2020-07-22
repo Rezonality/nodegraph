@@ -3,8 +3,7 @@ find_package(MUtils REQUIRED)
 
 macro(add_project_meta FILES_TO_INCLUDE)
 if (NOT RESOURCE_FOLDER)
-    MESSAGE(STATUS ${PROJECT_SOURCE_DIR})
-    set(RESOURCE_FOLDER ${PROJECT_SOURCE_DIR}/res)
+    set(RESOURCE_FOLDER ${CMAKE_CURRENT_BINARY_DIR}/../res)
 endif()
 
 if (NOT ICON_NAME)
@@ -26,10 +25,10 @@ set(RESOURCE_DEPLOY_FILES ${RESOURCE_DEPLOY_FILES}
     ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Roboto-Medium.ttf)
 
 if (WIN32)
-    configure_file("${DEMO_ROOT}/cmake/windows_metafile.rc.in"
+    configure_file("${APP_ROOT}/cmake/windows_metafile.rc.in"
       "windows_metafile.rc"
     )
-    set(RES_FILES windows_metafile.rc ${PROJECT_SOURCE_DIR}/res/app.manifest)
+set(RES_FILES windows_metafile.rc ${APP_ROOT}/res/app.manifest)
 endif()
 
 if (APPLE)
