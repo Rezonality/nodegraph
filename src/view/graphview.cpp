@@ -7,6 +7,7 @@
 
 #include <magic_enum/magic_enum.hpp>
 #include <mutils/logger/logger.h>
+#include <mutils/ui/dpi.h>
 
 #include <fmt/format.h>
 
@@ -658,6 +659,7 @@ void GraphView::Show(const NVec2i& displaySize)
 
     nvgBeginFrame(vg, float(displaySize.x), float(displaySize.y), 1.0f);
 
+    node_gridScale = 75.0f * dpi.scaleFactorXY.x;
     m_canvas.DrawGrid(node_gridScale);
 
     NVec2f currentPos(node_borderPad, node_borderPad);

@@ -102,7 +102,7 @@ public:
         pButton->SetViewCells(NRectf(.25f, 2.0, 2.5f, .5f));
 
         auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "Label"));
-        pDecorator->gridLocation = NRectf(4, 1, 1, 1);
+        pDecorator->gridLocation = NRectf(6, 1, 1, 1);
     }
 
     virtual void Compute() override
@@ -265,7 +265,3 @@ int main(int args, char** ppArgs)
 {
     return sdl_imgui_start(args, ppArgs, &theApp);
 }
-
-/*
-
-        */
