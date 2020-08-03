@@ -35,6 +35,8 @@ git_stats
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
+cmake-*
+
 # NUNIT
 *.VisualState.xml
 TestResult.xml

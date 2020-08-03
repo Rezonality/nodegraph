@@ -22,7 +22,7 @@ public:
     Graph();
     virtual ~Graph();
 
-    virtual void Destroy();
+    virtual void Clear();
 
     // Use this method to create nodes and add them to the m_graph
     template <typename T, typename... Args>
@@ -68,8 +68,6 @@ public:
 
     const std::set<std::shared_ptr<Node>>& GetNodes() const { return nodes; }
 
-    TPool& ThreadPool() { return m_threadPool; }
-
     const std::vector<Node*>& GetDisplayNodes() const { return m_displayNodes; }
     void SetDisplayNodes(const std::vector<Node*>& nodes) { m_displayNodes = nodes; }
    
@@ -83,7 +81,6 @@ protected:
     std::set<std::shared_ptr<Node>> nodes;
     std::vector<Node*> m_displayNodes;
     uint64_t currentGeneration = 1;
-    TPool m_threadPool;
     std::vector<Node*> m_outputNodes;
     bool m_layoutModified = false;
 }; // Graph

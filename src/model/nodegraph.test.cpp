@@ -27,7 +27,7 @@ public:
     Pin* pValue2 = nullptr;
 };
 
-TEST_CASE("NodeGraph.Parameters", "[Parameters]")
+TEST_CASE("Parameters Get and Set", "[Parameters]")
 {
     SECTION("Default Parameter Can Cast")
     {
@@ -66,10 +66,9 @@ TEST_CASE("NodeGraph.Parameters", "[Parameters]")
         auto old = p.GetGeneration();
         p.SetFrom<int>(5);
         REQUIRE(old != p.GetGeneration());
-    
     }
 }
-TEST_CASE("NodeGraph.Nodes", "[Nodes]")
+TEST_CASE("Creation", "[Nodes]")
 {
     Graph g;
     auto pNode = g.CreateNode<TestNode>();
@@ -84,9 +83,42 @@ TEST_CASE("NodeGraph.Nodes", "[Nodes]")
     REQUIRE_FALSE(val == .6f);
 
     // Compute the m_graph at tick 0
-    g.Compute(std::vector<Node*>{pNode}, 0);
+    g.Compute(std::vector<Node*>{ pNode }, 0);
 
     // Get the result
     val = pNode->pSum->GetValue<float>();
     REQUIRE(val == .6f);
+}
+
+SCENARIO("NodeGraph clears correctly", "[NodeGraph]")
+{
+    GIVEN("A node graph")
+    {
+        Graph g;
+
+        WHEN("A node is created")
+        {
+            auto pNode = g.CreateNode<TestNode>();
+            auto type = pNode->GetType();
+
+            THEN("It is in the graph")
+            {
+                auto found = g.Find<TestNode>(type);
+                REQUIRE(!found.empty());
+                REQUIRE(*found.begin() == pNode);
+            }
+            
+            WHEN("The graph is now cleared")
+            {
+                g.Clear();
+
+                THEN("It is empty again")
+                {
+                    auto found = g.Find<TestNode>(type);
+                    REQUIRE(found.empty());
+                }
+            }
+        }
+
+    }
 }

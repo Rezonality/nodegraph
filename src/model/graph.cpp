@@ -17,12 +17,16 @@ Graph::Graph()
 
 Graph::~Graph()
 {
-    Destroy();
+    Clear();
 }
 
-void Graph::Destroy()
+void Graph::Clear()
 {
     nodes.clear();
+    m_displayNodes.clear();
+    currentGeneration = 1;
+    m_outputNodes.clear();
+    m_layoutModified = true;
 }
 
 void Graph::Visit(Node& node, PinDir dir, ParameterType type, std::function<bool(Node&)> fn)
