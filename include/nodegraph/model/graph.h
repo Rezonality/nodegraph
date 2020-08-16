@@ -28,10 +28,11 @@ public:
     template <typename T, typename... Args>
     T* CreateNode(Args&&... args)
     {
+        PreModifyGraph();
+
         auto pNode = std::make_shared<T>(*this, std::forward<Args>(args)...);
         nodes.insert(pNode);
         m_displayNodes.push_back(pNode.get());
-        SetLayoutModified(true);
         return pNode.get();
     }
 
@@ -65,6 +66,10 @@ public:
     virtual std::vector<Pin*> GetControlSurface() const;
 
     virtual void Compute(const std::vector<Node*>& nodes, int64_t numTicks);
+    
+    virtual void PreModifyGraph() { m_modified = true; }
+    virtual bool HasModified() const { return m_modified; }
+    virtual void ResetModified() { m_modified = false; }
 
     const std::set<std::shared_ptr<Node>>& GetNodes() const { return nodes; }
 
@@ -72,17 +77,14 @@ public:
     void SetDisplayNodes(const std::vector<Node*>& nodes) { m_displayNodes = nodes; }
    
     const std::vector<Node*>& GetOutputNodes() const { return m_outputNodes; }
-    void SetOutputNoes(const std::vector<Node*>& nodes) { m_outputNodes = nodes; }
-
-    void SetLayoutModified(bool modified) { m_layoutModified = modified; }
-    bool IsLayoutModified() const { return m_layoutModified; }
+    void SetOutputNodes(const std::vector<Node*>& nodes) { m_outputNodes = nodes; }
 
 protected:
     std::set<std::shared_ptr<Node>> nodes;
     std::vector<Node*> m_displayNodes;
     uint64_t currentGeneration = 1;
     std::vector<Node*> m_outputNodes;
-    bool m_layoutModified = false;
+    bool m_modified = false;
 }; // Graph
 
 } // namespace NodeGraph

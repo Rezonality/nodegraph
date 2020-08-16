@@ -29,13 +29,14 @@ Node::~Node()
     }
 }
 
-void Node::SetGraphModified()
+void Node::PreModifyGraph()
 {
-    m_graph.SetLayoutModified(true);
+    m_graph.PreModifyGraph();
 }
 
 void Node::ClearDecorators()
 {
+    PreModifyGraph();
     for (auto& decorator : m_decorators)
     {
         delete decorator;
@@ -45,6 +46,8 @@ void Node::ClearDecorators()
 
 void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
 {
+    PreModifyGraph();
+
     if (m_outputs.size() <= (size_t)outputIndex)
     {
         throw std::invalid_argument("outputIndex too big");
@@ -95,12 +98,12 @@ void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
     // Connect it up
     m_outputs[outputIndex]->AddTarget(pDest->GetInputs()[inputIndex]);
     pDest->GetInputs()[inputIndex]->SetSource(m_outputs[outputIndex]);
-
-    m_graph.SetLayoutModified(true);
 }
 
 void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::string& inName)
 {
+    PreModifyGraph();
+
     std::string searchOutputName;
     if (!outputName.empty())
     {
@@ -194,8 +197,6 @@ void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::stri
     // Connect it up
     pOut->AddTarget(pIn);
     pIn->SetSource(pOut);
-
-    m_graph.SetLayoutModified(true);
 }
 
 void Node::Compute()
@@ -225,42 +226,48 @@ Pin* Node::GetPin(const std::string& name) const
 }
 Pin* Node::AddInput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
 {
+    PreModifyGraph();
+
     auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
     m_inputs.push_back(pPin);
     m_flowInputs.push_back(pPin);
-    m_graph.SetLayoutModified(true);
     return pPin;
 }
 
 Pin* Node::AddInput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
 {
+    PreModifyGraph();
+
     auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
     m_inputs.push_back(pPin);
     m_controlInputs.push_back(pPin);
-    m_graph.SetLayoutModified(true);
     return pPin;
 }
 
 Pin* Node::AddOutput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
 {
+    PreModifyGraph();
+
     auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
     m_outputs.push_back(pPin);
     m_flowOutputs.push_back(pPin);
-    m_graph.SetLayoutModified(true);
     return pPin;
 }
 
 Pin* Node::AddOutput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
 {
+    PreModifyGraph();
+
     auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
     m_outputs.push_back(pPin);
     m_controlOutputs.push_back(pPin);
-    m_graph.SetLayoutModified(true);
     return pPin;
 }
 
 NodeDecorator* Node::AddDecorator(NodeDecorator* decorator)
 {
+    PreModifyGraph();
+
     m_decorators.push_back(decorator);
     return decorator;
 }

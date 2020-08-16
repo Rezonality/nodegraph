@@ -129,12 +129,13 @@ public:
 
     Pin* GetPin(const std::string& name) const;
 
-    void SetGraphModified();
+    void PreModifyGraph();
 
     // Make an output pin
     template <class T>
     Pin* AddOutput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
+        PreModifyGraph();
         m_outputs.push_back(new Pin(*this, PinDir::Output, strName, val, attrib));
         return m_outputs[m_outputs.size() - 1];
     }
@@ -146,6 +147,7 @@ public:
     template <class T>
     Pin* AddInput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
+        PreModifyGraph();
         m_inputs.push_back(new Pin(*this, PinDir::Input, strName, val, attrib));
         return m_inputs[m_inputs.size() - 1];
     }

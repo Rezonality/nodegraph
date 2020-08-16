@@ -22,11 +22,12 @@ Graph::~Graph()
 
 void Graph::Clear()
 {
+    PreModifyGraph();
     nodes.clear();
     m_displayNodes.clear();
     currentGeneration = 1;
     m_outputNodes.clear();
-    m_layoutModified = true;
+    m_modified = true;
 }
 
 void Graph::Visit(Node& node, PinDir dir, ParameterType type, std::function<bool(Node&)> fn)
