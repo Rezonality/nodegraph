@@ -2,6 +2,7 @@
 
 #include <mutils/math/imgui_glm.h>
 #include <mutils/ui/sdl_imgui_starter.h>
+#include <mutils/ui/fbo.h>
 
 #include "config_app.h"
 #include <SDL.h>
@@ -199,7 +200,7 @@ public:
 
             fbo_bind(m_fbo);
 
-            sdl_imgui_clear(m_settings.clearColor);
+            fbo_clear(m_settings.clearColor);
 
             m_spGraphView->Show(canvasSize);
             m_graph.Compute(appNodes, 0);
@@ -235,7 +236,7 @@ public:
 
         DrawGraph(region.Size());
 
-        ImGui::Image(*(ImTextureID*)&m_fbo.fboTexture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image(*(ImTextureID*)&m_fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
 
         ImGui::End();
 
@@ -254,7 +255,7 @@ private:
     NodeGraph::Graph m_graph;
     AppStarterSettings m_settings;
     NVGcontext* vg = nullptr;
-    MUtils::AppFBO m_fbo;
+    MUtils::Fbo m_fbo;
     NVec2i m_displaySize = 0;
 };
 
