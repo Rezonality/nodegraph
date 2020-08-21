@@ -9,6 +9,8 @@
 
 #include "pin.h"
 
+#include <nodegraph/model/graph.h>
+
 struct NVGcontext;
 
 namespace NodeGraph
@@ -17,6 +19,7 @@ namespace NodeGraph
 class GraphView;
 class Canvas;
 class Node;
+class Graph;
 
 #define DECLARE_NODE(className, APIName)             \
     static ctti::type_id_t TypeID()                  \
@@ -37,8 +40,6 @@ class Node;
     }
 
 constexpr auto str_AutoGen = "auto";
-
-class Graph;
 
 enum class DecoratorType
 {
@@ -129,13 +130,11 @@ public:
 
     Pin* GetPin(const std::string& name) const;
 
-    void PreModifyGraph();
-
     // Make an output pin
     template <class T>
     Pin* AddOutput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
-        PreModifyGraph();
+        GraphModify __modify(m_graph);
         m_outputs.push_back(new Pin(*this, PinDir::Output, strName, val, attrib));
         return m_outputs[m_outputs.size() - 1];
     }
@@ -147,7 +146,7 @@ public:
     template <class T>
     Pin* AddInput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
-        PreModifyGraph();
+        GraphModify __modify(m_graph);
         m_inputs.push_back(new Pin(*this, PinDir::Input, strName, val, attrib));
         return m_inputs[m_inputs.size() - 1];
     }

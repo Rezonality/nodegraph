@@ -38,7 +38,7 @@ float node_labelPad = 6.0f;
 namespace NodeGraph
 {
 
-bool GraphView::ShowNode(const Node* pNode) const
+bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
 {
     if (pNode->IsHidden())
         return false;
@@ -71,33 +71,47 @@ bool GraphView::ShowNode(const Node* pNode) const
     return false;
 }
 
+// Building pending view nodes
 void GraphView::BuildNodes()
 {
-    for (auto& pGraph : m_graphs)
+    for (auto& [pGraph, pViewData] : m_graphs)
     {
-        const auto& ins = pGraph->GetDisplayNodes();
-        for (auto& pNode : ins)
-        {
-            if (mapWorldToView.find(pNode) == mapWorldToView.end())
-            {
-                if (ShowNode(pNode))
-                {
-                    auto spViewNode = std::make_shared<ViewNode>(pNode);
-                    spViewNode->pos = NVec2f(50, 50);
+        BuildNodes(pGraph);
+    }
+}
 
-                    mapWorldToView[pNode] = spViewNode;
-                    mapInputOrder[m_currentInputIndex++] = pNode;
-                }
+void GraphView::BuildNodes(Graph* pGraph)
+{
+    auto& viewData = m_graphs.at(pGraph);
+    if (!viewData->pendingUpdate)
+    {
+        return;
+    }
+
+    viewData->pendingUpdate = false;
+
+    const auto& ins = pGraph->GetDisplayNodes();
+    for (auto& pNode : ins)
+    {
+        if (viewData->mapWorldToView.find(pNode) == viewData->mapWorldToView.end())
+        {
+            if (ShouldShowNode(*viewData->spCanvas, pNode))
+            {
+                auto spViewNode = std::make_shared<ViewNode>(pNode);
+                spViewNode->pos = NVec2f(50, 50);
+
+                viewData->mapWorldToView[pNode] = spViewNode;
+                viewData->mapInputOrder[m_currentInputIndex++] = pNode;
             }
         }
     }
 }
 
-bool GraphView::CheckCapture(Parameter& param, const NRectf& region, bool& hover)
+bool GraphView::CheckCapture(Canvas& canvas, Parameter& param, const NRectf& region, bool& hover)
 {
-    auto pos = m_canvas.GetViewMousePos();
+    auto pos = canvas.GetViewMousePos();
     bool overParam = region.Contains(NVec2f(pos.x, pos.y));
-    auto const& state = m_canvas.GetInputState();
+    auto const& state = canvas.GetInputState();
 
     if (state.buttonReleased[MOUSE_LEFT])
     {
@@ -130,13 +144,13 @@ bool GraphView::CheckCapture(Parameter& param, const NRectf& region, bool& hover
         hover = false;
     }
 
-    m_canvas.Capture(m_pCaptureParam != nullptr);
+    canvas.Capture(m_pCaptureParam != nullptr);
 
     m_hideCursor = m_pCaptureParam != nullptr;
     return m_pCaptureParam == &param;
 }
 
-void GraphView::EvaluateDragDelta(Pin& param, float rangePerDelta, InputDirection dir)
+void GraphView::EvaluateDragDelta(Canvas& canvas, Pin& param, float rangePerDelta, InputDirection dir)
 {
     if (!m_pStartValue)
     {
@@ -145,7 +159,7 @@ void GraphView::EvaluateDragDelta(Pin& param, float rangePerDelta, InputDirectio
 
     const auto& attrib = param.GetAttributes();
     auto startValue = m_pStartValue->Normalized();
-    auto const& state = m_canvas.GetInputState();
+    auto const& state = canvas.GetInputState();
 
     NVec2f d = state.dragDelta;
     if (state.slowDrag)
@@ -180,19 +194,19 @@ void GraphView::EvaluateDragDelta(Pin& param, float rangePerDelta, InputDirectio
     }
 }
 
-void GraphView::CheckInput(Pin& param, const NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir)
+void GraphView::CheckInput(Canvas& canvas, Pin& param, const NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir)
 {
     if (param.GetSource() == nullptr)
     {
-        captured = CheckCapture(param, region, hover);
+        captured = CheckCapture(canvas, param, region, hover);
         if (captured)
         {
-            EvaluateDragDelta(param, rangePerDelta, dir);
+            EvaluateDragDelta(canvas, param, rangePerDelta, dir);
         }
     }
 }
 
-void GraphView::DrawDecorator(NodeDecorator& decorator, const NRectf& rc)
+void GraphView::DrawDecorator(Canvas& canvas, NodeDecorator& decorator, const NRectf& rc)
 {
     static const NVec4f colorLabel(0.20f, 0.20f, 0.20f, 1.0f);
     static const NVec4f fontColor(.8f, .8f, .8f, 1.0f);
@@ -201,16 +215,16 @@ void GraphView::DrawDecorator(NodeDecorator& decorator, const NRectf& rc)
     {
         float fontSize = 24.0f;
 
-        m_canvas.Text(rc.Center(), fontSize, fontColor, decorator.strName.c_str());
+        canvas.Text(rc.Center(), fontSize, fontColor, decorator.strName.c_str());
     }
     else if (decorator.type == DecoratorType::Line)
     {
         auto center = rc.Center();
-        m_canvas.Stroke(NVec2f(rc.Left(), center.y), NVec2f(rc.Right(), center.y), 2.0f, node_shadowColor);
+        canvas.Stroke(NVec2f(rc.Left(), center.y), NVec2f(rc.Right(), center.y), 2.0f, node_shadowColor);
     }
 }
 
-void GraphView::DrawLabel(Parameter& param, const LabelInfo& info)
+void GraphView::DrawLabel(Canvas& canvas, Parameter& param, const LabelInfo& info)
 {
     NVec4f colorLabel(0.20f, 0.20f, 0.20f, 1.0f);
     NVec4f fontColor(.95f, .95f, .95f, 1.0f);
@@ -255,7 +269,7 @@ void GraphView::DrawLabel(Parameter& param, const LabelInfo& info)
     }
 
     float fontSize = 24.0f;
-    NRectf rcFont = m_canvas.TextBounds(info.pos, fontSize, val.c_str());
+    NRectf rcFont = canvas.TextBounds(info.pos, fontSize, val.c_str());
 
     NRectf rcBounds = rcFont;
     rcBounds.Adjust(-node_labelPad, -node_labelPad, node_labelPad, node_labelPad);
@@ -264,12 +278,12 @@ void GraphView::DrawLabel(Parameter& param, const LabelInfo& info)
     auto rcShadow = rcBounds;
     rcShadow.Adjust(-node_shadowSize, -node_shadowSize, node_shadowSize, node_shadowSize);
 
-    m_canvas.FillRect(rcShadow, node_shadowColor);
-    m_canvas.FillRect(rcBounds, colorLabel);
-    m_canvas.Text(rcFont.Center(), fontSize, fontColor, val.c_str());
+    canvas.FillRect(rcShadow, node_shadowColor);
+    canvas.FillRect(rcBounds, colorLabel);
+    canvas.Text(rcFont.Center(), fontSize, fontColor, val.c_str());
 }
 
-bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
+bool GraphView::DrawKnob(Canvas& canvas, NVec2f pos, float knobSize, Pin& param)
 {
     NVec4f color(0.45f, 0.45f, 0.45f, 1.0f);
     NVec4f colorLabel(0.35f, 0.35f, 0.35f, 1.0f);
@@ -320,7 +334,7 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
 
     bool hover = false;
     bool captured = false;
-    CheckInput(param, region, rangePerDelta, hover, captured, InputDirection::Y);
+    CheckInput(canvas, param, region, rangePerDelta, hover, captured, InputDirection::Y);
 
     knobSize *= .5f;
     knobSize -= (channelGap + std::ceil(channelWidth * .5f));
@@ -356,11 +370,11 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
     // Knob surrounding shadow; a filled circle behind it
     if (miniKnob)
     {
-        m_canvas.FilledCircle(pos, knobSize + channelWidth * .5f + node_shadowSize, shadowColor);
+        canvas.FilledCircle(pos, knobSize + channelWidth * .5f + node_shadowSize, shadowColor);
     }
     else
     {
-        m_canvas.FilledCircle(pos, knobSize + node_shadowSize, shadowColor);
+        canvas.FilledCircle(pos, knobSize + node_shadowSize, shadowColor);
     }
 
     if (param.GetAttributes().flags & ParameterFlags::ReadOnly)
@@ -379,21 +393,21 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
     // Only draw the actual knob if big enough
     if (!miniKnob)
     {
-        m_canvas.FilledGradientCircle(pos, knobSize, NRectf(pos.x, pos.y - knobSize, 0, knobSize * 1.5f), colorHL, color);
+        canvas.FilledGradientCircle(pos, knobSize, NRectf(pos.x, pos.y - knobSize, 0, knobSize * 1.5f), colorHL, color);
 
         // the notch on the button/indicator
         auto markerAngle = nvgDegToRad(posArc + arcOffset);
         auto markVector = NVec2f(std::cos(markerAngle), std::sin(markerAngle));
-        m_canvas.Stroke(pos + markVector * (markerInset - node_shadowSize), pos + markVector * (knobSize - node_shadowSize), channelWidth, shadowColor);
-        m_canvas.Stroke(pos + markVector * markerInset, pos + markVector * (knobSize - node_shadowSize * 2), channelWidth - node_shadowSize, markColor);
+        canvas.Stroke(pos + markVector * (markerInset - node_shadowSize), pos + markVector * (knobSize - node_shadowSize), channelWidth, shadowColor);
+        canvas.Stroke(pos + markVector * markerInset, pos + markVector * (knobSize - node_shadowSize * 2), channelWidth - node_shadowSize, markColor);
     }
     else
     {
         float size = knobSize + channelWidth * .5f;
-        m_canvas.FilledGradientCircle(pos, size, NRectf(pos.x, pos.y - size, 0, size * 1.5f), colorHL, color);
+        canvas.FilledGradientCircle(pos, size, NRectf(pos.x, pos.y - size, 0, size * 1.5f), colorHL, color);
     }
 
-    m_canvas.Arc(pos, knobSize + channelGap, channelWidth, channelColor, startArc + arcOffset, endArc + arcOffset);
+    canvas.Arc(pos, knobSize + channelGap, channelWidth, channelColor, startArc + arcOffset, endArc + arcOffset);
 
     // Cover the shortest arc between the 2 points
     if (posArcBegin > posArc)
@@ -401,20 +415,20 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
         std::swap(posArcBegin, posArc);
     }
 
-    m_canvas.Arc(pos, knobSize + channelGap, channelWidth, channelHLColor, posArcBegin + arcOffset, posArc + arcOffset);
+    canvas.Arc(pos, knobSize + channelGap, channelWidth, channelHLColor, posArcBegin + arcOffset, posArc + arcOffset);
 
     if (fCurrentVal > (fMax + std::numeric_limits<float>::epsilon()))
     {
-        m_canvas.Arc(pos, knobSize + channelGap, channelWidth, channelHighColor, endArc - 10 + arcOffset, endArc + arcOffset);
+        canvas.Arc(pos, knobSize + channelGap, channelWidth, channelHighColor, endArc - 10 + arcOffset, endArc + arcOffset);
     }
     else if (fCurrentVal < (fMin - std::numeric_limits<float>::epsilon()))
     {
-        m_canvas.Arc(pos, knobSize + channelGap, channelWidth, channelHighColor, startArc + arcOffset, startArc + 10 + arcOffset);
+        canvas.Arc(pos, knobSize + channelGap, channelWidth, channelHighColor, startArc + arcOffset, startArc + 10 + arcOffset);
     }
 
     if (!miniKnob)
     {
-        m_canvas.Text(NVec2f(pos.x, pos.y + knobSize + channelGap + fontSize * 0.5f + 2.0f), fontSize, fontColor, label.c_str());
+        canvas.Text(NVec2f(pos.x, pos.y + knobSize + channelGap + fontSize * 0.5f + 2.0f), fontSize, fontColor, label.c_str());
     }
 
     if ((captured || hover) && (param.GetAttributes().displayType != ParameterDisplayType::None))
@@ -423,7 +437,7 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
         float offset = knobSize * 2.0f + fontSize * .5f;
         if (miniKnob)
         {
-            offset += fontSize*4.0f;
+            offset += fontSize * 4.0f;
             auto pPin = dynamic_cast<Pin*>(&param);
             if (pPin)
             {
@@ -436,7 +450,7 @@ bool GraphView::DrawKnob(NVec2f pos, float knobSize, Pin& param)
     return false;
 }
 
-SliderData GraphView::DrawSlider(NRectf region, Pin& param)
+SliderData GraphView::DrawSlider(Canvas& canvas, NRectf region, Pin& param)
 {
     NVec4f color(0.30f, 0.30f, 0.30f, 1.0f);
     NVec4f colorHL(0.35f, 0.35f, 0.35f, 1.0f);
@@ -459,13 +473,13 @@ SliderData GraphView::DrawSlider(NRectf region, Pin& param)
     float fThumb = attrib.thumb.To<float>();
 
     // Draw the shadow
-    m_canvas.FillRoundedRect(region, node_borderRadius, shadowColor);
+    canvas.FillRoundedRect(region, node_borderRadius, shadowColor);
 
     // Now we are at the contents
     region.Adjust(node_shadowSize, node_shadowSize, -node_shadowSize, -node_shadowSize);
 
     // Draw the interior
-    m_canvas.FillGradientRoundedRect(region, node_borderRadius, region, color, colorHL);
+    canvas.FillGradientRoundedRect(region, node_borderRadius, region, color, colorHL);
 
     SliderData ret;
 
@@ -489,10 +503,10 @@ SliderData GraphView::DrawSlider(NRectf region, Pin& param)
 
     if (param.GetSource() == nullptr)
     {
-        captured = CheckCapture(param, region, hover);
+        captured = CheckCapture(canvas, param, region, hover);
         if (captured)
         {
-            auto pos = m_canvas.GetViewMousePos();
+            auto pos = canvas.GetViewMousePos();
             auto fNewVal = ((pos.x - region.Left()) * rangePerPixel) - (fThumbWidth * .5f * rangePerPixel);
 
             auto fQuant = std::floor(fNewVal / fStep) * fStep;
@@ -507,7 +521,7 @@ SliderData GraphView::DrawSlider(NRectf region, Pin& param)
     }
 
     // Draw the thumb
-    m_canvas.FillRoundedRect(thumbRect, node_borderRadius, markColor);
+    canvas.FillRoundedRect(thumbRect, node_borderRadius, markColor);
 
     ret.thumb = thumbRect;
 
@@ -518,7 +532,7 @@ SliderData GraphView::DrawSlider(NRectf region, Pin& param)
     return ret;
 };
 
-void GraphView::DrawButton(NRectf region, Pin& param)
+void GraphView::DrawButton(Canvas& canvas, NRectf region, Pin& param)
 {
     NVec4f color(0.30f, 0.30f, 0.30f, 1.0f);
     NVec4f colorHL(0.35f, 0.35f, 0.35f, 1.0f);
@@ -533,7 +547,7 @@ void GraphView::DrawButton(NRectf region, Pin& param)
     auto& attrib = param.GetAttributes();
 
     // Draw the shadow
-    m_canvas.FillRoundedRect(region, node_borderRadius, shadowColor);
+    canvas.FillRoundedRect(region, node_borderRadius, shadowColor);
 
     // Now we are at the contents
     region.Adjust(node_shadowSize, node_shadowSize, -node_shadowSize, -node_shadowSize);
@@ -549,9 +563,9 @@ void GraphView::DrawButton(NRectf region, Pin& param)
     float buttonWidth = region.Width() / numButtons;
     buttonWidth -= node_buttonPad;
 
-    auto mousePos = m_canvas.GetViewMousePos();
+    auto mousePos = canvas.GetViewMousePos();
 
-    auto const& state = m_canvas.GetInputState();
+    auto const& state = canvas.GetInputState();
     for (int i = 0; i < numButtons; i++)
     {
         auto buttonRegion = NRectf(region.Left() + i * (buttonWidth + node_buttonPad), region.Top(), buttonWidth, region.Height());
@@ -611,56 +625,65 @@ void GraphView::DrawButton(NRectf region, Pin& param)
         if (numButtons == 1)
         {
             buttonRegion.Adjust(0, 0, 1, 0);
-            m_canvas.FillGradientRoundedRect(buttonRegion, node_borderRadius, buttonRegion, buttonColor, buttonHLColor);
+            canvas.FillGradientRoundedRect(buttonRegion, node_borderRadius, buttonRegion, buttonColor, buttonHLColor);
         }
         else
         {
             if (i == 0)
             {
-                m_canvas.FillGradientRoundedRectVarying(buttonRegion, NVec4f(node_borderRadius, 0.0f, 0.0f, node_borderRadius), buttonRegion, buttonColor, buttonHLColor);
+                canvas.FillGradientRoundedRectVarying(buttonRegion, NVec4f(node_borderRadius, 0.0f, 0.0f, node_borderRadius), buttonRegion, buttonColor, buttonHLColor);
             }
             else if (i == numButtons - 1)
             {
                 buttonRegion.Adjust(0, 0, 1, 0);
-                m_canvas.FillGradientRoundedRectVarying(buttonRegion, NVec4f(0.0f, node_borderRadius, node_borderRadius, 0.0f), buttonRegion, buttonColor, buttonHLColor);
+                canvas.FillGradientRoundedRectVarying(buttonRegion, NVec4f(0.0f, node_borderRadius, node_borderRadius, 0.0f), buttonRegion, buttonColor, buttonHLColor);
             }
             else
             {
-                m_canvas.FillGradientRoundedRect(buttonRegion, 0.0f, buttonRegion, buttonColor, buttonHLColor);
+                canvas.FillGradientRoundedRect(buttonRegion, 0.0f, buttonRegion, buttonColor, buttonHLColor);
             }
         }
 
         if (attrib.labels.size() > i)
         {
-            m_canvas.Text(buttonRegion.Center() + NVec2f(0, 1), buttonRegion.Height() * .5f, node_buttonTextColor, attrib.labels[i].c_str());
+            canvas.Text(buttonRegion.Center() + NVec2f(0, 1), buttonRegion.Height() * .5f, node_buttonTextColor, attrib.labels[i].c_str());
         }
     }
 }
 
-NRectf GraphView::DrawNode(const NRectf& pos, Node* pNode)
+NRectf GraphView::DrawNode(Canvas& canvas, const NRectf& pos, Node* pNode)
 {
-    m_canvas.FillRoundedRect(pos, node_borderRadius, node_Color);
+    canvas.FillRoundedRect(pos, node_borderRadius, node_Color);
 
-    m_canvas.FillRoundedRect(NRectf(pos.Left() + node_titleBorder, pos.Top() + node_titleBorder, pos.Width() - node_titleBorder * 2.0f, node_titleHeight), node_borderRadius, node_TitleBGColor);
+    canvas.FillRoundedRect(NRectf(pos.Left() + node_titleBorder, pos.Top() + node_titleBorder, pos.Width() - node_titleBorder * 2.0f, node_titleHeight), node_borderRadius, node_TitleBGColor);
 
-    m_canvas.Text(NVec2f(pos.Center().x, pos.Top() + node_titleBorder + node_titleHeight * .5f), node_titleFontSize, node_TitleColor, pNode->GetName().c_str());
+    canvas.Text(NVec2f(pos.Center().x, pos.Top() + node_titleBorder + node_titleHeight * .5f), node_titleFontSize, node_TitleColor, pNode->GetName().c_str());
 
 #ifdef _DEBUG
-    m_canvas.Text(NVec2f(pos.Left() + node_titleBorder * 3.0f, pos.Top() + node_titleBorder + node_titleHeight * .5f), node_titleFontSize / 2, NVec4f(.9f), fmt::format("{}", pNode->GetGeneration()).c_str());
+    canvas.Text(NVec2f(pos.Left() + node_titleBorder * 3.0f, pos.Top() + node_titleBorder + node_titleHeight * .5f), node_titleFontSize / 2, NVec4f(.9f), fmt::format("{}", pNode->GetGeneration()).c_str());
 #endif
     auto contentRect = NRectf(pos.Left() + node_borderPad, pos.Top() + node_titleBorder + node_titleHeight + node_borderPad, pos.Width() - (node_borderPad * 2), pos.Height() - node_titleHeight - (node_titleBorder * 2.0f) - node_borderPad);
 
     return contentRect;
 }
 
-void GraphView::Show(const NVec2i& displaySize)
+void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
 {
-    BuildNodes();
+    auto itrData = m_graphs.find(pGraph);
+    if (itrData == m_graphs.end())
+    {
+        return;
+    }
 
-    nvgBeginFrame(vg, float(displaySize.x), float(displaySize.y), 1.0f);
+    BuildNodes(pGraph);
+
+    auto& viewData = *itrData->second;
+    auto& canvas = *viewData.spCanvas;
+
+    nvgBeginFrame(viewData.spCanvas->GetVG(), float(displaySize.x), float(displaySize.y), 1.0f);
 
     node_gridScale = 75.0f * dpi.scaleFactorXY.x;
-    m_canvas.DrawGrid(node_gridScale);
+    viewData.spCanvas->DrawGrid(node_gridScale);
 
     NVec2f currentPos(node_borderPad, node_borderPad);
     NVec4f nodeColor(.5f, .5f, .5f, 1.0f);
@@ -670,9 +693,9 @@ void GraphView::Show(const NVec2i& displaySize)
 
     m_drawLabels.clear();
 
-    for (auto& [id, pWorld] : mapInputOrder)
+    for (auto& [id, pWorld] : viewData.mapInputOrder)
     {
-        auto pView = mapWorldToView[pWorld];
+        auto pView = viewData.mapWorldToView[pWorld];
 
         NVec2f gridSize(0);
 
@@ -717,7 +740,7 @@ void GraphView::Show(const NVec2i& displaySize)
             maxHeightNode = 0.0f;
         }
 
-        auto contentRect = DrawNode(NRectf(currentPos.x, currentPos.y, nodeSize.x, nodeSize.y), pWorld);
+        auto contentRect = DrawNode(canvas, NRectf(currentPos.x, currentPos.y, nodeSize.x, nodeSize.y), pWorld);
 
         auto cellSize = contentRect.Size() / gridSize;
 
@@ -735,7 +758,7 @@ void GraphView::Show(const NVec2i& displaySize)
                 cellSize.y * decoratorGrid.Height());
             decoratorCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, /*-node_borderPad*/ 0.0f);
 
-            DrawDecorator(*decorator, decoratorCell);
+            DrawDecorator(canvas, *decorator, decoratorCell);
         }
 
         for (auto& pInput : pins)
@@ -757,23 +780,23 @@ void GraphView::Show(const NVec2i& displaySize)
 
             if (pInput->GetAttributes().ui == ParameterUI::Knob)
             {
-                DrawKnob(NVec2f(pinCell.Center().x, pinCell.Center().y), std::min(pinCell.Width(), pinCell.Height()) - node_pinPad * 2.0f, *pInput);
+                DrawKnob(canvas, NVec2f(pinCell.Center().x, pinCell.Center().y), std::min(pinCell.Width(), pinCell.Height()) - node_pinPad * 2.0f, *pInput);
             }
             else if (pInput->GetAttributes().ui == ParameterUI::Slider)
             {
                 pinCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, -node_pinPad);
-                DrawSlider(pinCell, *pInput);
+                DrawSlider(canvas, pinCell, *pInput);
             }
             else if (pInput->GetAttributes().ui == ParameterUI::Button)
             {
                 pinCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, -node_pinPad);
-                DrawButton(pinCell, *pInput);
+                DrawButton(canvas, pinCell, *pInput);
             }
 
             else if (pInput->GetAttributes().ui == ParameterUI::Custom)
             {
                 pinCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, -node_pinPad);
-                pWorld->DrawCustomPin(*this, m_canvas, pinCell, *pInput);
+                pWorld->DrawCustomPin(*this, canvas, pinCell, *pInput);
             }
         }
 
@@ -789,9 +812,9 @@ void GraphView::Show(const NVec2i& displaySize)
                 cellSize.y * custom.Height());
             cell.Adjust(node_borderPad, node_borderPad, -node_borderPad, /*-node_borderPad*/ 0.0f);
 
-            m_canvas.FillRoundedRect(cell, node_borderRadius, pinBGColor);
+            canvas.FillRoundedRect(cell, node_borderRadius, pinBGColor);
 
-            pWorld->DrawCustom(*this, m_canvas, cell);
+            pWorld->DrawCustom(*this, canvas, cell);
         }
 
         maxHeightNode = std::max(maxHeightNode, nodeSize.y + node_borderPad * 2.0f);
@@ -800,10 +823,79 @@ void GraphView::Show(const NVec2i& displaySize)
 
     for (auto& [param, info] : m_drawLabels)
     {
-        DrawLabel(*param, info);
+        DrawLabel(canvas, *param, info);
     }
 
-    nvgEndFrame(vg);
+    nvgEndFrame(viewData.spCanvas->GetVG());
 }
+
+void GraphView::AddGraph(Graph* pAdd, std::shared_ptr<CanvasVG> spCanvas)
+{
+    auto spViewData = std::make_shared<GraphViewData>();
+    spViewData->spCanvas = spCanvas;
+    m_graphs[pAdd] = spViewData;
+
+    if (m_pCurrentGraph == nullptr)
+    {
+        m_pCurrentGraph = pAdd;
+    }
+
+    spViewData->pendingUpdate = true;
+
+    spViewData->connections.push_back(pAdd->Signal_BeginModify.connect([=](Graph* pGraph) {
+        spViewData->disabled = true;
+
+        // Remove our mappings since this node may be changing
+        for (auto& pNode : pGraph->GetNodes())
+        {
+            spViewData->mapWorldToView.erase(pNode.get());
+        }
+    }));
+
+    spViewData->connections.push_back(pAdd->Signal_EndModify.connect([=](Graph* pGraph) {
+        spViewData->disabled = false;
+        spViewData->pendingUpdate = true;
+    }));
+
+    spViewData->connections.push_back(pAdd->Signal_Destroy.connect([=](Graph* pGraph) {
+        RemoveGraph(pGraph);
+    }));
+}
+
+void GraphView::RemoveGraph(Graph* pGraph)
+{
+    if (m_pCurrentGraph == pGraph)
+    {
+        m_pCurrentGraph = nullptr;
+        if (!m_graphs.empty())
+        {
+            m_pCurrentGraph = (*m_graphs.begin()).first;
+        }
+    }
+
+    m_graphs.erase(pGraph);
+}
+
+Graph* GraphView::GetCurrentGraph() const
+{
+    return m_pCurrentGraph;
+}
+
+void GraphView::SetCurrentGraph(Graph* pGraph)
+{
+    assert(m_graphs.find(pGraph) != m_graphs.end());
+    m_pCurrentGraph = pGraph;
+}
+    
+Canvas* GraphView::GetCanvas(Graph* pGraph) const
+{
+    auto itr = m_graphs.find(pGraph);
+    if (itr == m_graphs.end())
+    {
+        return nullptr;
+    }
+    return itr->second->spCanvas.get();
+}
+
 
 } // namespace NodeGraph

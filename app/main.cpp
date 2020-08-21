@@ -24,8 +24,8 @@ class TestNode : public Node
 public:
     DECLARE_NODE(TestNode, test);
 
-    TestNode(Graph& m_graph)
-        : Node(m_graph, "UI Test")
+    TestNode(Graph& graph)
+        : Node(graph, "UI Test")
     {
         pSum = AddOutput("Sumf", .0f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
         pSum->GetAttributes().flags |= ParameterFlags::ReadOnly;
@@ -145,6 +145,8 @@ public:
         appNodes.push_back(m_graph.CreateNode<TestNode>());
         appNodes.push_back(m_graph.CreateNode<TestNode>());
         appNodes.push_back(m_graph.CreateNode<TestNode>());
+        
+        appNodes.push_back(m_graph2.CreateNode<TestNode>());
     }
 
     // Inherited via IAppStarterClient
@@ -160,9 +162,12 @@ public:
         auto path = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
         nvgCreateFont(vg, "sans", path.string().c_str());
 
-        m_spCanvas = std::make_shared<CanvasVG>(vg);
-        m_spGraphView = std::make_shared<GraphView>(std::vector<Graph*> { &m_graph }, * m_spCanvas);
-        m_spGraphView->BuildNodes();
+        m_spGraphView = std::make_shared<GraphView>();
+
+        m_graph.SetName("Graph A");
+        m_graph2.SetName("Graph B");
+        m_spGraphView->AddGraph(&m_graph, std::make_shared<CanvasVG>(vg));
+        m_spGraphView->AddGraph(&m_graph2, std::make_shared<CanvasVG>(vg));
     }
 
     virtual void Update(float time, const NVec2i& displaySize) override
@@ -188,9 +193,9 @@ public:
     {
     }
 
-    void DrawGraph(const NVec2i& canvasSize)
+    void DrawGraph(Graph* pGraph, const NVec2i& canvasSize)
     {
-        if (m_spGraphView)
+        if (m_spGraphView && pGraph)
         {
             if (m_fbo.fbo == 0)
             {
@@ -202,23 +207,23 @@ public:
 
             fbo_clear(m_settings.clearColor);
 
-            m_spGraphView->Show(canvasSize);
-            m_graph.Compute(appNodes, 0);
+            m_spGraphView->Show(pGraph, canvasSize);
+            pGraph->Compute(appNodes, 0);
 
             fbo_unbind(m_fbo, m_displaySize);
         }
     }
 
-    void BeginCanvas(const NRectf& region)
+    void BeginCanvas(Canvas& canvas, const NRectf& region)
     {
         static CanvasInputState state;
-        m_spCanvas->Update(region.Size(), canvas_imgui_update_state(state, region));
+        canvas.Update(region.Size(), canvas_imgui_update_state(state, region));
     }
 
-    void EndCanvas()
+    void EndCanvas(Canvas& canvas)
     {
-        ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = (m_spCanvas->GetInputState().captured);
-        if (m_spCanvas->GetInputState().resetDrag)
+        ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = (canvas.GetInputState().captured);
+        if (canvas.GetInputState().resetDrag)
         {
             ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
         }
@@ -228,19 +233,40 @@ public:
     {
         m_displaySize = displaySize;
 
-        ImGui::Begin("Canvas");
+        ImGui::Begin("Graphs");
 
-        ImVec2 pos = ImGui::GetCursorScreenPos();
-        NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
-        BeginCanvas(region);
+        if (ImGui::BeginTabBar("Tabs"))
+        {
+            for (auto& [pGraph, pViewData] : m_spGraphView->GetGraphs())
+            {
+                if (ImGui::BeginTabItem(pGraph->Name().c_str()))
+                {
+                    m_spGraphView->SetCurrentGraph(pGraph);
+                    ImGui::EndTabItem();
+                }
+            }
+            ImGui::EndTabBar();
+        }
 
-        DrawGraph(region.Size());
+        auto pGraph = m_spGraphView->GetCurrentGraph();
+        if (pGraph)
+        {
+            auto spView = m_spGraphView->GetGraphs().at(pGraph);
 
-        ImGui::Image(*(ImTextureID*)&m_fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+    
+            BeginCanvas(*spView->spCanvas, region);
+
+            DrawGraph(pGraph, region.Size());
+
+            EndCanvas(*spView->spCanvas);
+
+            ImGui::Image(*(ImTextureID*)&m_fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+        }
+
 
         ImGui::End();
-
-        EndCanvas();
 
     }
 
@@ -251,8 +277,8 @@ public:
 
 private:
     std::shared_ptr<NodeGraph::GraphView> m_spGraphView;
-    std::shared_ptr<NodeGraph::Canvas> m_spCanvas;
     NodeGraph::Graph m_graph;
+    NodeGraph::Graph m_graph2;
     AppStarterSettings m_settings;
     NVGcontext* vg = nullptr;
     MUtils::Fbo m_fbo;

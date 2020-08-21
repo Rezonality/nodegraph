@@ -6,8 +6,6 @@
 #include "nodegraph/view/canvas.h"
 #include "nodegraph/view/viewnode.h"
 
-struct NVGcontext;
-
 namespace NodeGraph
 {
 
@@ -26,7 +24,8 @@ struct LabelInfo
     }
 
     LabelInfo()
-    {}
+    {
+    }
 
     MUtils::NVec2f pos = MUtils::NVec2f(0.0f);
     std::string prefix;
@@ -35,39 +34,64 @@ struct LabelInfo
 class GraphView
 {
 public:
-    GraphView(const std::vector<Graph*>& graphs, Canvas& canvas)
-        : m_graphs(graphs)
-        , m_canvas(canvas)
+    GraphView()
     {
-        vg = static_cast<CanvasVG&>(canvas).GetVG();
     }
 
+    void AddGraph(Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas);
+    void RemoveGraph(Graph* pGraph);
+    Graph* GetCurrentGraph() const;
+    void SetCurrentGraph(Graph* pGraph);
+
     void BuildNodes();
-    void Show(const MUtils::NVec2i& displaySize);
-    bool ShowNode(const Node* pNode) const;
+    void BuildNodes(Graph* pGraph);
 
-    bool DrawKnob(MUtils::NVec2f pos, float knobSize, Pin& pin);
-    SliderData DrawSlider(MUtils::NRectf pos, Pin& pin);
-    void DrawButton(MUtils::NRectf pos, Pin& pin);
+    void Show(Graph* pGraph, const MUtils::NVec2i& displaySize);
+    bool ShouldShowNode(Canvas& canvas, const Node* pNode) const;
 
-    MUtils::NRectf DrawNode(const MUtils::NRectf& pos, Node* pNode);
+    bool DrawKnob(Canvas& canvas, MUtils::NVec2f pos, float knobSize, Pin& pin);
+    SliderData DrawSlider(Canvas& canvas, MUtils::NRectf pos, Pin& pin);
+    void DrawButton(Canvas& canvas, MUtils::NRectf pos, Pin& pin);
 
-    void DrawLabel(Parameter& param, const LabelInfo& pos);
-    void DrawDecorator(NodeDecorator& decorator, const MUtils::NRectf& rc);
+    MUtils::NRectf DrawNode(Canvas& canvas, const MUtils::NRectf& pos, Node* pNode);
 
-    bool CheckCapture(Parameter& param, const MUtils::NRectf& region, bool& hover);
+    void DrawLabel(Canvas& canvas, Parameter& param, const LabelInfo& pos);
+    void DrawDecorator(Canvas& canvas, NodeDecorator& decorator, const MUtils::NRectf& rc);
+
+    bool CheckCapture(Canvas& canvas, Parameter& param, const MUtils::NRectf& region, bool& hover);
     bool HideCursor() const
     {
         return m_hideCursor;
     }
 
-    Canvas& GetCanvas() const
+    bool IsCaptured() const
     {
-        return m_canvas;
+        return m_pCaptureParam != nullptr;
     }
 
-    bool IsCaptured() const { return m_pCaptureParam != nullptr; }
-    const std::vector<Graph*>& GetGraphs() const { return m_graphs; }
+    struct GraphViewData
+    {
+        ~GraphViewData()
+        {
+            for (auto& con : connections)
+            {
+                con.disconnect();
+            }
+        }
+        std::shared_ptr<CanvasVG> spCanvas;
+        bool pendingUpdate = true;
+        bool disabled = false;
+        std::map<Node*, std::shared_ptr<ViewNode>> mapWorldToView;
+        std::vector<nod::connection> connections;
+        std::map<uint32_t, Node*> mapInputOrder;
+    };
+
+    const std::map<Graph*, std::shared_ptr<GraphViewData>>& GetGraphs() const
+    {
+        return m_graphs;
+    }
+
+    Canvas* GetCanvas(Graph* pGraph) const;
 
 private:
     enum class InputDirection
@@ -76,15 +100,12 @@ private:
         Y
     };
 
-    void EvaluateDragDelta(Pin& pin, float delta, InputDirection dir);
-    void CheckInput(Pin& param, const MUtils::NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir);
+    void EvaluateDragDelta(Canvas& canvas, Pin& pin, float delta, InputDirection dir);
+    void CheckInput(Canvas& canvas, Pin& param, const MUtils::NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir);
 
 private:
-    std::vector<Graph*> m_graphs;
-    std::map<Node*, std::shared_ptr<ViewNode>> mapWorldToView;
-    std::map<uint32_t, Node*> mapInputOrder;
-
-    NVGcontext* vg = nullptr;
+    std::map<Graph*, std::shared_ptr<GraphViewData>> m_graphs;
+    Graph* m_pCurrentGraph = nullptr;
 
     Parameter* m_pCaptureParam = nullptr;
     MUtils::NVec2f m_mouseStart;
@@ -94,7 +115,6 @@ private:
     uint32_t m_currentInputIndex = 0;
 
     std::map<Parameter*, LabelInfo> m_drawLabels;
-    Canvas& m_canvas;
 };
 
 }; // namespace NodeGraph

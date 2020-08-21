@@ -12,6 +12,7 @@ namespace NodeGraph
 {
 
 Graph::Graph()
+    : m_strName("Graph")
 {
 }
 
@@ -22,12 +23,11 @@ Graph::~Graph()
 
 void Graph::Clear()
 {
-    PreModifyGraph();
+    GraphModify(*this);
     nodes.clear();
     m_displayNodes.clear();
     currentGeneration = 1;
     m_outputNodes.clear();
-    m_modified = true;
 }
 
 void Graph::Visit(Node& node, PinDir dir, ParameterType type, std::function<bool(Node&)> fn)
@@ -148,6 +148,22 @@ std::vector<Pin*> Graph::GetControlSurface() const
         }
     }
     return pins;
+}
+    
+// Called to notify that this graph is about to be destroyed
+void Graph::NotifyDestroy(Graph* pGraph)
+{
+    Signal_Destroy(pGraph);
+}
+
+void Graph::SetName(const std::string& name)
+{
+    m_strName = name;
+}
+
+std::string Graph::Name() const
+{
+    return m_strName;
 }
 
 } // namespace NodeGraph

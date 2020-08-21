@@ -29,14 +29,9 @@ Node::~Node()
     }
 }
 
-void Node::PreModifyGraph()
-{
-    m_graph.PreModifyGraph();
-}
-
 void Node::ClearDecorators()
 {
-    PreModifyGraph();
+    GRAPH_MODIFY(m_graph);
     for (auto& decorator : m_decorators)
     {
         delete decorator;
@@ -46,8 +41,7 @@ void Node::ClearDecorators()
 
 void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
 {
-    PreModifyGraph();
-
+    GRAPH_MODIFY(m_graph);
     if (m_outputs.size() <= (size_t)outputIndex)
     {
         throw std::invalid_argument("outputIndex too big");
@@ -102,7 +96,7 @@ void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
 
 void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::string& inName)
 {
-    PreModifyGraph();
+    GRAPH_MODIFY(m_graph);
 
     std::string searchOutputName;
     if (!outputName.empty())
@@ -226,7 +220,7 @@ Pin* Node::GetPin(const std::string& name) const
 }
 Pin* Node::AddInput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
 {
-    PreModifyGraph();
+    GRAPH_MODIFY(m_graph);
 
     auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
     m_inputs.push_back(pPin);
@@ -236,7 +230,7 @@ Pin* Node::AddInput(const std::string& strName, IFlowData* val, const ParameterA
 
 Pin* Node::AddInput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
 {
-    PreModifyGraph();
+    GRAPH_MODIFY(m_graph);
 
     auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
     m_inputs.push_back(pPin);
@@ -246,7 +240,7 @@ Pin* Node::AddInput(const std::string& strName, IControlData* val, const Paramet
 
 Pin* Node::AddOutput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
 {
-    PreModifyGraph();
+    GRAPH_MODIFY(m_graph);
 
     auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
     m_outputs.push_back(pPin);
@@ -256,7 +250,7 @@ Pin* Node::AddOutput(const std::string& strName, IFlowData* val, const Parameter
 
 Pin* Node::AddOutput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
 {
-    PreModifyGraph();
+    GRAPH_MODIFY(m_graph);
 
     auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
     m_outputs.push_back(pPin);
@@ -266,7 +260,7 @@ Pin* Node::AddOutput(const std::string& strName, IControlData* val, const Parame
 
 NodeDecorator* Node::AddDecorator(NodeDecorator* decorator)
 {
-    PreModifyGraph();
+    GRAPH_MODIFY(m_graph);
 
     m_decorators.push_back(decorator);
     return decorator;
@@ -289,6 +283,7 @@ const MUtils::NRectf& Node::GetCustomViewCells() const
 
 void Node::SetCustomViewCells(const MUtils::NRectf& cells)
 {
+    GRAPH_MODIFY(m_graph);
     m_viewCells = cells;
 }
 
