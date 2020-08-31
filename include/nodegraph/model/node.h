@@ -21,6 +21,16 @@ class Canvas;
 class Node;
 class Graph;
 
+class GraphModify final
+{
+public:
+    GraphModify(Graph& graph);
+    ~GraphModify();
+    Graph& m_graph;
+};
+
+#define GRAPH_MODIFY(a) GraphModify __graphModify(a);
+
 #define DECLARE_NODE(className, APIName)             \
     static ctti::type_id_t TypeID()                  \
     {                                                \
