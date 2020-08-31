@@ -29,7 +29,7 @@ public:
     Graph& m_graph;
 };
 
-#define GRAPH_MODIFY(a) GraphModify __graphModify(a);
+#define GRAPH_MODIFY(a) NodeGraph::GraphModify __graphModify(a);
 
 #define DECLARE_NODE(className, APIName)             \
     static ctti::type_id_t TypeID()                  \
