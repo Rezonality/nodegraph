@@ -368,93 +368,96 @@ struct ParameterValue
         return pCVal;
     }
 
-    template <class T>
-    T To() const
-    {
-        if (type == ParameterType::Double)
-        {
-            return (T)dVal;
-        }
-        else if (type == ParameterType::Float)
-        {
-            return (T)fVal;
-        }
-        else if (type == ParameterType::Int64)
-        {
-            return (T)iVal;
-        }
-        else if (type == ParameterType::Bool)
-        {
-            return (T)bVal;
-        }
-        else
-        {
-            assert(!"no supported?");
-        }
-        T v{};
-        return v;
-    };
+    template <class T> T To() const;
+    template <class T> void SetFrom(const T& value);
+};
 
-    template <>
-    std::string To() const
+template <class T>
+inline T ParameterValue::To() const
+{
+    if (type == ParameterType::Double)
     {
-        switch (type)
-        {
-        case ParameterType::Double:
-            return std::to_string(dVal);
-        case ParameterType::Float:
-            return std::to_string(fVal);
-        case ParameterType::Int64:
-            return std::to_string(iVal);
-        case ParameterType::Bool:
-            return std::to_string(bVal);
-        case ParameterType::ControlData:
-            return ":Control";
-        case ParameterType::FlowData:
-            return ":Flow";
-        default:
-        case ParameterType::String:
-            return sVal;
-        }
+        return (T)dVal;
     }
-
-    template <class T>
-    void SetFrom(const T& value)
+    else if (type == ParameterType::Float)
     {
-        if (type == ParameterType::Double)
-        {
-            value = (T)dVal;
-        }
-        else if (type == ParameterType::Float)
-        {
-            value = (T)fVal;
-        }
-        else if (type == ParameterType::Int64)
-        {
-            value = (T)iVal;
-        }
-        else if (type == ParameterType::Bool)
-        {
-            value = (T)bVal;
-        }
-        else if (type == ParameterType::String)
-        {
-            value = (T)sVal;
-        }
-        else if (type == ParameterType::FlowData)
-        {
-            value = (T)pFVal;
-        }
-        else if (type == ParameterType::ControlData)
-        {
-            value = (T)pCVal;
-        }
-        else
-        {
-            assert(!"no supported?");
-        }
+        return (T)fVal;
+    }
+    else if (type == ParameterType::Int64)
+    {
+        return (T)iVal;
+    }
+    else if (type == ParameterType::Bool)
+    {
+        return (T)bVal;
+    }
+    else
+    {
+        assert(!"no supported?");
+    }
+    T v{};
+    return v;
+};
+
+template<>
+inline std::string ParameterValue::To() const
+{
+    switch (type)
+    {
+    case ParameterType::Double:
+        return std::to_string(dVal);
+    case ParameterType::Float:
+        return std::to_string(fVal);
+    case ParameterType::Int64:
+        return std::to_string(iVal);
+    case ParameterType::Bool:
+        return std::to_string(bVal);
+    case ParameterType::ControlData:
+        return ":Control";
+    case ParameterType::FlowData:
+        return ":Flow";
+    default:
+    case ParameterType::String:
+        return sVal;
     }
 };
+
+template <class T>
+inline void ParameterValue::SetFrom(const T& value)
+{
+    if (type == ParameterType::Double)
+    {
+        value = (T)dVal;
+    }
+    else if (type == ParameterType::Float)
+    {
+        value = (T)fVal;
+    }
+    else if (type == ParameterType::Int64)
+    {
+        value = (T)iVal;
+    }
+    else if (type == ParameterType::Bool)
+    {
+        value = (T)bVal;
+    }
+    else if (type == ParameterType::String)
+    {
+        value = (T)sVal;
+    }
+    else if (type == ParameterType::FlowData)
+    {
+        value = (T)pFVal;
+    }
+    else if (type == ParameterType::ControlData)
+    {
+        value = (T)pCVal;
+    }
+    else
+    {
+        assert(!"no supported?");
+    }
+}
 
 enum class ParameterUI
 {
@@ -548,6 +551,57 @@ public:
         if (m_pPrevShadow)
         {
             m_pPrevShadow->m_pNextShadow = m_pNextShadow;
+        }
+    }
+
+    // Moved before constructor for linux build
+    template <class T>
+    void Set(const T& val, bool immediate = false)
+    {
+        if (m_endValue == val)
+        {
+            // No need to update
+            return;
+        }
+
+        m_generation++;
+
+        // Always immediate
+        if (m_value.type == ParameterType::FlowData || m_value.type == ParameterType::ControlData || m_value.type == ParameterType::String)
+        {
+            m_value = val;
+        }
+        else
+        {
+            m_endValue = val;
+            if (immediate)
+            {
+                m_startValue = val;
+                m_value = val;
+                m_startTick = 0;
+            }
+            else
+            {
+                if (m_value.type == ParameterType::None)
+                {
+                    m_value = val;
+                }
+                // m_value stays where it is
+                m_startValue = m_value;
+                m_startTick = m_currentTick;
+                m_endValue = val;
+            }
+        }
+
+        // Walk outwards to the shadow variables
+        if (m_pNextShadow)
+        {
+            m_pNextShadow->SetShadow(*this, true);
+        }
+
+        if (m_pPrevShadow)
+        {
+            m_pPrevShadow->SetShadow(*this, false);
         }
     }
 
@@ -805,56 +859,6 @@ public:
             fnCB(pShadow);
             pShadow = pShadow->m_pPrevShadow;
         };
-    }
-
-    template <class T>
-    void Set(const T& val, bool immediate = false)
-    {
-        if (m_endValue == val)
-        {
-            // No need to update
-            return;
-        }
-
-        m_generation++;
-
-        // Always immediate
-        if (m_value.type == ParameterType::FlowData || m_value.type == ParameterType::ControlData || m_value.type == ParameterType::String)
-        {
-            m_value = val;
-        }
-        else
-        {
-            m_endValue = val;
-            if (immediate)
-            {
-                m_startValue = val;
-                m_value = val;
-                m_startTick = 0;
-            }
-            else
-            {
-                if (m_value.type == ParameterType::None)
-                {
-                    m_value = val;
-                }
-                // m_value stays where it is
-                m_startValue = m_value;
-                m_startTick = m_currentTick;
-                m_endValue = val;
-            }
-        }
-
-        // Walk outwards to the shadow variables
-        if (m_pNextShadow)
-        {
-            m_pNextShadow->SetShadow(*this, true);
-        }
-
-        if (m_pPrevShadow)
-        {
-            m_pPrevShadow->SetShadow(*this, false);
-        }
     }
 
     uint64_t GetGeneration() const
