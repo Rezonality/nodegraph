@@ -41,14 +41,18 @@ public:
         return pNode.get();
     }
 
+    bool IsType(Node& node, ctti::type_id_t type) const;
+
     template <class T>
     std::set<T*> Find(ctti::type_id_t type) const
     {
         std::set<T*> found;
         for (auto& pNode : nodes)
         {
-            if (pNode->GetType() == type)
+            if (IsType(*pNode, type))
+            {
                 found.insert(static_cast<T*>(pNode.get()));
+            }
         }
         return found;
     }
@@ -134,23 +138,5 @@ protected:
     std::vector<Node*> m_outputNodes;
     std::string m_strName;
 }; // Graph
-
-class GraphModify final
-{
-public:
-    GraphModify(Graph& graph)
-        : m_graph(graph)
-    {
-        m_graph.PreModify();
-    }
-
-    ~GraphModify()
-    {
-        m_graph.PostModify();
-    }
-    Graph& m_graph;
-};
-
-#define GRAPH_MODIFY(a) GraphModify __graphModify(a);
 
 } // namespace NodeGraph
