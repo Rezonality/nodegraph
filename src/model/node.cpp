@@ -31,7 +31,9 @@ Node::~Node()
 
 void Node::ClearDecorators()
 {
-    GRAPH_MODIFY(m_graph);
+    // For now, decorators don't modify the graph.
+    // We will implement draw from nodes later...
+    //GRAPH_MODIFY(m_graph);
     for (auto& decorator : m_decorators)
     {
         delete decorator;
@@ -260,7 +262,9 @@ Pin* Node::AddOutput(const std::string& strName, IControlData* val, const Parame
 
 NodeDecorator* Node::AddDecorator(NodeDecorator* decorator)
 {
-    GRAPH_MODIFY(m_graph);
+    // For now, decorators don't modify the graph.
+    // We will implement draw from nodes later...
+    //GRAPH_MODIFY(m_graph);
 
     m_decorators.push_back(decorator);
     return decorator;
@@ -283,7 +287,6 @@ const MUtils::NRectf& Node::GetCustomViewCells() const
 
 void Node::SetCustomViewCells(const MUtils::NRectf& cells)
 {
-    GRAPH_MODIFY(m_graph);
     m_viewCells = cells;
 }
 
