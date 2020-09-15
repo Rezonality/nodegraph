@@ -2,7 +2,7 @@
 ===================================================================================================
 
 [![Build Status](https://travis-ci.org/Rezonality/nodegraph.svg?branch=master)](https://travis-ci.org/Rezonality/nodegraph)
-[![Build status](https://ci.appveyor.com/api/projects/status/9hgmooahite233av?svg=true)](https://ci.appveyor.com/project/Rezonality/nodegraph)
+[![Build status](https://ci.appveyor.com/api/projects/status/xgv3to4x1dmed7iu?svg=true)](https://ci.appveyor.com/project/cmaughan/nodegraph)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Rezonality/nodegraph/blob/master/LICENSE)
 [![codecov](https://codecov.io/gh/Rezonality/nodegraph/branch/master/graph/badge.svg)](https://codecov.io/gh/Rezonality/nodegraph)
 [![Gitter](https://badges.gitter.im/Rezonality/Nodegraph.svg)](https://gitter.im/Rezonality/Nodegraph?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
