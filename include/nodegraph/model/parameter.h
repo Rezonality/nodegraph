@@ -698,7 +698,6 @@ public:
         return m_value.To<T>();
     }
 
-    template <>
     std::string To() const
     {
         return m_value.To<std::string>();
