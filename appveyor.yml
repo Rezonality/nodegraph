@@ -55,7 +55,7 @@ build_script:
 
 test_script:
     - ps: |
-      cd $env:CONFIGURATION
+        cd $env:CONFIGURATION
         # Unforunately Tracy is messing with running unit tests on AppVeyor, so only run them release for now
         if ($env:CONFIGURATION -eq "Release") {
           .\unittests.exe -r junit > unit_tests_report.xml
