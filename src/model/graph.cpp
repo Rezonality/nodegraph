@@ -23,7 +23,7 @@ Graph::~Graph()
 
 void Graph::Clear()
 {
-    GraphModify(*this);
+    GRAPH_MODIFY(*this);
     nodes.clear();
     m_displayNodes.clear();
     currentGeneration = 1;
@@ -152,7 +152,7 @@ std::vector<Pin*> Graph::GetControlSurface() const
 // Called to notify that this graph is about to be destroyed
 void Graph::NotifyDestroy(Graph* pGraph)
 {
-    Signal_Destroy(pGraph);
+    sigDestroy(pGraph);
 }
 
 void Graph::SetName(const std::string& name)

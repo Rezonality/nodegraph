@@ -103,7 +103,7 @@ public:
     {
         if (m_modifyTracker == 0)
         {
-            Signal_BeginModify(this);
+            sigBeginModify(this);
         }
 
         m_modifyTracker++;
@@ -115,7 +115,7 @@ public:
         m_modifyTracker--;
         if (m_modifyTracker == 0)
         {
-            Signal_EndModify(this);
+            sigEndModify(this);
         }
     }
 
@@ -126,9 +126,9 @@ public:
     void NotifyDestroy(Graph* pGraph);
 
     // Signals
-    nod::signal<void(Graph*)> Signal_BeginModify;
-    nod::signal<void(Graph*)> Signal_EndModify;
-    nod::signal<void(Graph*)> Signal_Destroy;
+    nod::signal<void(Graph*)> sigBeginModify;
+    nod::signal<void(Graph*)> sigEndModify;
+    nod::signal<void(Graph*)> sigDestroy;
 
 protected:
     uint32_t m_modifyTracker = 0;

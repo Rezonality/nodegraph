@@ -842,7 +842,7 @@ void GraphView::AddGraph(Graph* pAdd, std::shared_ptr<CanvasVG> spCanvas)
 
     spViewData->pendingUpdate = true;
 
-    spViewData->connections.push_back(pAdd->Signal_BeginModify.connect([=](Graph* pGraph) {
+    spViewData->connections.push_back(pAdd->sigBeginModify.connect([=](Graph* pGraph) {
         spViewData->disabled = true;
 
         // Remove our mappings since this node may be changing
@@ -852,12 +852,12 @@ void GraphView::AddGraph(Graph* pAdd, std::shared_ptr<CanvasVG> spCanvas)
         }
     }));
 
-    spViewData->connections.push_back(pAdd->Signal_EndModify.connect([=](Graph* pGraph) {
+    spViewData->connections.push_back(pAdd->sigEndModify.connect([=](Graph* pGraph) {
         spViewData->disabled = false;
         spViewData->pendingUpdate = true;
     }));
 
-    spViewData->connections.push_back(pAdd->Signal_Destroy.connect([=](Graph* pGraph) {
+    spViewData->connections.push_back(pAdd->sigDestroy.connect([=](Graph* pGraph) {
         RemoveGraph(pGraph);
     }));
 }
