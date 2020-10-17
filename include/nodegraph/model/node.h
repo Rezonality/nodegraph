@@ -20,6 +20,7 @@ class GraphView;
 class Canvas;
 class Node;
 class Graph;
+class ViewNode;
 
 class GraphModify final
 {
@@ -73,6 +74,18 @@ struct NodeDecorator
     DecoratorType type = DecoratorType::Label;
     std::string strName;
     MUtils::NRectf gridLocation;
+};
+
+namespace NodeFlags
+{
+
+enum
+{
+    None = (0),
+    Hidden = (1 << 0),
+    OwnerDraw = (1 << 1)
+};
+
 };
 
 // A node with inputs, outputs and computation
@@ -174,17 +187,12 @@ public:
     void SetCustomViewCells(const MUtils::NRectf& cells);
 
     virtual void PreDraw(){};
+    virtual void Draw(GraphView&, Canvas&, ViewNode&){};
     virtual void DrawCustom(GraphView& view, Canvas& canvas, const MUtils::NRectf&){};
     virtual void DrawCustomPin(GraphView& view, Canvas& canvas, const MUtils::NRectf&, Pin& pin){};
 
-    bool IsHidden() const
-    {
-        return m_hidden;
-    }
-    void SetHidden(bool hidden)
-    {
-        m_hidden = hidden;
-    }
+    uint32_t Flags() const;
+    void SetFlags(uint32_t flags);
 
     Graph& GetGraph() const
     {
@@ -211,7 +219,7 @@ protected:
     uint64_t m_generation = 0;
     MUtils::NRectf m_viewCells;
     MUtils::NVec2f m_gridScale = MUtils::NVec2f(1.0f);
-    bool m_hidden = false;
+    uint32_t m_flags = NodeFlags::None;
     Graph& m_graph;
 };
 

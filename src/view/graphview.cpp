@@ -25,7 +25,7 @@ NVec4f node_shadowColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 float node_shadowSize = 2.0f;
 float node_borderRadius = 7.0f;
-float node_borderPad = 4.0f;
+float node_borderPad = 2.0f;
 float node_buttonPad = 2.0f;
 float node_pinPad = 4.0f;
 float node_titleFontSize = 17.0f * 1.5f;
@@ -40,8 +40,11 @@ namespace NodeGraph
 
 bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
 {
-    if (pNode->IsHidden())
+    if (pNode->Flags() & NodeFlags::Hidden)
         return false;
+
+    if (pNode->Flags() & NodeFlags::OwnerDraw)
+        return true;
 
     // Check for things to show
     for (auto& in : pNode->GetInputs())
@@ -90,6 +93,7 @@ void GraphView::BuildNodes(Graph* pGraph)
 
     viewData->pendingUpdate = false;
 
+    // Get all the nodes and add them to our draw map
     const auto& ins = pGraph->GetDisplayNodes();
     for (auto& pNode : ins)
     {
@@ -101,7 +105,7 @@ void GraphView::BuildNodes(Graph* pGraph)
                 spViewNode->pos = NVec2f(50, 50);
 
                 viewData->mapWorldToView[pNode] = spViewNode;
-                viewData->mapInputOrder[m_currentInputIndex++] = pNode;
+                viewData->mapNodeCreateOrder[m_currentInputIndex++] = pNode;
             }
         }
     }
@@ -283,7 +287,7 @@ void GraphView::DrawLabel(Canvas& canvas, Parameter& param, const LabelInfo& inf
     canvas.Text(rcFont.Center(), fontSize, fontColor, val.c_str());
 }
 
-bool GraphView::DrawKnob(Canvas& canvas, NVec2f pos, float knobSize, Pin& param)
+bool GraphView::DrawKnob(Canvas& canvas, NVec2f pos, float knobSize, bool miniKnob, Pin& param)
 {
     NVec4f color(0.45f, 0.45f, 0.45f, 1.0f);
     NVec4f colorLabel(0.35f, 0.35f, 0.35f, 1.0f);
@@ -296,7 +300,6 @@ bool GraphView::DrawKnob(Canvas& canvas, NVec2f pos, float knobSize, Pin& param)
     NVec4f markHLColor(1.0f, 1.0f, 1.0f, 1.0f);
     NVec4f fontColor(.95f, .95f, .95f, 1.0f);
 
-    bool miniKnob = param.GetViewCells().Width() < .99f && param.GetViewCells().Height() < .99f;
     float channelWidth = miniKnob ? 8.0f : 4.0f;
     float channelGap = 10;
     float fontSize = 24.0f * (knobSize / 120.0f);
@@ -470,7 +473,6 @@ SliderData GraphView::DrawSlider(Canvas& canvas, NRectf region, Pin& param)
     float fStep = (float)param.NormalizedStep();
 
     float fRange = std::max(fMax - fMin, std::numeric_limits<float>::epsilon());
-    float fThumb = attrib.thumb.To<float>();
 
     // Draw the shadow
     canvas.FillRoundedRect(region, node_borderRadius, shadowColor);
@@ -485,6 +487,12 @@ SliderData GraphView::DrawSlider(Canvas& canvas, NRectf region, Pin& param)
 
     region.Adjust(node_borderPad, node_borderPad, -node_borderPad, -node_borderPad);
     ret.channel = region;
+
+    float fThumb = 1.0f / (fRange / fStep);
+    if (attrib.thumb.type != ParameterType::None)
+    {
+        fThumb = attrib.thumb.To<float>();
+    }
 
     float fThumbWidth = region.Width() * fThumb;
     float fRegionWidthNoThumb = region.Width() - fThumbWidth;
@@ -693,16 +701,22 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
 
     m_drawLabels.clear();
 
-    for (auto& [id, pWorld] : viewData.mapInputOrder)
+    for (auto& [id, pNode] : viewData.mapNodeCreateOrder)
     {
-        auto pView = viewData.mapWorldToView[pWorld];
+        auto pView = viewData.mapWorldToView[pNode];
 
         NVec2f gridSize(0);
 
-        pWorld->PreDraw();
+        pNode->PreDraw();
 
-        auto pins = pWorld->GetInputs();
-        pins.insert(pins.end(), pWorld->GetOutputs().begin(), pWorld->GetOutputs().end());
+        if (pNode->Flags() & NodeFlags::OwnerDraw)
+        {
+            pNode->Draw(*this, canvas, *pView);
+            continue;
+        }
+
+        auto pins = pNode->GetInputs();
+        pins.insert(pins.end(), pNode->GetOutputs().begin(), pNode->GetOutputs().end());
 
         for (auto& pInput : pins)
         {
@@ -712,22 +726,22 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
             gridSize.y = std::max(gridSize.y, pInput->GetViewCells().Bottom());
         }
 
-        for (auto& pDecorator : pWorld->GetDecorators())
+        for (auto& pDecorator : pNode->GetDecorators())
         {
             gridSize.x = std::max(gridSize.x, pDecorator->gridLocation.Right());
             gridSize.y = std::max(gridSize.y, pDecorator->gridLocation.Bottom());
         }
 
         // Account for custom
-        auto custom = pWorld->GetCustomViewCells();
+        auto custom = pNode->GetCustomViewCells();
         gridSize.x = std::max(gridSize.x, custom.Right());
         gridSize.y = std::max(gridSize.y, custom.Bottom());
 
         gridSize.x = std::max(1.0f, gridSize.x);
         gridSize.y = std::max(1.0f, gridSize.y);
 
-        gridSize.x *= pWorld->GetGridScale().x;
-        gridSize.y *= pWorld->GetGridScale().y;
+        gridSize.x *= pNode->GetGridScale().x;
+        gridSize.y *= pNode->GetGridScale().y;
 
         NVec2f nodeSize;
         nodeSize.x = gridSize.x * node_gridScale - node_borderPad * 2.0f;
@@ -740,17 +754,17 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
             maxHeightNode = 0.0f;
         }
 
-        auto contentRect = DrawNode(canvas, NRectf(currentPos.x, currentPos.y, nodeSize.x, nodeSize.y), pWorld);
+        auto contentRect = DrawNode(canvas, NRectf(currentPos.x, currentPos.y, nodeSize.x, nodeSize.y), pNode);
 
         auto cellSize = contentRect.Size() / gridSize;
 
-        for (auto& decorator : pWorld->GetDecorators())
+        for (auto& decorator : pNode->GetDecorators())
         {
             auto decoratorGrid = decorator->gridLocation;
-            decoratorGrid.topLeftPx.x *= pWorld->GetGridScale().x;
-            decoratorGrid.topLeftPx.y *= pWorld->GetGridScale().y;
-            decoratorGrid.bottomRightPx.x *= pWorld->GetGridScale().x;
-            decoratorGrid.bottomRightPx.y *= pWorld->GetGridScale().y;
+            decoratorGrid.topLeftPx.x *= pNode->GetGridScale().x;
+            decoratorGrid.topLeftPx.y *= pNode->GetGridScale().y;
+            decoratorGrid.bottomRightPx.x *= pNode->GetGridScale().x;
+            decoratorGrid.bottomRightPx.y *= pNode->GetGridScale().y;
 
             auto decoratorCell = NRectf(contentRect.Left() + (decoratorGrid.Left() * cellSize.x),
                 contentRect.Top() + (decoratorGrid.Top() * cellSize.y),
@@ -767,10 +781,10 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
                 continue;
 
             auto pinGrid = pInput->GetViewCells();
-            pinGrid.topLeftPx.x *= pWorld->GetGridScale().x;
-            pinGrid.topLeftPx.y *= pWorld->GetGridScale().y;
-            pinGrid.bottomRightPx.x *= pWorld->GetGridScale().x;
-            pinGrid.bottomRightPx.y *= pWorld->GetGridScale().y;
+            pinGrid.topLeftPx.x *= pNode->GetGridScale().x;
+            pinGrid.topLeftPx.y *= pNode->GetGridScale().y;
+            pinGrid.bottomRightPx.x *= pNode->GetGridScale().x;
+            pinGrid.bottomRightPx.y *= pNode->GetGridScale().y;
 
             auto pinCell = NRectf(contentRect.Left() + (pinGrid.Left() * cellSize.x),
                 contentRect.Top() + (pinGrid.Top() * cellSize.y),
@@ -780,7 +794,8 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
 
             if (pInput->GetAttributes().ui == ParameterUI::Knob)
             {
-                DrawKnob(canvas, NVec2f(pinCell.Center().x, pinCell.Center().y), std::min(pinCell.Width(), pinCell.Height()) - node_pinPad * 2.0f, *pInput);
+                bool miniKnob = pInput->GetViewCells().Width() < .99f && pInput->GetViewCells().Height() < .99f;
+                DrawKnob(canvas, NVec2f(pinCell.Center().x, pinCell.Center().y), std::min(pinCell.Width(), pinCell.Height()) - node_pinPad * 2.0f, miniKnob, *pInput);
             }
             else if (pInput->GetAttributes().ui == ParameterUI::Slider)
             {
@@ -796,16 +811,16 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
             else if (pInput->GetAttributes().ui == ParameterUI::Custom)
             {
                 pinCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, -node_pinPad);
-                pWorld->DrawCustomPin(*this, canvas, pinCell, *pInput);
+                pNode->DrawCustomPin(*this, canvas, pinCell, *pInput);
             }
         }
 
         if (!custom.Empty())
         {
-            custom.topLeftPx.x *= pWorld->GetGridScale().x;
-            custom.topLeftPx.y *= pWorld->GetGridScale().y;
-            custom.bottomRightPx.x *= pWorld->GetGridScale().x;
-            custom.bottomRightPx.y *= pWorld->GetGridScale().y;
+            custom.topLeftPx.x *= pNode->GetGridScale().x;
+            custom.topLeftPx.y *= pNode->GetGridScale().y;
+            custom.bottomRightPx.x *= pNode->GetGridScale().x;
+            custom.bottomRightPx.y *= pNode->GetGridScale().y;
             auto cell = NRectf(contentRect.Left() + (custom.Left() * cellSize.x),
                 contentRect.Top() + (custom.Top() * cellSize.y),
                 cellSize.x * custom.Width(),
@@ -814,7 +829,7 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
 
             canvas.FillRoundedRect(cell, node_borderRadius, pinBGColor);
 
-            pWorld->DrawCustom(*this, canvas, cell);
+            pNode->DrawCustom(*this, canvas, cell);
         }
 
         maxHeightNode = std::max(maxHeightNode, nodeSize.y + node_borderPad * 2.0f);

@@ -47,7 +47,6 @@ public:
     }
 
     const MUtils::NVec2f PixelToView(const MUtils::NVec2f& pixel) const;
-
     virtual MUtils::NVec2f ViewToPixels(const MUtils::NVec2f& pos) const;
     virtual MUtils::NRectf ViewToPixels(const MUtils::NRectf& rc) const;
     virtual float WorldSizeToViewSizeX(float size) const;
@@ -60,31 +59,25 @@ public:
         return m_pixelRect;
     }
 
+    // Drawing functions
     virtual void FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color) = 0;
     virtual void FilledGradientCircle(const MUtils::NVec2f& center, float radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const MUtils::NVec4f& endColor) = 0;
     virtual void FillRoundedRect(const MUtils::NRectf& rc, float radius, const MUtils::NVec4f& color) = 0;
     virtual void FillRect(const MUtils::NRectf& rc, const MUtils::NVec4f& color) = 0;
     virtual void FillGradientRoundedRect(const MUtils::NRectf& rc, float radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const MUtils::NVec4f& endColor) = 0;
     virtual void FillGradientRoundedRectVarying(const MUtils::NRectf& rc, const MUtils::NVec4f& radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const MUtils::NVec4f& endColor) = 0;
-
     virtual void Stroke(const MUtils::NVec2f& from, const MUtils::NVec2f& to, float width, const MUtils::NVec4f& color) = 0;
-
     virtual void Arc(const MUtils::NVec2f& pos, float radius, float width, const MUtils::NVec4f& color, float startAngle, float endAngle) = 0;
-
     virtual void SetAA(bool set) = 0;
     virtual void BeginStroke(const MUtils::NVec2f& from, float width, const MUtils::NVec4f& color) = 0;
     virtual void BeginPath(const MUtils::NVec2f& from, const MUtils::NVec4f& color) = 0;
     virtual void MoveTo(const MUtils::NVec2f& to) = 0;
     virtual void LineTo(const MUtils::NVec2f& to) = 0;
+    virtual void SetLineCap(LineCap cap) = 0;
     virtual void ClosePath() = 0;
     virtual void EndPath() = 0;
     virtual void EndStroke() = 0;
 
-    virtual MUtils::NRectf TextBounds(const MUtils::NVec2f& pos, float size, const char* pszText) const = 0;
-
-    virtual void DrawGrid(float viewStep) = 0;
-
-    virtual void SetLineCap(LineCap cap) = 0;
     enum TextAlign
     {
         TEXT_ALIGN_MIDDLE = 1,
@@ -94,6 +87,10 @@ public:
     };
 
     virtual void Text(const MUtils::NVec2f& pos, float size, const MUtils::NVec4f& color, const char* pszText, const char* pszFace = nullptr, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) = 0;
+    
+    virtual MUtils::NRectf TextBounds(const MUtils::NVec2f& pos, float size, const char* pszText) const = 0;
+    virtual void DrawGrid(float viewStep) = 0;
+
     virtual void Update(const MUtils::NVec2f& size, const CanvasInputState& state);
 
     virtual MUtils::NVec2f GetViewMousePos() const
@@ -109,6 +106,7 @@ public:
     {
         m_inputState.resetDrag = true;
     }
+
     void Capture(bool cap)
     {
         m_inputState.captured = cap;

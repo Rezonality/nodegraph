@@ -290,4 +290,14 @@ void Node::SetCustomViewCells(const MUtils::NRectf& cells)
     m_viewCells = cells;
 }
 
+uint32_t Node::Flags() const
+{
+    return m_flags;
+}
+
+void Node::SetFlags(uint32_t flags)
+{
+    m_flags = flags;
+}
+
 } // namespace NodeGraph

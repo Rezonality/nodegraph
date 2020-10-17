@@ -128,6 +128,51 @@ public:
     Pin* pIntSlider = nullptr;
 };
 
+class TestDrawNode : public Node
+{
+public:
+    DECLARE_NODE(TestDrawNode, test);
+
+    TestDrawNode(Graph& graph)
+        : Node(graph, "Test Draw")
+    {
+        m_flags |= NodeFlags::OwnerDraw;
+
+        pSum = AddOutput("Sumf", .5f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
+        //pSum->GetAttributes().flags |= ParameterFlags::ReadOnly;
+
+        pValue1 = AddInput("0-1000f", 5.0f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1000.0f));
+        pValue1->GetAttributes().taper = 2;
+
+        pValue2 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        //pValue2->GetAttributes().thumb = 0.8f;
+        pValue2->GetAttributes().step = 0.25f;
+        
+        //ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
+        //sliderAttrib.step = 0.25f;
+        //sliderAttrib.thumb = 0.25f;
+        //pValue2->SetAttributes(sliderAttrib);
+    }
+
+    virtual void Compute() override
+    {
+    }
+
+    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
+    {
+        NVec2f start = viewNode.pos;
+        //canvas.FilledCircle(viewNode.pos, 20.0f, NVec4f(1.0f));
+        view.DrawKnob(canvas, start, 60, false, *pSum);
+
+        start += NVec2f(50.0f, 50.0f);
+        view.DrawSlider(canvas, NRectf(start, start + NVec2f(90.0f, 25.0f)), *pValue2);
+    }
+
+    Pin* pSum = nullptr;
+    Pin* pValue1 = nullptr;
+    Pin* pValue2 = nullptr;
+};
+
 std::vector<Node*> appNodes;
 
 class App : public IAppStarterClient
@@ -140,12 +185,9 @@ public:
         m_settings.clearColor = NVec4f(.2f, .2f, .2f, 1.0f);
         m_settings.appName = "NodeGraph Test";
 
-        appNodes.push_back(m_graph.CreateNode<EmptyNode>("Empty Node"));
-        appNodes.push_back(m_graph.CreateNode<TestNode>());
-        appNodes.push_back(m_graph.CreateNode<TestNode>());
-        appNodes.push_back(m_graph.CreateNode<TestNode>());
-        appNodes.push_back(m_graph.CreateNode<TestNode>());
-        
+        appNodes.push_back(m_graph.CreateNode<TestDrawNode>());
+
+        appNodes.push_back(m_graph2.CreateNode<EmptyNode>("Empty Node"));
         appNodes.push_back(m_graph2.CreateNode<TestNode>());
     }
 

@@ -49,7 +49,7 @@ public:
     void Show(Graph* pGraph, const MUtils::NVec2i& displaySize);
     bool ShouldShowNode(Canvas& canvas, const Node* pNode) const;
 
-    bool DrawKnob(Canvas& canvas, MUtils::NVec2f pos, float knobSize, Pin& pin);
+    bool DrawKnob(Canvas& canvas, MUtils::NVec2f pos, float knobSize, bool miniKnob, Pin& pin);
     SliderData DrawSlider(Canvas& canvas, MUtils::NRectf pos, Pin& pin);
     void DrawButton(Canvas& canvas, MUtils::NRectf pos, Pin& pin);
 
@@ -83,7 +83,7 @@ public:
         bool disabled = false;
         std::map<Node*, std::shared_ptr<ViewNode>> mapWorldToView;
         std::vector<nod::connection> connections;
-        std::map<uint32_t, Node*> mapInputOrder;
+        std::map<uint32_t, Node*> mapNodeCreateOrder;
     };
 
     const std::map<Graph*, std::shared_ptr<GraphViewData>>& GetGraphs() const
