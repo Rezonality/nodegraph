@@ -7,7 +7,7 @@
 
 #include <nod/nod.hpp>
 
-#include <gsl/gsl.hpp>
+#include <gsl-lite/gsl-lite.hpp>
 
 #include "mutils/profile/profile.h"
 

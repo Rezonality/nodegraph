@@ -3,7 +3,7 @@
 #include <cassert>
 #include <mutils/math/math.h>
 
-#include <nanovg/nanovg.h>
+#include <nanovg.h>
 
 #include "nodegraph/model/graph.h"
 
@@ -91,7 +91,7 @@ public:
     virtual MUtils::NRectf TextBounds(const MUtils::NVec2f& pos, float size, const char* pszText) const = 0;
     virtual void DrawGrid(float viewStep) = 0;
 
-    virtual void Update(const MUtils::NVec2f& size, const CanvasInputState& state);
+    virtual void Update(const MUtils::NVec2f& region, const CanvasInputState& state);
 
     virtual MUtils::NVec2f GetViewMousePos() const
     {
@@ -118,6 +118,7 @@ protected:
 
     MUtils::NVec2f m_viewOrigin;
     float m_viewScale = 1.0f;
+    bool m_capturedMouse = false;
 
     CanvasInputState m_inputState;
 };

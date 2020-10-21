@@ -1,4 +1,5 @@
 #include "nodegraph/view/canvas.h"
+#include "mutils/logger/logger.h"
 
 using namespace MUtils;
 
@@ -10,19 +11,21 @@ const NVec2f Canvas::PixelToView(const NVec2f& pixel) const
     return (m_viewOrigin + (pixel / m_viewScale));
 }
 
-void Canvas::Update(const NVec2f& size, const CanvasInputState& state)
+void Canvas::Update(const NVec2f& regionSize, const CanvasInputState& state)
 {
     m_inputState = state;
 
-    SetPixelRect(NRectf(0, 0, size.x, size.y));
+    auto normalizedRegion = NRectf(0, 0, regionSize.x, regionSize.y);
+    SetPixelRect(normalizedRegion);
+
+    bool mouseInView = normalizedRegion.Contains(state.mousePos);
 
     // Handle the mouse
-    if (state.canCapture)
     {
         auto viewUnderMouse = GetViewMousePos();
 
         float wheel = state.wheelDelta;
-        if (wheel != 0.0f)
+        if (wheel != 0.0f && mouseInView)
         {
             m_viewScale += wheel * (std::fabs(m_viewScale) * .1f);
             m_viewScale = std::clamp(m_viewScale, 0.1f, 10.0f);
@@ -31,11 +34,16 @@ void Canvas::Update(const NVec2f& size, const CanvasInputState& state)
             auto diff = newView - viewUnderMouse;
             m_viewOrigin -= diff;
         }
-        else if (state.buttonDown[1] && (state.mouseDelta.x != 0 || state.mouseDelta.y != 0))
+        else if ((mouseInView && state.buttonClicked[1]) || (m_capturedMouse && state.buttonDown[1]))
         {
             auto viewOrigin = PixelToView(NVec2f(0.0f, 0.0f));
             auto viewDelta = PixelToView(NVec2f(state.mouseDelta.x, state.mouseDelta.y));
             m_viewOrigin -= (viewDelta - viewOrigin);
+            m_capturedMouse = true;
+        }
+        else if (state.buttonDown[1] == 0 )
+        {
+            m_capturedMouse = false;
         }
     }
 }

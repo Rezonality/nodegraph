@@ -3,9 +3,9 @@
 #include "nodegraph/view/graphview.h"
 #include "nodegraph/view/viewnode.h"
 
-#include <nanovg/nanovg.h>
+#include <nanovg.h>
 
-#include <magic_enum/magic_enum.hpp>
+#include <magic_enum.hpp>
 #include <mutils/logger/logger.h>
 #include <mutils/ui/dpi.h>
 
@@ -37,6 +37,33 @@ float node_labelPad = 6.0f;
 
 namespace NodeGraph
 {
+
+GraphView::GraphView(std::shared_ptr<Graph> spGraph, std::shared_ptr<CanvasVG> spCanvas)
+{
+    auto spViewData = std::make_shared<GraphViewData>();
+    m_spCanvas = spCanvas;
+    m_spGraph = spGraph;
+
+    spViewData->pendingUpdate = true;
+
+    spViewData->connections.push_back(spGraph->sigBeginModify.connect([=](Graph* pGraph) {
+        spViewData->disabled = true;
+
+        // Remove our mappings since this node may be changing
+        for (auto& pNode : pGraph->GetNodes())
+        {
+            spViewData->mapWorldToView.erase(pNode.get());
+        }
+    }));
+
+    spViewData->connections.push_back(spGraph->sigEndModify.connect([=](Graph* pGraph) {
+        spViewData->disabled = false;
+        spViewData->pendingUpdate = true;
+    }));
+
+    spViewData->connections.push_back(spGraph->sigDestroy.connect([=](Graph* pGraph) {
+    }));
+}
 
 bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
 {
@@ -77,35 +104,26 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
 // Building pending view nodes
 void GraphView::BuildNodes()
 {
-    for (auto& [pGraph, pViewData] : m_graphs)
-    {
-        BuildNodes(pGraph);
-    }
-}
-
-void GraphView::BuildNodes(Graph* pGraph)
-{
-    auto& viewData = m_graphs.at(pGraph);
-    if (!viewData->pendingUpdate)
+    if (!m_viewData.pendingUpdate)
     {
         return;
     }
 
-    viewData->pendingUpdate = false;
+    m_viewData.pendingUpdate = false;
 
     // Get all the nodes and add them to our draw map
-    const auto& ins = pGraph->GetDisplayNodes();
+    const auto& ins = m_spGraph->GetDisplayNodes();
     for (auto& pNode : ins)
     {
-        if (viewData->mapWorldToView.find(pNode) == viewData->mapWorldToView.end())
+        if (m_viewData.mapWorldToView.find(pNode) == m_viewData.mapWorldToView.end())
         {
-            if (ShouldShowNode(*viewData->spCanvas, pNode))
+            if (ShouldShowNode(*m_spCanvas, pNode))
             {
                 auto spViewNode = std::make_shared<ViewNode>(pNode);
                 spViewNode->pos = NVec2f(50, 50);
 
-                viewData->mapWorldToView[pNode] = spViewNode;
-                viewData->mapNodeCreateOrder[m_currentInputIndex++] = pNode;
+                m_viewData.mapWorldToView[pNode] = spViewNode;
+                m_viewData.mapNodeCreateOrder[m_currentInputIndex++] = pNode;
             }
         }
     }
@@ -217,7 +235,7 @@ void GraphView::DrawDecorator(Canvas& canvas, NodeDecorator& decorator, const NR
 
     if (decorator.type == DecoratorType::Label)
     {
-        float fontSize = 24.0f;
+        float fontSize = 28.0f;
 
         canvas.Text(rc.Center(), fontSize, fontColor, decorator.strName.c_str());
     }
@@ -272,7 +290,7 @@ void GraphView::DrawLabel(Canvas& canvas, Parameter& param, const LabelInfo& inf
         val = info.prefix + val;
     }
 
-    float fontSize = 24.0f;
+    float fontSize = 28.0f;
     NRectf rcFont = canvas.TextBounds(info.pos, fontSize, val.c_str());
 
     NRectf rcBounds = rcFont;
@@ -302,7 +320,7 @@ bool GraphView::DrawKnob(Canvas& canvas, NVec2f pos, float knobSize, bool miniKn
 
     float channelWidth = miniKnob ? 8.0f : 4.0f;
     float channelGap = 10;
-    float fontSize = 24.0f * (knobSize / 120.0f);
+    float fontSize = 28.0f * (knobSize / 120.0f);
 
     auto& attrib = param.GetAttributes();
 
@@ -675,23 +693,14 @@ NRectf GraphView::DrawNode(Canvas& canvas, const NRectf& pos, Node* pNode)
     return contentRect;
 }
 
-void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
+void GraphView::Show(const NVec2i& displaySize)
 {
-    auto itrData = m_graphs.find(pGraph);
-    if (itrData == m_graphs.end())
-    {
-        return;
-    }
+    BuildNodes();
 
-    BuildNodes(pGraph);
-
-    auto& viewData = *itrData->second;
-    auto& canvas = *viewData.spCanvas;
-
-    nvgBeginFrame(viewData.spCanvas->GetVG(), float(displaySize.x), float(displaySize.y), 1.0f);
+    nvgBeginFrame(m_spCanvas->GetVG(), float(displaySize.x), float(displaySize.y), 1.0f);
 
     node_gridScale = 75.0f * dpi.scaleFactorXY.x;
-    viewData.spCanvas->DrawGrid(node_gridScale);
+    m_spCanvas->DrawGrid(node_gridScale);
 
     NVec2f currentPos(node_borderPad, node_borderPad);
     NVec4f nodeColor(.5f, .5f, .5f, 1.0f);
@@ -701,9 +710,9 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
 
     m_drawLabels.clear();
 
-    for (auto& [id, pNode] : viewData.mapNodeCreateOrder)
+    for (auto& [id, pNode] : m_viewData.mapNodeCreateOrder)
     {
-        auto pView = viewData.mapWorldToView[pNode];
+        auto pView = m_viewData.mapWorldToView[pNode];
 
         NVec2f gridSize(0);
 
@@ -711,7 +720,7 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
 
         if (pNode->Flags() & NodeFlags::OwnerDraw)
         {
-            pNode->Draw(*this, canvas, *pView);
+            pNode->Draw(*this, *m_spCanvas, *pView);
             continue;
         }
 
@@ -754,7 +763,7 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
             maxHeightNode = 0.0f;
         }
 
-        auto contentRect = DrawNode(canvas, NRectf(currentPos.x, currentPos.y, nodeSize.x, nodeSize.y), pNode);
+        auto contentRect = DrawNode(*m_spCanvas, NRectf(currentPos.x, currentPos.y, nodeSize.x, nodeSize.y), pNode);
 
         auto cellSize = contentRect.Size() / gridSize;
 
@@ -772,7 +781,7 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
                 cellSize.y * decoratorGrid.Height());
             decoratorCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, /*-node_borderPad*/ 0.0f);
 
-            DrawDecorator(canvas, *decorator, decoratorCell);
+            DrawDecorator(*m_spCanvas, *decorator, decoratorCell);
         }
 
         for (auto& pInput : pins)
@@ -795,23 +804,23 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
             if (pInput->GetAttributes().ui == ParameterUI::Knob)
             {
                 bool miniKnob = pInput->GetViewCells().Width() < .99f && pInput->GetViewCells().Height() < .99f;
-                DrawKnob(canvas, NVec2f(pinCell.Center().x, pinCell.Center().y), std::min(pinCell.Width(), pinCell.Height()) - node_pinPad * 2.0f, miniKnob, *pInput);
+                DrawKnob(*m_spCanvas, NVec2f(pinCell.Center().x, pinCell.Center().y), std::min(pinCell.Width(), pinCell.Height()) - node_pinPad * 2.0f, miniKnob, *pInput);
             }
             else if (pInput->GetAttributes().ui == ParameterUI::Slider)
             {
                 pinCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, -node_pinPad);
-                DrawSlider(canvas, pinCell, *pInput);
+                DrawSlider(*m_spCanvas, pinCell, *pInput);
             }
             else if (pInput->GetAttributes().ui == ParameterUI::Button)
             {
                 pinCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, -node_pinPad);
-                DrawButton(canvas, pinCell, *pInput);
+                DrawButton(*m_spCanvas, pinCell, *pInput);
             }
 
             else if (pInput->GetAttributes().ui == ParameterUI::Custom)
             {
                 pinCell.Adjust(node_pinPad, node_pinPad, -node_pinPad, -node_pinPad);
-                pNode->DrawCustomPin(*this, canvas, pinCell, *pInput);
+                pNode->DrawCustomPin(*this, *m_spCanvas, pinCell, *pInput);
             }
         }
 
@@ -827,9 +836,9 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
                 cellSize.y * custom.Height());
             cell.Adjust(node_borderPad, node_borderPad, -node_borderPad, /*-node_borderPad*/ 0.0f);
 
-            canvas.FillRoundedRect(cell, node_borderRadius, pinBGColor);
+            m_spCanvas->FillRoundedRect(cell, node_borderRadius, pinBGColor);
 
-            pNode->DrawCustom(*this, canvas, cell);
+            pNode->DrawCustom(*this, *m_spCanvas, cell);
         }
 
         maxHeightNode = std::max(maxHeightNode, nodeSize.y + node_borderPad * 2.0f);
@@ -838,78 +847,20 @@ void GraphView::Show(Graph* pGraph, const NVec2i& displaySize)
 
     for (auto& [param, info] : m_drawLabels)
     {
-        DrawLabel(canvas, *param, info);
+        DrawLabel(*m_spCanvas, *param, info);
     }
 
-    nvgEndFrame(viewData.spCanvas->GetVG());
+    nvgEndFrame(m_spCanvas->GetVG());
 }
 
-void GraphView::AddGraph(Graph* pAdd, std::shared_ptr<CanvasVG> spCanvas)
+Graph* GraphView::GetGraph() const
 {
-    auto spViewData = std::make_shared<GraphViewData>();
-    spViewData->spCanvas = spCanvas;
-    m_graphs[pAdd] = spViewData;
-
-    if (m_pCurrentGraph == nullptr)
-    {
-        m_pCurrentGraph = pAdd;
-    }
-
-    spViewData->pendingUpdate = true;
-
-    spViewData->connections.push_back(pAdd->sigBeginModify.connect([=](Graph* pGraph) {
-        spViewData->disabled = true;
-
-        // Remove our mappings since this node may be changing
-        for (auto& pNode : pGraph->GetNodes())
-        {
-            spViewData->mapWorldToView.erase(pNode.get());
-        }
-    }));
-
-    spViewData->connections.push_back(pAdd->sigEndModify.connect([=](Graph* pGraph) {
-        spViewData->disabled = false;
-        spViewData->pendingUpdate = true;
-    }));
-
-    spViewData->connections.push_back(pAdd->sigDestroy.connect([=](Graph* pGraph) {
-        RemoveGraph(pGraph);
-    }));
+    return m_spGraph.get();
 }
 
-void GraphView::RemoveGraph(Graph* pGraph)
+Canvas* GraphView::GetCanvas() const
 {
-    if (m_pCurrentGraph == pGraph)
-    {
-        m_pCurrentGraph = nullptr;
-        if (!m_graphs.empty())
-        {
-            m_pCurrentGraph = (*m_graphs.begin()).first;
-        }
-    }
-
-    m_graphs.erase(pGraph);
-}
-
-Graph* GraphView::GetCurrentGraph() const
-{
-    return m_pCurrentGraph;
-}
-
-void GraphView::SetCurrentGraph(Graph* pGraph)
-{
-    assert(m_graphs.find(pGraph) != m_graphs.end());
-    m_pCurrentGraph = pGraph;
-}
-    
-Canvas* GraphView::GetCanvas(Graph* pGraph) const
-{
-    auto itr = m_graphs.find(pGraph);
-    if (itr == m_graphs.end())
-    {
-        return nullptr;
-    }
-    return itr->second->spCanvas.get();
+    return m_spCanvas.get();
 }
 
 

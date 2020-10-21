@@ -34,28 +34,24 @@ target_include_directories(${APP_NAME}
 
 target_link_libraries (${APP_NAME}
     PRIVATE
-    SDL2::SDL2main
-    MUtils::MUtils
     NodeGraph::NodeGraph
+    nanovg::nanovg
+    SDL2::SDL2main
     ${PLATFORM_LINKLIBS}
     )
 
 add_dependencies(${APP_NAME} unittests)
 
 if (WIN32)
-    # No longer needed?
-    #target_link_libraries (${DEMO_NAME} 
-    #    PRIVATE
-    # ${MUTILS_LIB_DIR}/freetype2/lib/freetype$<$<CONFIG:DEBUG>:d>.lib
-    #    )
     copy_existing_files(${PROJECT_NAME} "${RESOURCE_DEPLOY_FILES}" ${CMAKE_CURRENT_BINARY_DIR}/$(Configuration) )
 endif()
 
 # Install the font
-install(FILES ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Cousine-Regular.ttf
-    COMPONENT binaries
-    DESTINATION ${CMAKE_INSTALL_BINDIR}/imgui
-    )
+
+#install(FILES ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Cousine-Regular.ttf
+#    COMPONENT binaries
+#    DESTINATION ${CMAKE_INSTALL_BINDIR}/imgui
+#    )
 
 if (APPLE)
     install(TARGETS ${DEMO_NAME}

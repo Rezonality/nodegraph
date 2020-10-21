@@ -34,19 +34,11 @@ struct LabelInfo
 class GraphView
 {
 public:
-    GraphView()
-    {
-    }
-
-    void AddGraph(Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas);
-    void RemoveGraph(Graph* pGraph);
-    Graph* GetCurrentGraph() const;
-    void SetCurrentGraph(Graph* pGraph);
+    GraphView(std::shared_ptr<Graph> spGraph, std::shared_ptr<CanvasVG> spCanvas);
 
     void BuildNodes();
-    void BuildNodes(Graph* pGraph);
 
-    void Show(Graph* pGraph, const MUtils::NVec2i& displaySize);
+    void Show(const MUtils::NVec2i& displaySize);
     bool ShouldShowNode(Canvas& canvas, const Node* pNode) const;
 
     bool DrawKnob(Canvas& canvas, MUtils::NVec2f pos, float knobSize, bool miniKnob, Pin& pin);
@@ -78,7 +70,6 @@ public:
                 con.disconnect();
             }
         }
-        std::shared_ptr<CanvasVG> spCanvas;
         bool pendingUpdate = true;
         bool disabled = false;
         std::map<Node*, std::shared_ptr<ViewNode>> mapWorldToView;
@@ -86,12 +77,8 @@ public:
         std::map<uint32_t, Node*> mapNodeCreateOrder;
     };
 
-    const std::map<Graph*, std::shared_ptr<GraphViewData>>& GetGraphs() const
-    {
-        return m_graphs;
-    }
-
-    Canvas* GetCanvas(Graph* pGraph) const;
+    Graph* GetGraph() const;
+    Canvas* GetCanvas() const;
 
 private:
     enum class InputDirection
@@ -104,8 +91,9 @@ private:
     void CheckInput(Canvas& canvas, Pin& param, const MUtils::NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir);
 
 private:
-    std::map<Graph*, std::shared_ptr<GraphViewData>> m_graphs;
-    Graph* m_pCurrentGraph = nullptr;
+    std::shared_ptr<Graph> m_spGraph;
+    std::shared_ptr<CanvasVG> m_spCanvas;
+    GraphViewData m_viewData;
 
     Parameter* m_pCaptureParam = nullptr;
     MUtils::NVec2f m_mouseStart;

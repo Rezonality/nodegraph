@@ -3,7 +3,6 @@ project(NodeGraph
     VERSION 0.5.0
 )
 
-find_package(SDL2 REQUIRED)
 #set_target_properties(SDL2::SDL2 PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 #set_target_properties(MUtils::MUtils PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 

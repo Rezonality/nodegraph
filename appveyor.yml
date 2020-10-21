@@ -10,6 +10,7 @@ init:
 branches:
   only:
   - master
+  - vcpkg
 
 clone_depth: 5
 
@@ -35,15 +36,15 @@ install:
   
 build_script:
   # generate build script
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - dir
+  - cd %APPVEYOR_BUILD_FOLDER%/..
+  - cd ..
   # Make MUtils first
   - git clone https://github.com/cmaughan/MUtils
   - cd MUtils
   - ./prebuild.bat
   - config_all.bat
   - build_all.bat
-  - cd.. 
+  - cd %APPVEYOR_BUILD_FOLDER%
   # Now make nodegraph
   - mkdir build
   - cd build

@@ -110,8 +110,6 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     LIST(APPEND PLATFORM_LINKLIBS
         dl 
         Threads::Threads
-        stdc++fs
-        freetype
         ${OPENGL_LIBRARY}
         z
         )

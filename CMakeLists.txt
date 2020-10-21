@@ -13,16 +13,32 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_DEBUG_POSTFIX "-debug")
 set(CMAKE_RELWITHDEBINFO_POSTFIX "-reldbg")
 
+if (WIN32)
+set(VCPKG_TARGET_TRIPLET x64-windows-static)
+endif()
+
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+
 project(NodeGraph
     LANGUAGES CXX C
     VERSION 0.5.0
 )
 
-find_package(MUtils REQUIRED)
+find_package(imgui REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(gl3w REQUIRED)
+find_package(gsl-lite REQUIRED)
+find_package(fmt REQUIRED)
+find_package(freetype CONFIG REQUIRED)
+find_package(unofficial-concurrentqueue REQUIRED)
+find_package(tinyfiledialogs REQUIRED)
+find_package(nanovg REQUIRED)
 
-# Used Packages
+# Used Packages that we create
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+find_package(mutils REQUIRED)
+
 include(${MUTILS_INCLUDE_DIR}/cmake/utils.cmake)
 
 set(NODEGRAPH_ROOT ${CMAKE_CURRENT_LIST_DIR})
@@ -32,9 +48,9 @@ set(NODEGRAPH_INCLUDE_DIR include/)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/config_app.h.cmake ${CMAKE_BINARY_DIR}/config_app.h)
 
 include(cmake/all.cmake)
-include(src/CMakeLists.txt)
-include(app/CMakeLists.txt)
-include(tests/CMakeLists.txt)
+add_subdirectory(src)
+add_subdirectory(app)
+add_subdirectory(tests)
 
 # Make the CMake bits that ensure find_package does the right thing
 install(EXPORT nodegraph-targets

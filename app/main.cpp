@@ -1,19 +1,19 @@
 #include <mutils/logger/logger.h>
 
 #include <mutils/math/imgui_glm.h>
-#include <mutils/ui/sdl_imgui_starter.h>
 #include <mutils/ui/fbo.h>
+#include <mutils/ui/sdl_imgui_starter.h>
 
 #include "config_app.h"
 #include <SDL.h>
 #include <nodegraph/model/graph.h>
-#include <nodegraph/view/graphview.h>
 #include <nodegraph/view/canvas_imgui.h>
+#include <nodegraph/view/graphview.h>
 
 #include <GL/gl3w.h>
-#include <nanovg/nanovg.h>
+#include <nanovg.h>
 #define NANOVG_GL3_IMPLEMENTATION
-#include <nanovg/nanovg_gl.h>
+#include <nanovg_gl.h>
 
 using namespace MUtils;
 using namespace NodeGraph;
@@ -147,7 +147,7 @@ public:
         pValue2 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         //pValue2->GetAttributes().thumb = 0.8f;
         pValue2->GetAttributes().step = 0.25f;
-        
+
         //ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
         //sliderAttrib.step = 0.25f;
         //sliderAttrib.thumb = 0.25f;
@@ -175,6 +175,17 @@ public:
 
 std::vector<Node*> appNodes;
 
+struct GraphData
+{
+    GraphData(std::shared_ptr<CanvasVG> spCanvas)
+        : spGraphView(std::make_shared<GraphView>(std::make_shared<NodeGraph::Graph>(), spCanvas))
+    {
+    }
+    
+    std::shared_ptr<NodeGraph::GraphView> spGraphView;
+    MUtils::Fbo fbo;
+};
+
 class App : public IAppStarterClient
 {
 public:
@@ -185,10 +196,6 @@ public:
         m_settings.clearColor = NVec4f(.2f, .2f, .2f, 1.0f);
         m_settings.appName = "NodeGraph Test";
 
-        appNodes.push_back(m_graph.CreateNode<TestDrawNode>());
-
-        appNodes.push_back(m_graph2.CreateNode<EmptyNode>("Empty Node"));
-        appNodes.push_back(m_graph2.CreateNode<TestNode>());
     }
 
     // Inherited via IAppStarterClient
@@ -204,12 +211,19 @@ public:
         auto path = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
         nvgCreateFont(vg, "sans", path.string().c_str());
 
-        m_spGraphView = std::make_shared<GraphView>();
+        auto spGraphA = std::make_shared<GraphData>(std::make_shared<CanvasVG>(vg));
+        auto spGraphB = std::make_shared<GraphData>(std::make_shared<CanvasVG>(vg));
 
-        m_graph.SetName("Graph A");
-        m_graph2.SetName("Graph B");
-        m_spGraphView->AddGraph(&m_graph, std::make_shared<CanvasVG>(vg));
-        m_spGraphView->AddGraph(&m_graph2, std::make_shared<CanvasVG>(vg));
+        spGraphA->spGraphView->GetGraph()->SetName("Graph A");
+        spGraphB->spGraphView->GetGraph()->SetName("Graph B");
+
+        appNodes.push_back(spGraphA->spGraphView->GetGraph()->CreateNode<TestDrawNode>());
+
+        appNodes.push_back(spGraphB->spGraphView->GetGraph()->CreateNode<EmptyNode>("Empty Node"));
+        appNodes.push_back(spGraphB->spGraphView->GetGraph()->CreateNode<TestNode>());
+
+        m_graphs.push_back(spGraphA);
+        m_graphs.push_back(spGraphB);
     }
 
     virtual void Update(float time, const NVec2i& displaySize) override
@@ -228,32 +242,32 @@ public:
 
     virtual void Destroy() override
     {
-        fbo_destroy(m_fbo);
+        for (auto& spGraphData : m_graphs)
+        {
+            fbo_destroy(spGraphData->fbo);
+        }
     }
 
     virtual void Draw(const NVec2i& displaySize) override
     {
     }
 
-    void DrawGraph(Graph* pGraph, const NVec2i& canvasSize)
+    void DrawGraph(GraphData& graphData, const NVec2i& canvasSize)
     {
-        if (m_spGraphView && pGraph)
+        if (graphData.fbo.fbo == 0)
         {
-            if (m_fbo.fbo == 0)
-            {
-                m_fbo = fbo_create();
-            }
-            fbo_resize(m_fbo, canvasSize);
-
-            fbo_bind(m_fbo);
-
-            fbo_clear(m_settings.clearColor);
-
-            m_spGraphView->Show(pGraph, canvasSize);
-            pGraph->Compute(appNodes, 0);
-
-            fbo_unbind(m_fbo, m_displaySize);
+            graphData.fbo = fbo_create();
         }
+        fbo_resize(graphData.fbo, canvasSize);
+
+        fbo_bind(graphData.fbo);
+
+        fbo_clear(m_settings.clearColor);
+
+        graphData.spGraphView->Show(canvasSize);
+        graphData.spGraphView->GetGraph()->Compute(appNodes, 0);
+
+        fbo_unbind(graphData.fbo, m_displaySize);
     }
 
     void BeginCanvas(Canvas& canvas, const NRectf& region)
@@ -273,43 +287,83 @@ public:
 
     virtual void DrawGUI(const NVec2i& displaySize) override
     {
+        static bool p_open = true;
         m_displaySize = displaySize;
 
-        ImGui::Begin("Graphs");
+        static bool opt_fullscreen = true;
+        static bool opt_padding = false;
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-        if (ImGui::BeginTabBar("Tabs"))
+        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+        // because it would be confusing to have two docking targets within each others.
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        if (opt_fullscreen)
         {
-            for (auto& [pGraph, pViewData] : m_spGraphView->GetGraphs())
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->GetWorkPos());
+            ImGui::SetNextWindowSize(viewport->GetWorkSize());
+            ImGui::SetNextWindowViewport(viewport->ID);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+        }
+        else
+        {
+            dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+        }
+
+        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+        // and handle the pass-thru hole, so we ask Begin() to not render a background.
+        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+            window_flags |= ImGuiWindowFlags_NoBackground;
+
+        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+        // all active windows docked into it will lose their parent and become undocked.
+        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+        if (!opt_padding)
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+        ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+        if (!opt_padding)
+            ImGui::PopStyleVar();
+
+        if (opt_fullscreen)
+            ImGui::PopStyleVar(2);
+
+        // DockSpace
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("Options"))
             {
-                if (ImGui::BeginTabItem(pGraph->Name().c_str()))
-                {
-                    m_spGraphView->SetCurrentGraph(pGraph);
-                    ImGui::EndTabItem();
-                }
             }
-            ImGui::EndTabBar();
+            ImGui::EndMenuBar();
         }
-
-        auto pGraph = m_spGraphView->GetCurrentGraph();
-        if (pGraph)
-        {
-            auto spView = m_spGraphView->GetGraphs().at(pGraph);
-
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
-    
-            BeginCanvas(*spView->spCanvas, region);
-
-            DrawGraph(pGraph, region.Size());
-
-            EndCanvas(*spView->spCanvas);
-
-            ImGui::Image(*(ImTextureID*)&m_fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
-        }
-
-
         ImGui::End();
 
+        for (auto& spGraphData : m_graphs)
+        {
+            if (ImGui::Begin(spGraphData->spGraphView->GetGraph()->Name().c_str()))
+            {
+                ImVec2 pos = ImGui::GetCursorScreenPos();
+                NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+
+                BeginCanvas(*spGraphData->spGraphView->GetCanvas(), region);
+
+                DrawGraph(*spGraphData, region.Size());
+
+                EndCanvas(*spGraphData->spGraphView->GetCanvas());
+
+                ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+            }
+            ImGui::End();
+        }
     }
 
     virtual AppStarterSettings& GetSettings() override
@@ -318,12 +372,10 @@ public:
     }
 
 private:
-    std::shared_ptr<NodeGraph::GraphView> m_spGraphView;
-    NodeGraph::Graph m_graph;
-    NodeGraph::Graph m_graph2;
+    std::vector<std::shared_ptr<GraphData>> m_graphs;
+
     AppStarterSettings m_settings;
     NVGcontext* vg = nullptr;
-    MUtils::Fbo m_fbo;
     NVec2i m_displaySize = 0;
 };
 
@@ -332,5 +384,5 @@ App theApp;
 // Main code
 int main(int args, char** ppArgs)
 {
-    return sdl_imgui_start(args, ppArgs, &theApp);
+    return sdl_imgui_start(args, ppArgs, gsl::not_null<IAppStarterClient*>(&theApp));
 }

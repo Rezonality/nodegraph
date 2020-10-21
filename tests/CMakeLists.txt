@@ -8,9 +8,10 @@ project(unittests
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
+set (TEST_ROOT ${CMAKE_CURRENT_LIST_DIR})
 list(APPEND TEST_SOURCES
-    tests/CMakeLists.txt
-    tests/main.cpp)
+    ${TEST_ROOT}/CMakeLists.txt
+    ${TEST_ROOT}/main.cpp)
 
 file(GLOB_RECURSE FOUND_TEST_SOURCES "${NODEGRAPH_ROOT}/*.test.cpp")
 exclude_files_from_dir_in_list("${FOUND_TEST_SOURCES}" "/m3rdparty/" FALSE)
@@ -33,7 +34,6 @@ target_include_directories(unittests PRIVATE
 target_link_libraries(unittests
     PRIVATE
         NodeGraph::NodeGraph
-        MUtils::MUtils
         ${PLATFORM_LINKLIBS}
         ${CMAKE_THREAD_LIBS_INIT})
 
