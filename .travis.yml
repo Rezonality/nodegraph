@@ -4,8 +4,8 @@ before_script:
   # Make mutils first and install it
   - dir
   - cd ..
-  - git clone https://github.com/cmaughan/MUtils
-  - cd MUtils
+  - git clone https://github.com/Rezonality/mutils
+  - cd mutils
   - chmod +x prebuild.sh
   - sudo ./prebuild.sh
   - mkdir build
