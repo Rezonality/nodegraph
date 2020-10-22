@@ -2,7 +2,6 @@ language: cpp
 
 before_script:
   # Make mutils first and install it
-  - dir
   - cd ..
   - git clone https://github.com/Rezonality/mutils
   - cd mutils
@@ -14,7 +13,6 @@ before_script:
   - make
   - sudo make install
   - cd $TRAVIS_BUILD_DIR
-  - dir
   - mkdir build
   - cd build
 
