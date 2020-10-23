@@ -56,9 +56,9 @@ build_script:
 
 test_script:
     - ps: |
-        cd $env:APPVEYOR_BUILD_FOLDER\build\$env:CONFIGURATION
-        # Unforunately Tracy is messing with running unit tests on AppVeyor, so only run them release for now
+        # Unfortunately Tracy is messing with running unit tests on AppVeyor, so only run them release for now
         if ($env:CONFIGURATION -eq "Release") {
+          cd $env:APPVEYOR_BUILD_FOLDER\build\tests\$env:CONFIGURATION
           .\unittests.exe -r junit > unit_tests_report.xml
           $wc = New-Object 'System.Net.WebClient'
           $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path unit_tests_report.xml))
