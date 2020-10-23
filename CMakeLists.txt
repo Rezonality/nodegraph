@@ -26,7 +26,6 @@ project(NodeGraph
 
 find_package(imgui REQUIRED)
 find_package(SDL2 REQUIRED)
-find_package(gl3w REQUIRED)
 find_package(gsl-lite REQUIRED)
 find_package(fmt REQUIRED)
 find_package(gl3w CONFIG REQUIRED)
