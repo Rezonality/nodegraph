@@ -46,13 +46,6 @@ if (WIN32)
     copy_existing_files(${PROJECT_NAME} "${RESOURCE_DEPLOY_FILES}" ${CMAKE_CURRENT_BINARY_DIR}/$(Configuration) )
 endif()
 
-# Install the font
-
-#install(FILES ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Cousine-Regular.ttf
-#    COMPONENT binaries
-#    DESTINATION ${CMAKE_INSTALL_BINDIR}/imgui
-#    )
-
 if (APPLE)
     install(TARGETS ${DEMO_NAME}
         EXPORT nodegraph-targets

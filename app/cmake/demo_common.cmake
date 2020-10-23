@@ -20,9 +20,9 @@ elseif (WIN32)
 endif()
 
 set(RESOURCE_DEPLOY_FILES ${RESOURCE_DEPLOY_FILES}
-    ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Cousine-Regular.ttf
-    ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/DroidSans.ttf
-    ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Roboto-Medium.ttf)
+    ${NODEGRAPH_ROOT}/run_tree/fonts/Cousine-Regular.ttf
+    ${NODEGRAPH_ROOT}/run_tree/fonts/DroidSans.ttf
+    ${NODEGRAPH_ROOT}/run_tree/fonts/Roboto-Medium.ttf)
 
 if (WIN32)
     configure_file("${APP_ROOT}/cmake/windows_metafile.rc.in"
