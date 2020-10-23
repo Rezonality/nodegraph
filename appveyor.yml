@@ -36,7 +36,7 @@ install:
   
 build_script:
   # generate build script
-  - cd %APPVEYOR_BUILD_FOLDER%/..
+  - cd %APPVEYOR_BUILD_FOLDER%
   - cd ..
   # Make MUtils first
   - git clone https://github.com/cmaughan/MUtils
