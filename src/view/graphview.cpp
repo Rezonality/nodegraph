@@ -5,7 +5,6 @@
 
 #include <nanovg.h>
 
-#include <magic_enum.hpp>
 #include <mutils/logger/logger.h>
 #include <mutils/ui/dpi.h>
 

@@ -68,7 +68,9 @@ after_build:
   # set compiler var
   - if "%generator%"=="Visual Studio 16" (set COMPILER="VC16")
   # switch to project build folder and zip "tutorials" folder
-  - cd %APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%
+  - cd %APPVEYOR_BUILD_FOLDER%\build\app\%CONFIGURATION%
+  - 7z a -tzip -mx9 "nodegraph-%configuration%-%APPVEYOR_BUILD_VERSION%.zip" .
+  - cd %APPVEYOR_BUILD_FOLDER%\build\tests\%CONFIGURATION%
   - 7z a -tzip -mx9 "nodegraph-%configuration%-%APPVEYOR_BUILD_VERSION%.zip" .
   - appveyor PushArtifact "nodegraph-%configuration%-%APPVEYOR_BUILD_VERSION%.zip"
 
