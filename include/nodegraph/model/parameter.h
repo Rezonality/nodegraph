@@ -954,6 +954,22 @@ public:
         m_pPrevShadow = pEnd;
     }
 
+    void RemoveShadow()
+    {
+        if (m_pPrevShadow != nullptr)
+        {
+            m_pPrevShadow->m_pNextShadow = m_pNextShadow;
+        }
+        
+        if (m_pNextShadow != nullptr)
+        {
+            m_pNextShadow->m_pPrevShadow = m_pPrevShadow;
+        }
+
+        m_pNextShadow = nullptr;
+        m_pPrevShadow = nullptr;
+    }
+
 protected:
     // We lerp between start/end and output value
     ParameterValue m_value;

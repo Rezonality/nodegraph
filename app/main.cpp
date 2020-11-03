@@ -173,7 +173,7 @@ public:
     Pin* pValue2 = nullptr;
 };
 
-std::vector<Node*> appNodes;
+std::set<Node*> appNodes;
 
 struct GraphData
 {
@@ -217,10 +217,10 @@ public:
         spGraphA->spGraphView->GetGraph()->SetName("Graph A");
         spGraphB->spGraphView->GetGraph()->SetName("Graph B");
 
-        appNodes.push_back(spGraphA->spGraphView->GetGraph()->CreateNode<TestDrawNode>());
+        appNodes.insert(spGraphA->spGraphView->GetGraph()->CreateNode<TestDrawNode>());
 
-        appNodes.push_back(spGraphB->spGraphView->GetGraph()->CreateNode<EmptyNode>("Empty Node"));
-        appNodes.push_back(spGraphB->spGraphView->GetGraph()->CreateNode<TestNode>());
+        appNodes.insert(spGraphB->spGraphView->GetGraph()->CreateNode<EmptyNode>("Empty Node"));
+        appNodes.insert(spGraphB->spGraphView->GetGraph()->CreateNode<TestNode>());
 
         m_graphs.push_back(spGraphA);
         m_graphs.push_back(spGraphB);

@@ -52,8 +52,25 @@ public:
 
     void ConnectTo(Pin& out)
     {
+        assert(m_direction == PinDir::Output);
         m_targets.insert(&out);
         m_pSource = nullptr;
+    }
+
+    void Detach()
+    {
+        if (m_direction == PinDir::Input)
+        {
+            m_pSource = nullptr;
+            assert(m_targets.empty());
+        }
+        else
+        {
+            m_targets.clear();
+            assert(m_pSource == nullptr);
+        }
+
+        RemoveShadow();
     }
 
     virtual IFlowData* GetFlowData() const override

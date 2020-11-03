@@ -83,7 +83,7 @@ TEST_CASE("Creation", "[Nodes]")
     REQUIRE_FALSE(val == .6f);
 
     // Compute the m_graph at tick 0
-    g.Compute(std::vector<Node*>{ pNode }, 0);
+    g.Compute(std::set<Node*>{ pNode }, 0);
 
     // Get the result
     val = pNode->pSum->GetValue<float>();

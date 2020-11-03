@@ -74,7 +74,7 @@ public:
         bool disabled = false;
         std::map<Node*, std::shared_ptr<ViewNode>> mapWorldToView;
         std::vector<nod::connection> connections;
-        std::map<uint32_t, Node*> mapNodeCreateOrder;
+        std::map<uint64_t, Node*> mapNodeCreateOrder;
     };
 
     Graph* GetGraph() const;
@@ -93,7 +93,7 @@ private:
 private:
     std::shared_ptr<Graph> m_spGraph;
     std::shared_ptr<CanvasVG> m_spCanvas;
-    GraphViewData m_viewData;
+    std::shared_ptr<GraphViewData> m_spViewData;
 
     Parameter* m_pCaptureParam = nullptr;
     MUtils::NVec2f m_mouseStart;

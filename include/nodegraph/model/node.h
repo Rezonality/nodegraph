@@ -100,10 +100,11 @@ public:
     Node(const Node& node) = delete;
     const Node& operator=(const Node& Node) = delete;
 
+    virtual void Detach();
     virtual ~Node();
 
-    void ConnectIndexTo(Node* pTarget, uint32_t outPin = 0, int32_t targetPin = 0);
-    void ConnectTo(Node* pDest, const std::string& outputName = "Flow", const std::string& inputName = "");
+    virtual void ConnectIndexTo(Node* pTarget, uint32_t outPin = 0, int32_t targetPin = 0);
+    virtual void ConnectTo(Node* pDest, const std::string& outputName = "Flow", const std::string& inputName = "");
 
     virtual void Compute();
 
@@ -116,6 +117,7 @@ public:
     // Get
     virtual ctti::type_id_t GetType() const = 0;
     virtual const char* GetAPIName() const = 0;
+    
     const std::string& GetName() const
     {
         return m_strName;
@@ -203,6 +205,9 @@ public:
     {
         return m_Id;
     }
+
+    nod::signal<void(Node*)> sigDetach;
+    nod::signal<void(Node*)> sigDestroy;
 
 protected:
     uint64_t m_Id;

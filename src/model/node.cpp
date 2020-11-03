@@ -15,6 +15,10 @@ uint64_t Node::CurrentId = 0;
 
 Node::~Node()
 {
+    Detach();
+
+    sigDestroy(this);
+
     for (auto& input : m_inputs)
     {
         delete input;
@@ -23,9 +27,22 @@ Node::~Node()
     {
         delete output;
     }
-    for (auto& decorator : m_decorators)
+
+    ClearDecorators();
+}
+
+void Node::Detach()
+{
+    sigDetach(this);
+
+    for (auto& input : m_inputs)
     {
-        delete decorator;
+        input->Detach();
+    }
+
+    for (auto& input : m_outputs)
+    {
+        input->Detach();
     }
 }
 

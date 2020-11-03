@@ -4,6 +4,7 @@
 #include <exception>
 #include <functional>
 #include <set>
+#include <map>
 
 #include <nod/nod.hpp>
 
@@ -33,13 +34,16 @@ public:
     {
         PreModify();
 
-        auto pNode = std::make_shared<T>(*this, std::forward<Args>(args)...);
+        auto pNode = new T(*this, std::forward<Args>(args)...);
         nodes.insert(pNode);
-        m_displayNodes.push_back(pNode.get());
+        m_displayNodes.insert(pNode);
+        m_mapIdToNode[pNode->GetId()] = pNode;
 
         PostModify();
-        return pNode.get();
+        return pNode;
     }
+
+    void DestroyNode(Node* pNode);
 
     bool IsType(Node& node, ctti::type_id_t type) const;
 
@@ -51,7 +55,7 @@ public:
         {
             if (IsType(*pNode, type))
             {
-                found.insert(static_cast<T*>(pNode.get()));
+                found.insert(static_cast<T*>(pNode));
             }
         }
         return found;
@@ -74,27 +78,27 @@ public:
     // Get the list of pins that could be on the UI
     virtual std::vector<Pin*> GetControlSurface() const;
 
-    virtual void Compute(const std::vector<Node*>& nodes, int64_t numTicks);
+    virtual void Compute(const std::set<Node*>& nodes, int64_t numTicks);
 
-    const std::set<std::shared_ptr<Node>>& GetNodes() const
+    const std::set<Node*>& GetNodes() const
     {
         return nodes;
     }
 
-    const std::vector<Node*>& GetDisplayNodes() const
+    const std::set<Node*>& GetDisplayNodes() const
     {
         return m_displayNodes;
     }
-    void SetDisplayNodes(const std::vector<Node*>& nodes)
+    void SetDisplayNodes(const std::set<Node*>& nodes)
     {
         m_displayNodes = nodes;
     }
 
-    const std::vector<Node*>& GetOutputNodes() const
+    const std::set<Node*>& GetOutputNodes() const
     {
         return m_outputNodes;
     }
-    void SetOutputNodes(const std::vector<Node*>& nodes)
+    void SetOutputNodes(const std::set<Node*>& nodes)
     {
         m_outputNodes = nodes;
     }
@@ -125,6 +129,11 @@ public:
     // Called to notify that this graph is about to be destroyed
     void NotifyDestroy(Graph* pGraph);
 
+    const std::map<uint64_t, Node*>& GetNodesById() const
+    {
+        return m_mapIdToNode;
+    }
+
     // Signals
     nod::signal<void(Graph*)> sigBeginModify;
     nod::signal<void(Graph*)> sigEndModify;
@@ -132,10 +141,14 @@ public:
 
 protected:
     uint32_t m_modifyTracker = 0;
-    std::set<std::shared_ptr<Node>> nodes;
-    std::vector<Node*> m_displayNodes;
+
+    std::map<uint64_t, Node*> m_mapIdToNode;
+
+    std::set<Node*> nodes;
+    std::set<Node*> m_displayNodes;
+    std::set<Node*> m_outputNodes;
+
     uint64_t currentGeneration = 1;
-    std::vector<Node*> m_outputNodes;
     std::string m_strName;
 }; // Graph
 

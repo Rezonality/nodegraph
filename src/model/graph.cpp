@@ -21,13 +21,34 @@ Graph::~Graph()
     Clear();
 }
 
+void Graph::DestroyNode(Node* pNode)
+{
+    if (!pNode)
+    {
+        return;
+    }
+    PreModify();
+
+    nodes.erase(pNode);
+    m_displayNodes.erase(pNode);
+    m_outputNodes.erase(pNode);
+    m_mapIdToNode.erase(pNode->GetId());
+
+    delete pNode;
+
+    PostModify();
+}
+
 void Graph::Clear()
 {
     GRAPH_MODIFY(*this);
-    nodes.clear();
-    m_displayNodes.clear();
+
+    while (!nodes.empty())
+    {
+        DestroyNode(*nodes.begin());
+    }
+
     currentGeneration = 1;
-    m_outputNodes.clear();
 }
 
 void Graph::Visit(Node& node, PinDir dir, ParameterType type, std::function<bool(Node&)> fn)
@@ -65,7 +86,7 @@ void Graph::Visit(Node& node, PinDir dir, ParameterType type, std::function<bool
     }
 }
 
-void Graph::Compute(const std::vector<Node*>& outNodes, int64_t numTicks)
+void Graph::Compute(const std::set<Node*>& outNodes, int64_t numTicks)
 {
     MUtilsZoneScoped;
 
