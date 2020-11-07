@@ -10,7 +10,7 @@
 
 #include <gsl-lite/gsl-lite.hpp>
 
-#include "mutils/profile/profile.h"
+#include "mutils/time/profiler.h"
 
 #include "threadpool/threadpool.h"
 
