@@ -177,8 +177,8 @@ std::set<Node*> appNodes;
 
 struct GraphData
 {
-    GraphData(std::shared_ptr<CanvasVG> spCanvas)
-        : spGraphView(std::make_shared<GraphView>(std::make_shared<NodeGraph::Graph>(), spCanvas))
+    GraphData(NodeGraph::Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas)
+        : spGraphView(std::make_shared<GraphView>(pGraph, spCanvas))
     {
     }
     
@@ -211,16 +211,18 @@ public:
         auto path = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
         nvgCreateFont(vg, "sans", path.string().c_str());
 
-        auto spGraphA = std::make_shared<GraphData>(std::make_shared<CanvasVG>(vg));
-        auto spGraphB = std::make_shared<GraphData>(std::make_shared<CanvasVG>(vg));
+        m_spGraphA = std::make_shared<Graph>();
+        m_spGraphB = std::make_shared<Graph>();
+        auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasVG>(vg));
+        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
 
-        spGraphA->spGraphView->GetGraph()->SetName("Graph A");
-        spGraphB->spGraphView->GetGraph()->SetName("Graph B");
+        m_spGraphA->SetName("Graph A");
+        m_spGraphB->SetName("Graph B");
 
-        appNodes.insert(spGraphA->spGraphView->GetGraph()->CreateNode<TestDrawNode>());
+        appNodes.insert(m_spGraphA->CreateNode<TestDrawNode>());
 
-        appNodes.insert(spGraphB->spGraphView->GetGraph()->CreateNode<EmptyNode>("Empty Node"));
-        appNodes.insert(spGraphB->spGraphView->GetGraph()->CreateNode<TestNode>());
+        appNodes.insert(m_spGraphB->CreateNode<EmptyNode>("Empty Node"));
+        appNodes.insert(m_spGraphB->CreateNode<TestNode>());
 
         m_graphs.push_back(spGraphA);
         m_graphs.push_back(spGraphB);
@@ -373,6 +375,8 @@ public:
 
 private:
     std::vector<std::shared_ptr<GraphData>> m_graphs;
+    std::shared_ptr<Graph> m_spGraphA;
+    std::shared_ptr<Graph> m_spGraphB;
 
     AppStarterSettings m_settings;
     NVGcontext* vg = nullptr;

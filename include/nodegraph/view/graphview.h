@@ -34,7 +34,7 @@ struct LabelInfo
 class GraphView
 {
 public:
-    GraphView(std::shared_ptr<Graph> spGraph, std::shared_ptr<CanvasVG> spCanvas);
+    GraphView(Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas);
 
     void BuildNodes();
 
@@ -91,7 +91,7 @@ private:
     void CheckInput(Canvas& canvas, Pin& param, const MUtils::NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir);
 
 private:
-    std::shared_ptr<Graph> m_spGraph;
+    Graph* m_pGraph;
     std::shared_ptr<CanvasVG> m_spCanvas;
     std::shared_ptr<GraphViewData> m_spViewData;
 

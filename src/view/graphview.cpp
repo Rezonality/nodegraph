@@ -37,22 +37,22 @@ float node_labelPad = 6.0f;
 namespace NodeGraph
 {
 
-GraphView::GraphView(std::shared_ptr<Graph> spGraph, std::shared_ptr<CanvasVG> spCanvas)
+GraphView::GraphView(Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas)
+    : m_pGraph(pGraph),
+    m_spCanvas(spCanvas)
 {
     m_spViewData = std::make_shared<GraphViewData>();
-    m_spCanvas = spCanvas;
-    m_spGraph = spGraph;
 
     m_spViewData->pendingUpdate = true;
 
-    m_spViewData->connections.push_back(spGraph->sigBeginModify.connect([=](Graph* pGraph) {
+    m_spViewData->connections.push_back(pGraph->sigBeginModify.connect([=](Graph* pGraph) {
         m_spViewData->disabled = true;
 
         m_spViewData->mapWorldToView.clear();
         m_spViewData->mapNodeCreateOrder.clear();
     }));
 
-    m_spViewData->connections.push_back(spGraph->sigEndModify.connect([=](Graph* pGraph) {
+    m_spViewData->connections.push_back(pGraph->sigEndModify.connect([=](Graph* pGraph) {
         m_spViewData->disabled = false;
         m_spViewData->pendingUpdate = true;
     }));
@@ -105,7 +105,7 @@ void GraphView::BuildNodes()
     m_spViewData->pendingUpdate = false;
 
     // Get all the nodes and add them to our draw map
-    const auto& ins = m_spGraph->GetDisplayNodes();
+    const auto& ins = m_pGraph->GetDisplayNodes();
     for (auto& pNode : ins)
     {
         if (m_spViewData->mapWorldToView.find(pNode) == m_spViewData->mapWorldToView.end())
@@ -848,7 +848,7 @@ void GraphView::Show(const NVec2i& displaySize)
 
 Graph* GraphView::GetGraph() const
 {
-    return m_spGraph.get();
+    return m_pGraph;
 }
 
 Canvas* GraphView::GetCanvas() const
