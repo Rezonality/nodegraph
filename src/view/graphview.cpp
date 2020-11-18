@@ -688,6 +688,7 @@ NRectf GraphView::DrawNode(Canvas& canvas, const NRectf& pos, Node* pNode)
 
 void GraphView::Show(const NVec2i& displaySize)
 {
+    PROFILE_SCOPE(GraphView_Show);
     BuildNodes();
 
     nvgBeginFrame(m_spCanvas->GetVG(), float(displaySize.x), float(displaySize.y), 1.0f);

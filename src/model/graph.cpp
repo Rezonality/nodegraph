@@ -88,7 +88,7 @@ void Graph::Visit(Node& node, PinDir dir, ParameterType type, std::function<bool
 
 void Graph::Compute(const std::set<Node*>& outNodes, int64_t numTicks)
 {
-    MUtilsZoneScoped;
+    PROFILE_SCOPE(Graph_Compute);
 
     currentGeneration++;
 
