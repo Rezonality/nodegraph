@@ -24,6 +24,8 @@ project(NodeGraph
     VERSION 0.5.0
 )
 
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_LIST_DIR}/../vcpkg/packages/mutils_x64-windows-static-md/lib/cmake/mutils)
+
 find_package(imgui REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(gsl-lite REQUIRED)
@@ -33,10 +35,6 @@ find_package(freetype CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue REQUIRED)
 find_package(tinyfiledialogs REQUIRED)
 find_package(nanovg REQUIRED)
-
-# Used Packages that we create
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
 find_package(mutils REQUIRED)
 
 include(${MUTILS_INCLUDE_DIR}/cmake/utils.cmake)
@@ -46,6 +44,8 @@ set(M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)
 set(NODEGRAPH_INCLUDE_DIR include/)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/config_app.h.cmake ${CMAKE_BINARY_DIR}/config_app.h)
+
+include(GNUInstallDirs)
 
 include(cmake/all.cmake)
 add_subdirectory(src)
@@ -58,6 +58,8 @@ install(EXPORT nodegraph-targets
     NAMESPACE NodeGraph::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nodegraph
 )
+
+include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
     ${NODEGRAPH_ROOT}/cmake/nodegraph-config.cmake.in
