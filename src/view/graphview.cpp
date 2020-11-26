@@ -37,7 +37,7 @@ float node_labelPad = 6.0f;
 namespace NodeGraph
 {
 
-GraphView::GraphView(Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas)
+GraphView::GraphView(Graph* pGraph, std::shared_ptr<Canvas> spCanvas)
     : m_pGraph(pGraph),
     m_spCanvas(spCanvas)
 {
@@ -686,12 +686,12 @@ NRectf GraphView::DrawNode(Canvas& canvas, const NRectf& pos, Node* pNode)
     return contentRect;
 }
 
-void GraphView::Show(const NVec2i& displaySize)
+void GraphView::Show(const NVec2i& displaySize, const NVec4f& clearColor)
 {
     PROFILE_SCOPE(GraphView_Show);
     BuildNodes();
 
-    nvgBeginFrame(m_spCanvas->GetVG(), float(displaySize.x), float(displaySize.y), 1.0f);
+    m_spCanvas->Begin(displaySize, clearColor);
 
     node_gridScale = 75.0f * dpi.scaleFactorXY.x;
     m_spCanvas->DrawGrid(node_gridScale);
@@ -844,7 +844,7 @@ void GraphView::Show(const NVec2i& displaySize)
         DrawLabel(*m_spCanvas, *param, info);
     }
 
-    nvgEndFrame(m_spCanvas->GetVG());
+    m_spCanvas->End();
 }
 
 Graph* GraphView::GetGraph() const

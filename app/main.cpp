@@ -8,12 +8,17 @@
 #include <SDL.h>
 #include <nodegraph/model/graph.h>
 #include <nodegraph/view/canvas_imgui.h>
+#include <nodegraph/view/canvas_vg.h>
 #include <nodegraph/view/graphview.h>
 
 #include <GL/gl3w.h>
+
+#define USE_VG
+#ifdef USE_VG
 #include <nanovg.h>
 #define NANOVG_GL3_IMPLEMENTATION
 #include <nanovg_gl.h>
+#endif
 
 using namespace MUtils;
 using namespace NodeGraph;
@@ -177,11 +182,11 @@ std::set<Node*> appNodes;
 
 struct GraphData
 {
-    GraphData(NodeGraph::Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas)
+    GraphData(NodeGraph::Graph* pGraph, std::shared_ptr<Canvas> spCanvas)
         : spGraphView(std::make_shared<GraphView>(pGraph, spCanvas))
     {
     }
-    
+
     std::shared_ptr<NodeGraph::GraphView> spGraphView;
     MUtils::Fbo fbo;
 };
@@ -195,7 +200,6 @@ public:
         m_settings.startSize = NVec2i(1680, 1000);
         m_settings.clearColor = NVec4f(.2f, .2f, .2f, 1.0f);
         m_settings.appName = "NodeGraph Test";
-
     }
 
     // Inherited via IAppStarterClient
@@ -206,15 +210,20 @@ public:
 
     virtual void Init() override
     {
-        vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-
-        auto path = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
-        nvgCreateFont(vg, "sans", path.string().c_str());
 
         m_spGraphA = std::make_shared<Graph>();
         m_spGraphB = std::make_shared<Graph>();
+
+#ifdef USE_VG
+        vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        auto path = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
+        nvgCreateFont(vg, "sans", path.string().c_str());
         auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasVG>(vg));
         auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
+#else
+        auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasImGui>());
+        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>());
+#endif
 
         m_spGraphA->SetName("Graph A");
         m_spGraphB->SetName("Graph B");
@@ -256,6 +265,7 @@ public:
 
     void DrawGraph(GraphData& graphData, const NVec2i& canvasSize)
     {
+#ifdef USE_VG
         if (graphData.fbo.fbo == 0)
         {
             graphData.fbo = fbo_create();
@@ -264,12 +274,15 @@ public:
 
         fbo_bind(graphData.fbo);
 
-        fbo_clear(m_settings.clearColor);
+        //fbo_clear(m_settings.clearColor);
+#endif
 
-        graphData.spGraphView->Show(canvasSize);
+        graphData.spGraphView->Show(canvasSize, m_settings.clearColor);
         graphData.spGraphView->GetGraph()->Compute(appNodes, 0);
 
+#ifdef USE_VG
         fbo_unbind(graphData.fbo, m_displaySize);
+#endif
     }
 
     void BeginCanvas(Canvas& canvas, const NRectf& region)
@@ -356,13 +369,17 @@ public:
                 ImVec2 pos = ImGui::GetCursorScreenPos();
                 NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
 
+                ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + region.Width(), pos.y + region.Height()), ImColor(.2f, .2f, .2f, 1.0f));
+
                 BeginCanvas(*spGraphData->spGraphView->GetCanvas(), region);
 
                 DrawGraph(*spGraphData, region.Size());
 
                 EndCanvas(*spGraphData->spGraphView->GetCanvas());
 
+                #ifdef USE_VG
                 ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+                #endif
             }
             ImGui::End();
         }

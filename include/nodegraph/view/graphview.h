@@ -34,11 +34,11 @@ struct LabelInfo
 class GraphView
 {
 public:
-    GraphView(Graph* pGraph, std::shared_ptr<CanvasVG> spCanvas);
+    GraphView(Graph* pGraph, std::shared_ptr<Canvas> spCanvas);
 
     void BuildNodes();
 
-    void Show(const MUtils::NVec2i& displaySize);
+    void Show(const MUtils::NVec2i& displaySize, const MUtils::NVec4f& clearColor);
     bool ShouldShowNode(Canvas& canvas, const Node* pNode) const;
 
     bool DrawKnob(Canvas& canvas, MUtils::NVec2f pos, float knobSize, bool miniKnob, Pin& pin);
@@ -92,7 +92,7 @@ private:
 
 private:
     Graph* m_pGraph;
-    std::shared_ptr<CanvasVG> m_spCanvas;
+    std::shared_ptr<Canvas> m_spCanvas;
     std::shared_ptr<GraphViewData> m_spViewData;
 
     Parameter* m_pCaptureParam = nullptr;

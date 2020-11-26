@@ -1,59 +1,36 @@
-#include <mutils/logger/logger.h>
-#include <mutils/math/imgui_glm.h>
-#include <nodegraph/view/canvas.h>
-#include <imgui.h>
+#pragma once
 
-using namespace MUtils;
+#include <cassert>
+#include <mutils/math/math.h>
+
+#include <nanovg.h>
+
+#include "nodegraph/view/canvas.h"
+#include "nodegraph/model/graph.h"
 
 namespace NodeGraph
 {
 
-inline CanvasInputState& canvas_imgui_update_state(CanvasInputState& state, const MUtils::NRectf& region)
-{
-    auto mousePos = ImGui::GetIO().MousePos;
-
-    state.mousePos = MUtils::NVec2f(mousePos.x - region.Left(), mousePos.y - region.Top());
-
-    for (uint32_t i = 0; i < MOUSE_MAX; i++)
-    {
-        state.buttonClicked[i] = ImGui::GetIO().MouseClicked[i];
-        state.buttonReleased[i] = ImGui::GetIO().MouseReleased[i];
-        state.buttonDown[i] = ImGui::GetIO().MouseDown[i];
-    }
-    state.canCapture = ImGui::GetIO().WantCaptureMouse;
-    state.mouseDelta = ImGui::GetIO().MouseDelta;
-    state.dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-    state.wheelDelta = ImGui::GetIO().MouseWheel;
-    state.resetDrag = false;
-    state.captured = false;
-
-    if (ImGui::GetIO().KeyCtrl && state.buttonClicked[0] == 1)
-    {
-        state.slowDrag = true;
-    }
-    else if (state.buttonDown[0] == 0)
-    {
-        state.slowDrag = false;
-    }
-
-    return state;
-}
-
-class CanvasImGui : public Canvas
+class CanvasVG : public Canvas
 {
 public:
-    CanvasImGui()
+    CanvasVG(NVGcontext* vgContext)
         : Canvas()
+        , vg(vgContext)
     {
     }
 
-    uint32_t ToImColor(const MUtils::NVec4f& val)
-    {
-        return ImColor(val.x, val.y, val.z, val.w);
-    }
-    
     virtual void Begin(const MUtils::NVec2f& displaySize, const MUtils::NVec4f& clearColor) override;
     virtual void End() override;
+
+    NVGcontext* GetVG() const
+    {
+        return vg;
+    }
+    NVGcolor ToNVGColor(const MUtils::NVec4f& val)
+    {
+        return nvgRGBAf(val.x, val.y, val.z, val.w);
+    }
     virtual void FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color) override;
     virtual void FilledGradientCircle(const MUtils::NVec2f& center, float radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const MUtils::NVec4f& endColor) override;
     virtual void FillRoundedRect(const MUtils::NRectf& rc, float radius, const MUtils::NVec4f& color) override;
@@ -80,10 +57,8 @@ public:
     virtual void SetLineCap(LineCap cap) override;
 
 private:
-    NVec2f displaySize;
-    ImVec2 origin;
-    uint32_t m_pathColor;
-    float m_pathWidth;
-    bool m_closePath = false;
+    NVGcontext* vg = nullptr;
 };
+
+
 } // namespace NodeGraph

@@ -21,8 +21,12 @@ set(NODEGRAPH_VIEW
     ${NODEGRAPH_ROOT}/src/view/viewnode.cpp
     ${NODEGRAPH_ROOT}/src/view/graphview.cpp
     ${NODEGRAPH_ROOT}/src/view/canvas.cpp
+    ${NODEGRAPH_ROOT}/src/view/canvas_imgui.cpp
+    ${NODEGRAPH_ROOT}/src/view/canvas_vg.cpp
     
     ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_imgui.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_vg.h
     ${NODEGRAPH_ROOT}/include/nodegraph/view/viewnode.h
     ${NODEGRAPH_ROOT}/include/nodegraph/view/graphview.h
 )
