@@ -84,12 +84,11 @@ jobs:
         genhtml coverage.info
                 
     - name: codacy-coverage-reporter
-      working-directory: ${{github.workspace}}/build
       uses: codacy/codacy-coverage-reporter-action@master
       if: matrix.build_type == 'Coverage'
       with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: coverage.info
+          coverage-reports: ${{github.workspace}}/build/coverage.info
  
     - name: Archive Coverage HTML
       uses: actions/upload-artifact@v2
