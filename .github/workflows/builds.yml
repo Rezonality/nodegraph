@@ -46,7 +46,7 @@ jobs:
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build . --config ${{ matrix.build_type }}
-        cmake --install . --config ${{ matrix.build_type }} --prefix ./../vcpkg/packages/mutils_${{matrix.package_type}}
+        cmake --install . --config ${{ matrix.build_type }} --prefix ../../vcpkg/packages/mutils_${{matrix.package_type}}
     
     - name: Build NodeGraph
       working-directory: ${{github.workspace}}
