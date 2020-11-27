@@ -14,14 +14,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-linux", script: "sh" }
-          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-linux", script: "sh" }
-          - { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Release", package_type: "x64-linux", script: "sh" }
-          - { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Debug", package_type: "x64-linux", script: "sh" }
-          - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Release", package_type: "x64-windows-static-md", script: "bat" }
-          - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Debug", package_type: "x64-windows-static-md", script: "bat" }
-          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-osx", script: "sh" }
-          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-osx", script: "sh" }
+          #- { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-linux", script: "sh" }
+          #- { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-linux", script: "sh" }
+          #- { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Release", package_type: "x64-linux", script: "sh" }
+          #- { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Debug", package_type: "x64-linux", script: "sh" }
+          #- { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Release", package_type: "x64-windows-static-md", script: "bat" }
+          #- { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Debug", package_type: "x64-windows-static-md", script: "bat" }
+          #- { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-osx", script: "sh" }
+          #- { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-osx", script: "sh" }
           - { title: "Coverage", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Coverage", package_type: "x64-linux", script: "sh" }
 
     steps:
@@ -83,12 +83,15 @@ jobs:
         lcov --remove coverage.info '/usr/local/include/*' '/usr/include/*' 'build' 'm3rdparty' 'cmake' 'scripts' -o coverage.info
         genhtml coverage.info
                 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+    
     - name: codacy-coverage-reporter
       uses: codacy/codacy-coverage-reporter-action@master
       if: matrix.build_type == 'Coverage'
       with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: ${{github.workspace}}/build/coverage.info
+          coverage-reports: ${{github.workspace}}/coverage.info
  
     - name: Archive Coverage HTML
       uses: actions/upload-artifact@v2
@@ -104,6 +107,8 @@ jobs:
       with:
           name: binaries
           path: | 
-            ${{github.workspace}}/build/app/**/*.*
-            ${{github.workspace}}/build/tests/**/*.*
+            ${{github.workspace}}/build/app/Debug/**/*.*
+            ${{github.workspace}}/build/app/Release/**/*.*
+            ${{github.workspace}}/build/tests/Debug/**/*.*
+            ${{github.workspace}}/build/tests/Release/**/*.*
 
