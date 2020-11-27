@@ -2,7 +2,6 @@ name: Builds
 
 on: [push]
 
-
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -35,9 +34,6 @@ jobs:
       run: |
         sudo apt-get install freeglut3-dev
       if: matrix.os == 'ubuntu-latest'
-
-    - name: Get MUtils
-      working-directory: ${{runner.workspace}}
 
     - name: Build MUtils
       working-directory: ${{runner.workspace}}
