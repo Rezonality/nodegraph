@@ -81,7 +81,7 @@ jobs:
       shell: bash
       if: matrix.build_type == 'Coverage'
       run: |
-        ./unittests
+        ./unittests 
         bash <(curl -s https://codecov.io/bash)
         find .. -name *.gcno | xargs gcov
         lcov -c -d .. -o coverage.info
