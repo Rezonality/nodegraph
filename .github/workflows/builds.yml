@@ -69,15 +69,13 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: ctest -C tests/${{ matrix.build_type }}
-      if: matrix.build_type != 'Coverage'
+      run: ctest -C ${{ matrix.build_type }}
 
     - name: Coverage
       working-directory: ${{github.workspace}}/build
       shell: bash
       if: matrix.build_type == 'Coverage'
       run: |
-        ./unittests 
         bash <(curl -s https://codecov.io/bash)
         find .. -name *.gcno | xargs gcov
         lcov -c -d .. -o coverage.info
