@@ -15,15 +15,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Release" }
-          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Debug" }
-          - { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Release" }
-          - { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Debug" }
-          - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Release" }
-          - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Debug" }
-          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release" }
-          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug" }
-          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Coverage" }
+          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-linux", script: "sh" }
+          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-linux", script: "sh" }
+          - { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Release", package_type: "x64-linux", script: "sh" }
+          - { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Debug", package_type: "x64-linux", script: "sh" }
+          - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Release", package_type: "x64-windows-static-md", script: "bat" }
+          - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Debug", package_type: "x64-windows-static-md", script: "bat" }
+          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-macos", script: "sh" }
+          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-macos", script: "sh" }
+          - { title: "Coverage", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Coverage", package_type: "x64-linux", script: "sh" }
 
     steps:
 
@@ -38,27 +38,19 @@ jobs:
 
     - name: Get MUtils
       working-directory: ${{runner.workspace}}
-      run: git clone https://github.com/Rezonality/mutils
 
-    - name: Prebuild MUtils Ubuntu
-      working-directory: ${{runner.workspace}}/mutils
-      run: ./prebuild.sh
-      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-    
-    - name: Prebuild MUtils Windows
-      working-directory: ${{runner.workspace}}/mutils
-      shell: cmd
-      run: prebuild.bat
-      if: matrix.os == 'windows-latest'
-     
     - name: Build MUtils
-      working-directory: ${{runner.workspace}}/mutils
+      working-directory: ${{runner.workspace}}
+      shell: bash
       run: |
+        git clone https://github.com/Rezonality/mutils
+        cd mutils
+        ./prebuild.${{matrix.script}}
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build . --config ${{ matrix.build_type }}
-      if: matrix.build_type != 'Coverage'
+        cmake --install . --config ${{ matrix.build_type }} --prefix ./../vcpkg/packages/mutils_${{matrix.package_type}}
     
     - name: Build NodeGraph
       working-directory: ${{github.workspace}}
@@ -69,15 +61,6 @@ jobs:
         cmake --build . --config ${{ matrix.build_type }}
       if: matrix.build_type != 'Coverage'
 
-    - name: Build MUtils (Coverage)
-      working-directory: ${{runner.workspace}}/mutils
-      run: |
-        mkdir build
-        cd build
-        cmake .. -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
-        cmake --build . --config Debug 
-      if: matrix.build_type == 'Coverage'
-    
     - name: Build NodeGraph (Coverage)
       working-directory: ${{github.workspace}}
       run: |
@@ -92,12 +75,6 @@ jobs:
       shell: bash
       run: ctest -C ${{ matrix.build_type }}
       if: matrix.build_type != 'Coverage'
-
-    - name: Archive Binary
-      uses: actions/upload-artifact@v2
-      with:
-          name: binaries
-          path: ${{github.workspace}}/build/**/*.exe
 
     - name: Coverage
       working-directory: ${{github.workspace}}/build
@@ -124,7 +101,12 @@ jobs:
       with:
           name: coverage-html
           path: |
-            **/*.html
-            **/*.css
-            
+            ${{github.workspace}}/build/**/*.html
+            ${{github.workspace}}/build/**/*.css
+
+    - name: Archive Binary
+      uses: actions/upload-artifact@v2
+      with:
+          name: binaries
+          path: ${{github.workspace}}/build/**/*.exe
 
