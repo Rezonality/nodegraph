@@ -83,6 +83,7 @@ jobs:
         genhtml coverage.info
                 
     - name: codacy-coverage-reporter
+      working-directory: ${{github.workspace}}/build
       uses: codacy/codacy-coverage-reporter-action@master
       if: matrix.build_type == 'Coverage'
       with:
@@ -102,5 +103,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
           name: binaries
-          path: ${{github.workspace}}/build/**/*.exe
+          path: | 
+            ${{github.workspace}}/build/app/**/*.*
+            ${{github.workspace}}/build/tests/**/*.*
 
