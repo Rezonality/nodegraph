@@ -648,11 +648,11 @@ void GraphView::DrawButton(Canvas& canvas, NRectf region, Pin& param)
         }
         else
         {
-            if (i == 0)
+            if (i == 0 && canvas.HasGradientVarying())
             {
                 canvas.FillGradientRoundedRectVarying(buttonRegion, NVec4f(node_borderRadius, 0.0f, 0.0f, node_borderRadius), buttonRegion, buttonColor, buttonHLColor);
             }
-            else if (i == numButtons - 1)
+            else if (i == numButtons - 1 && canvas.HasGradientVarying())
             {
                 buttonRegion.Adjust(0, 0, 1, 0);
                 canvas.FillGradientRoundedRectVarying(buttonRegion, NVec4f(0.0f, node_borderRadius, node_borderRadius, 0.0f), buttonRegion, buttonColor, buttonHLColor);

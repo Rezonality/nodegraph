@@ -1,6 +1,7 @@
 #include <mutils/logger/logger.h>
 #include <mutils/math/imgui_glm.h>
 #include <nodegraph/view/canvas.h>
+
 #include <imgui.h>
 
 using namespace MUtils;
@@ -42,16 +43,21 @@ inline CanvasInputState& canvas_imgui_update_state(CanvasInputState& state, cons
 class CanvasImGui : public Canvas
 {
 public:
-    CanvasImGui()
+    CanvasImGui(ImFont* pFont = nullptr)
         : Canvas()
+        , m_pFont(pFont)
     {
+        if (m_pFont == nullptr)
+        {
+            m_pFont = ImGui::GetFont();
+        }
     }
 
     uint32_t ToImColor(const MUtils::NVec4f& val)
     {
         return ImColor(val.x, val.y, val.z, val.w);
     }
-    
+
     virtual void Begin(const MUtils::NVec2f& displaySize, const MUtils::NVec4f& clearColor) override;
     virtual void End() override;
     virtual void FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color) override;
@@ -79,11 +85,17 @@ public:
 
     virtual void SetLineCap(LineCap cap) override;
 
+    virtual bool HasGradientVarying() const
+    {
+        return false;
+    }
+
 private:
     NVec2f displaySize;
     ImVec2 origin;
     uint32_t m_pathColor;
     float m_pathWidth;
     bool m_closePath = false;
+    ImFont* m_pFont = nullptr;
 };
 } // namespace NodeGraph

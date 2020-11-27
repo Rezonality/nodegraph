@@ -77,6 +77,10 @@ public:
     virtual void ClosePath() = 0;
     virtual void EndPath() = 0;
     virtual void EndStroke() = 0;
+    virtual bool HasGradientVarying() const
+    {
+        return true;
+    }
 
     enum TextAlign
     {

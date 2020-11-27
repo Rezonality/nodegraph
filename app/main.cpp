@@ -13,7 +13,7 @@
 
 #include <GL/gl3w.h>
 
-#define USE_VG
+//#define USE_VG
 #ifdef USE_VG
 #include <nanovg.h>
 #define NANOVG_GL3_IMPLEMENTATION
@@ -208,21 +208,27 @@ public:
         return fs::path(NODEGRAPH_ROOT);
     }
 
+    virtual void AddFonts(float size_pixels, const ImFontConfig* pConfig, const ImWchar* pRanges) override
+    {
+        auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
+        m_pCanvasFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.string().c_str(), size_pixels, pConfig, pRanges);
+    }
+
     virtual void Init() override
     {
 
         m_spGraphA = std::make_shared<Graph>();
         m_spGraphB = std::make_shared<Graph>();
 
+        auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
 #ifdef USE_VG
         vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-        auto path = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
-        nvgCreateFont(vg, "sans", path.string().c_str());
+        nvgCreateFont(vg, "sans", fontPath.string().c_str());
         auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasVG>(vg));
         auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
 #else
-        auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasImGui>());
-        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>());
+        auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
+        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
 #endif
 
         m_spGraphA->SetName("Graph A");
@@ -398,6 +404,7 @@ private:
     AppStarterSettings m_settings;
     NVGcontext* vg = nullptr;
     NVec2i m_displaySize = 0;
+    ImFont* m_pCanvasFont = nullptr;
 };
 
 App theApp;

@@ -3,6 +3,11 @@
 
 using namespace MUtils;
 
+namespace
+{
+const int CircleSegments = 40;
+const int ArcSegments = 40;
+}
 namespace NodeGraph
 {
 
@@ -10,11 +15,15 @@ void CanvasImGui::Begin(const NVec2f& displaySize, const NVec4f& clearColor)
 {
     origin = ImGui::GetCursorScreenPos();
     auto size = ImGui::GetContentRegionAvail();
-    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(origin.x, origin.y), ImVec2(origin.x + size.x, origin.y + size.y), ToImColor(clearColor));
+
+    auto bottomRight = ImVec2(origin.x + size.x, origin.y + size.y);
+    ImGui::GetWindowDrawList()->PushClipRect(origin, bottomRight);
+    ImGui::GetWindowDrawList()->AddRectFilled(origin, bottomRight, ToImColor(clearColor));
 }
 
 void CanvasImGui::End()
 {
+    ImGui::GetWindowDrawList()->PopClipRect();
 }
 
 void CanvasImGui::FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color)
@@ -24,7 +33,7 @@ void CanvasImGui::FilledCircle(const MUtils::NVec2f& center, float radius, const
     viewCenter += NVec2f(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(color), 30);
+    pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(color), CircleSegments);
 }
 
 void CanvasImGui::FilledGradientCircle(const MUtils::NVec2f& center, float radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const NVec4f& endColor)
@@ -37,7 +46,7 @@ void CanvasImGui::FilledGradientCircle(const MUtils::NVec2f& center, float radiu
 
     // TODO: Should be gradient
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(startColor), 30);
+    pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(startColor), CircleSegments);
 }
 
 void CanvasImGui::Stroke(const NVec2f& from, const NVec2f& to, float width, const NVec4f& color)
@@ -124,6 +133,7 @@ void CanvasImGui::Text(const NVec2f& pos, float size, const NVec4f& color, const
 
     auto pDraw = ImGui::GetWindowDrawList();
 
+    ImGui::PushFont(m_pFont);
     float scale = size / ImGui::GetFontSize();
 
     auto fontSize = ImGui::CalcTextSize(pszText);
@@ -138,7 +148,8 @@ void CanvasImGui::Text(const NVec2f& pos, float size, const NVec4f& color, const
         viewPos.y -= fontSize.y / 2.0f;
     }
 
-    pDraw->AddText(ImGui::GetFont(), fontSize.y, viewPos, ToImColor(color), pszText);
+    pDraw->AddText(m_pFont, fontSize.y, viewPos, ToImColor(color), pszText);
+    ImGui::PopFont();
 }
 
 float degToRad(float deg)
@@ -161,7 +172,7 @@ void CanvasImGui::Arc(const NVec2f& pos, float radius, float width, const NVec4f
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
-    pDraw->PathArcTo(viewPos, viewRadius, degToRad(startAngle), degToRad(endAngle), 20);
+    pDraw->PathArcTo(viewPos, viewRadius, degToRad(startAngle), degToRad(endAngle), ArcSegments);
     pDraw->PathStroke(ToImColor(color), false, viewWidth);
 }
 
