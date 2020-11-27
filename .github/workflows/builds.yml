@@ -84,7 +84,7 @@ jobs:
         lcov -c -d .. -o coverage.info
         lcov --remove coverage.info '/usr/local/include/*' '/usr/include/*' 'build' 'm3rdparty' 'cmake' 'scripts' -o coverage.info
         genhtml coverage.info
-        bash <(curl -Ls https://coverage.codacy.com/get.sh) report
+        bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.info
                     
     - name: Archive Coverage HTML
       uses: actions/upload-artifact@v2
