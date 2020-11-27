@@ -23,6 +23,7 @@ jobs:
           - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Debug" }
           - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release" }
           - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug" }
+          - { title: "Linux", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Coverage" }
 
     steps:
 
@@ -57,6 +58,7 @@ jobs:
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build . --config ${{ matrix.build_type }}
+      if: matrix.build_type != 'Coverage'
     
     - name: Build NodeGraph
       working-directory: ${{github.workspace}}
@@ -65,8 +67,64 @@ jobs:
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build . --config ${{ matrix.build_type }}
+      if: matrix.build_type != 'Coverage'
+
+    - name: Build MUtils (Coverage)
+      working-directory: ${{runner.workspace}}/mutils
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+        cmake --build . --config Debug 
+      if: matrix.build_type == 'Coverage'
+    
+    - name: Build NodeGraph (Coverage)
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+        cmake --build . --config Debug
+      if: matrix.build_type == 'Coverage'
 
     - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: ctest -C ${{ matrix.build_type }}
+      if: matrix.build_type != 'Coverage'
+
+    - name: Archive Binary
+      uses: actions/upload-artifact@v2
+      with:
+          name: binaries
+          path: ${{github.workspace}}/build/**/*.exe
+
+    - name: Coverage
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      if: matrix.build_type == 'Coverage'
+      run: |
+        ./unittests
+        bash <(curl -s https://codecov.io/bash)
+        find .. -name *.gcno | xargs gcov
+        lcov -c -d .. -o coverage.info
+        lcov --remove coverage.info '/usr/local/include/*' '/usr/include/*' 'build' 'm3rdparty' 'cmake' 'scripts' -o coverage.info
+        genhtml coverage.info
+                
+    - name: codacy-coverage-reporter
+      uses: codacy/codacy-coverage-reporter-action@master
+      if: matrix.build_type == 'Coverage'
+      with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.info
+ 
+    - name: Archive Coverage HTML
+      uses: actions/upload-artifact@v2
+      if: matrix.build_type == 'Coverage'
+      with:
+          name: coverage-html
+          path: |
+            **/*.html
+            **/*.css
+            
+
