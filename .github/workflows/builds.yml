@@ -2,7 +2,6 @@ name: Builds
 
 on: [push]
 
-
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -36,9 +35,6 @@ jobs:
         sudo apt-get install freeglut3-dev
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Get MUtils
-      working-directory: ${{runner.workspace}}
-
     - name: Build MUtils
       working-directory: ${{runner.workspace}}
       shell: bash
@@ -50,7 +46,7 @@ jobs:
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build . --config ${{ matrix.build_type }}
-        cmake --install . --config ${{ matrix.build_type }} --prefix ./../vcpkg/packages/mutils_${{matrix.package_type}}
+        cmake --install . --config ${{ matrix.build_type }} --prefix ../../vcpkg/packages/mutils_${{matrix.package_type}}
     
     - name: Build NodeGraph
       working-directory: ${{github.workspace}}
@@ -81,7 +77,7 @@ jobs:
       shell: bash
       if: matrix.build_type == 'Coverage'
       run: |
-        ./unittests
+        ./unittests 
         bash <(curl -s https://codecov.io/bash)
         find .. -name *.gcno | xargs gcov
         lcov -c -d .. -o coverage.info
