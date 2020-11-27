@@ -21,8 +21,8 @@ jobs:
           - { title: "Linux", os: "ubuntu-latest", cc: "gcc", arch: "x64", build_type: "Debug", package_type: "x64-linux", script: "sh" }
           - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Release", package_type: "x64-windows-static-md", script: "bat" }
           - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Debug", package_type: "x64-windows-static-md", script: "bat" }
-          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-macos", script: "sh" }
-          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-macos", script: "sh" }
+          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-osx", script: "sh" }
+          - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-osx", script: "sh" }
           - { title: "Coverage", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Coverage", package_type: "x64-linux", script: "sh" }
 
     steps:
@@ -73,7 +73,7 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: ctest -C ${{ matrix.build_type }}
+      run: ctest -C tests/${{ matrix.build_type }}
       if: matrix.build_type != 'Coverage'
 
     - name: Coverage

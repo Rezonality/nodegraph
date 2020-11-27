@@ -24,7 +24,8 @@ project(NodeGraph
     VERSION 0.5.0
 )
 
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_LIST_DIR}/../vcpkg/packages/mutils_x64-windows-static-md/lib/cmake/mutils)
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_LIST_DIR}/../vcpkg/packages/mutils_${VCPKG_TARGET_TRIPLET}/lib/cmake/mutils)
+
 
 find_package(imgui REQUIRED)
 find_package(SDL2 REQUIRED)
@@ -46,6 +47,8 @@ set(NODEGRAPH_INCLUDE_DIR include/)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/config_app.h.cmake ${CMAKE_BINARY_DIR}/config_app.h)
 
 include(GNUInstallDirs)
+
+enable_testing()
 
 include(cmake/all.cmake)
 add_subdirectory(src)
