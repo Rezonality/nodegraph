@@ -85,7 +85,7 @@ public:
 
     virtual void SetLineCap(LineCap cap) override;
 
-    virtual bool HasGradientVarying() const
+    virtual bool HasGradientVarying() const override
     {
         return true;
     }
