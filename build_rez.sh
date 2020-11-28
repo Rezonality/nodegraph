@@ -16,7 +16,7 @@ fi
 
 cd build
 cmake --build . --config $CONFIG
-cmake --install . --config $CONFIG --prefix ../../vcpkg/packages/mutils_x64-$PACKAGE_TYPE
+cmake --install . --config $CONFIG --prefix ../../vcpkg/packages/nodegraph_x64-$PACKAGE_TYPE
 cd ..
 
 echo "Built $CONFIG for $PACKAGE_TYPE"
