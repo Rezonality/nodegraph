@@ -89,17 +89,36 @@ void CanvasImGui::FillGradientRoundedRect(const NRectf& rc, float radius, const 
 void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const NVec4f& radius, const NRectf& gradientRange, const NVec4f& startColor, const NVec4f& endColor)
 {
     auto viewRect = ViewToPixels(rc);
-    //auto viewSize0 = WorldSizeToViewSizeX(radius.x);
-    //auto viewSize1 = WorldSizeToViewSizeX(radius.y);
-    //auto viewSize2 = WorldSizeToViewSizeX(radius.z);
-    //auto viewSize3 = WorldSizeToViewSizeX(radius.w);
+    float viewSize0 = 0.0f;
     //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
     //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
+
+    auto flags = 0;
+    if (radius.x > 0.0f)
+    {
+        flags |= ImDrawCornerFlags_TopLeft;
+        viewSize0 = WorldSizeToViewSizeX(radius.x);
+    }
+    if (radius.y > 0.0f)
+    {
+        flags |= ImDrawCornerFlags_TopRight;
+        viewSize0 = WorldSizeToViewSizeX(radius.y);
+    }
+    if (radius.z > 0.0f)
+    {
+        flags |= ImDrawCornerFlags_BotRight;
+        viewSize0 = WorldSizeToViewSizeX(radius.z);
+    }
+    if (radius.w > 0.0f)
+    {
+        flags |= ImDrawCornerFlags_BotLeft;
+        viewSize0 = WorldSizeToViewSizeX(radius.w);
+    }
 
     viewRect.Adjust(origin.x, origin.y);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), radius.x);
+    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), viewSize0, flags);
 }
 
 void CanvasImGui::FillRect(const NRectf& rc, const NVec4f& color)

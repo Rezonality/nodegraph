@@ -87,7 +87,7 @@ public:
 
     virtual bool HasGradientVarying() const
     {
-        return false;
+        return true;
     }
 
 private:
