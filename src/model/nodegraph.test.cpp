@@ -9,7 +9,7 @@ class TestNode : public Node
 public:
     DECLARE_NODE(TestNode, test);
 
-    TestNode(Graph& m_graph)
+    explicit TestNode(Graph& m_graph)
         : Node(m_graph, "Adder")
     {
         pSum = AddOutput("Sum", .0f);

@@ -1,5 +1,6 @@
 #include "nodegraph/view/canvas_imgui.h"
 #include "mutils/logger/logger.h"
+#include "mutils/common.h"
 
 using namespace MUtils;
 
@@ -40,8 +41,8 @@ void CanvasImGui::FilledGradientCircle(const MUtils::NVec2f& center, float radiu
 {
     auto viewCenter = ViewToPixels(center);
     auto viewRadius = WorldSizeToViewSizeX(radius);
-    auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
-    auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
+    //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
+    //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
     viewCenter += NVec2f(origin);
 
     // TODO: Should be gradient
@@ -69,31 +70,31 @@ void CanvasImGui::FillRoundedRect(const NRectf& rc, float radius, const NVec4f& 
     viewRect.Adjust(origin.x, origin.y);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(color), radius);
+    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(color), viewSize);
 }
 
 void CanvasImGui::FillGradientRoundedRect(const NRectf& rc, float radius, const NRectf& gradientRange, const NVec4f& startColor, const NVec4f& endColor)
 {
     auto viewRect = ViewToPixels(rc);
     auto viewSize = WorldSizeToViewSizeX(radius);
-    auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
-    auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
+    //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
+    //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
     viewRect.Adjust(origin.x, origin.y);
 
     auto pDraw = ImGui::GetWindowDrawList();
     //pDraw->AddRectFilledMultiColor(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), ToImColor(startColor), ToImColor(startColor), ToImColor(endColor));
-    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), radius);
+    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), viewSize);
 }
 
 void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const NVec4f& radius, const NRectf& gradientRange, const NVec4f& startColor, const NVec4f& endColor)
 {
     auto viewRect = ViewToPixels(rc);
-    auto viewSize0 = WorldSizeToViewSizeX(radius.x);
-    auto viewSize1 = WorldSizeToViewSizeX(radius.y);
-    auto viewSize2 = WorldSizeToViewSizeX(radius.z);
-    auto viewSize3 = WorldSizeToViewSizeX(radius.w);
-    auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
-    auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
+    //auto viewSize0 = WorldSizeToViewSizeX(radius.x);
+    //auto viewSize1 = WorldSizeToViewSizeX(radius.y);
+    //auto viewSize2 = WorldSizeToViewSizeX(radius.z);
+    //auto viewSize3 = WorldSizeToViewSizeX(radius.w);
+    //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
+    //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
 
     viewRect.Adjust(origin.x, origin.y);
 
@@ -113,16 +114,9 @@ void CanvasImGui::FillRect(const NRectf& rc, const NVec4f& color)
 MUtils::NRectf CanvasImGui::TextBounds(const MUtils::NVec2f& pos, float size, const char* pszText) const
 {
     // Return everything in World space, since we scale every draw call
-    auto viewPos = pos;
-    float bounds[4];
-    /*
-    nvgTextAlign(vg, NImGui_ALIGN_MIDDLE | NImGui_ALIGN_CENTER);
-    nvgFontSize(vg, size);
-    nvgTextBounds(vg, viewPos.x, viewPos.y, pszText, nullptr, &bounds[0]);
-    */
-
-    //ImGui::CalcTextSize(pszText, )
-    return NRectf(bounds[0], bounds[1], bounds[2] - bounds[0], bounds[3] - bounds[1]);
+    auto textSize = ImGui::CalcTextSize(pszText);
+    float scale = size / ImGui::GetFontSize();
+    return NRectf(pos.x, pos.y, textSize.x * scale, textSize.y * scale);
 }
 
 void CanvasImGui::Text(const NVec2f& pos, float size, const NVec4f& color, const char* pszText, const char* pszFace, uint32_t align)
@@ -179,8 +173,8 @@ void CanvasImGui::Arc(const NVec2f& pos, float radius, float width, const NVec4f
 
 void CanvasImGui::SetAA(bool set)
 {
-    auto pDraw = ImGui::GetWindowDrawList();
-    //nvgShapeAntiAlias(vg, set ? 1 : 0);
+    /* Nothing currently */
+    M_UNUSED(set);
 }
 
 void CanvasImGui::BeginStroke(const MUtils::NVec2f& from, float width, const MUtils::NVec4f& color)

@@ -29,7 +29,7 @@ class TestNode : public Node
 public:
     DECLARE_NODE(TestNode, test);
 
-    TestNode(Graph& graph)
+    explicit TestNode(Graph& graph)
         : Node(graph, "UI Test")
     {
         pSum = AddOutput("Sumf", .0f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
@@ -138,7 +138,7 @@ class TestDrawNode : public Node
 public:
     DECLARE_NODE(TestDrawNode, test);
 
-    TestDrawNode(Graph& graph)
+    explicit TestDrawNode(Graph& graph)
         : Node(graph, "Test Draw")
     {
         m_flags |= NodeFlags::OwnerDraw;
@@ -220,8 +220,8 @@ public:
         m_spGraphA = std::make_shared<Graph>();
         m_spGraphB = std::make_shared<Graph>();
 
-        auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
 #ifdef USE_VG
+        auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
         vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
         nvgCreateFont(vg, "sans", fontPath.string().c_str());
         auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasVG>(vg));
@@ -311,8 +311,8 @@ public:
         static bool p_open = true;
         m_displaySize = displaySize;
 
-        static bool opt_fullscreen = true;
-        static bool opt_padding = false;
+        static const bool opt_fullscreen = true;
+        static const bool opt_padding = false;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,

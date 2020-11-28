@@ -100,8 +100,9 @@ jobs:
       with:
           name: binaries
           path: | 
-            ${{github.workspace}}/build/app/Debug/**/*.*
-            ${{github.workspace}}/build/app/Release/**/*.*
-            ${{github.workspace}}/build/tests/Debug/**/*.*
-            ${{github.workspace}}/build/tests/Release/**/*.*
+            ${{github.workspace}}/build/app/**/*.ttf
+            ${{github.workspace}}/build/app/**/*.pdb
+            ${{github.workspace}}/build/app/**/*.scm
+            ${{github.workspace}}/build/app/**/NodeGraph*
+            ${{github.workspace}}/build/tests/**/unittests
 

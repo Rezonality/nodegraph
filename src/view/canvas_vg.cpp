@@ -125,7 +125,7 @@ void CanvasVG::Text(const NVec2f& pos, float size, const NVec4f& color, const ch
 {
     auto viewSize = WorldSizeToViewSizeY(size);
     auto viewPos = ViewToPixels(pos);
-    nvgTextAlign(vg, (align & Canvas::TEXT_ALIGN_MIDDLE ? NVG_ALIGN_MIDDLE : NVG_ALIGN_TOP) | (align & Canvas::TEXT_ALIGN_CENTER ? NVG_ALIGN_CENTER : NVG_ALIGN_LEFT));
+    nvgTextAlign(vg, ((align & Canvas::TEXT_ALIGN_MIDDLE) ? NVG_ALIGN_MIDDLE : NVG_ALIGN_TOP) | ((align & Canvas::TEXT_ALIGN_CENTER) ? NVG_ALIGN_CENTER : NVG_ALIGN_LEFT));
     nvgFontSize(vg, viewSize);
     if (pszFace == nullptr)
     {
