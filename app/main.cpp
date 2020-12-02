@@ -214,7 +214,11 @@ public:
         m_pCanvasFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.string().c_str(), size_pixels, pConfig, pRanges);
     }
 
-    virtual void Init() override
+    virtual void InitBeforeDraw() override
+    {
+
+    }
+    virtual void InitDuringDraw() override
     {
 
         m_spGraphA = std::make_shared<Graph>();
