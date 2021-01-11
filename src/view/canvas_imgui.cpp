@@ -165,16 +165,6 @@ void CanvasImGui::Text(const NVec2f& pos, float size, const NVec4f& color, const
     ImGui::PopFont();
 }
 
-float degToRad(float deg)
-{
-	return deg / 180.0f * 3.1415926f;
-}
-
-float radToDeg(float rad)
-{
-	return rad / 3.1415926f * 180.0f;
-}
-
 void CanvasImGui::Arc(const NVec2f& pos, float radius, float width, const NVec4f& color, float startAngle, float endAngle)
 {
     auto viewRadius = WorldSizeToViewSizeX(radius);

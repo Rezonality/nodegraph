@@ -1,8 +1,11 @@
 #include <catch2/catch.hpp>
 
 #include "nodegraph/model/graph.h"
+#include "nodegraph/view/layout.h"
+#include "nodegraph/view/graphview.h"
 
 using namespace NodeGraph;
+
 
 class TestNode : public Node
 {
@@ -12,14 +15,27 @@ public:
     explicit TestNode(Graph& m_graph)
         : Node(m_graph, "Adder")
     {
-        pSum = AddOutput("Sum", .0f);
-        pValue1 = AddInput("Value1", .0f);
-        pValue2 = AddInput("Value2", .0f);
+        m_flags |= NodeFlags::OwnerDraw;
+
+        pSum = AddOutput("Sum", .0f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
+        pValue1 = AddInput("Value1", 0.0f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
+        pValue2 = AddInput("Value2", 0.0f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
+
+        auto pLayout = new MUtils::VLayout();
+        pLayout->AddItem(pSum);
+        pLayout->AddItem(pValue1);
+        pLayout->AddItem(pValue2);
+        pLayout->UpdateLayout();
     }
 
     virtual void Compute() override
     {
         pSum->Set(pValue1->To<float>() + pValue2->To<float>());
+    }
+
+    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode)
+    {
+        view.DrawPin(*pSum, viewNode);
     }
 
     Pin* pSum = nullptr;

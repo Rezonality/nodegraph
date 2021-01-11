@@ -22,6 +22,8 @@ enum class LineCap
     BUTT
 };
 
+// Represents the current interaction state with the canvas; used for 
+// tracking mouse manipulation
 struct CanvasInputState
 {
     MUtils::NVec2f mousePos;
@@ -44,6 +46,7 @@ public:
     {
     }
 
+    // Conversions between pixel space and view space; since we might pan or zoom the canvas
     const MUtils::NVec2f PixelToView(const MUtils::NVec2f& pixel) const;
     virtual MUtils::NVec2f ViewToPixels(const MUtils::NVec2f& pos) const;
     virtual MUtils::NRectf ViewToPixels(const MUtils::NRectf& rc) const;
@@ -57,7 +60,7 @@ public:
         return m_pixelRect;
     }
 
-    // Drawing functions
+    // Drawing functions; These are all in view space, not canvas space
     virtual void Begin(const MUtils::NVec2f& displaySize, const MUtils::NVec4f& clearColor) = 0;
     virtual void End() = 0;
     virtual void FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color) = 0;

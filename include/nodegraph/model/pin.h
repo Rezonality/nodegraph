@@ -1,12 +1,14 @@
 #pragma once
 
-#include "nodegraph/model/parameter.h"
 #include <cassert>
 #include <cstdint>
 #include <variant>
 #include <unordered_set>
 
 #include <mutils/math/math.h>
+
+#include "nodegraph/model/parameter.h"
+#include "nodegraph/view/layout_control.h"
 
 namespace NodeGraph
 {
@@ -33,7 +35,7 @@ enum class PinDir
 };
 
 // A pin on an audio node; connects (optionally) to another node.
-class Pin : public Parameter
+class Pin : public Parameter, public MUtils::LayoutControl
 {
 public:
     Pin(Node& node, PinDir pinDir, const std::string& pinName, float fVal, const ParameterAttributes& attribs = {});
@@ -50,6 +52,7 @@ public:
     Pin(const Pin& pin) = delete;
     void operator=(const Pin& pin) = delete;
 
+    
     void ConnectTo(Pin& out)
     {
         assert(m_direction == PinDir::Output);

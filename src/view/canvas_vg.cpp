@@ -118,7 +118,9 @@ MUtils::NRectf CanvasVG::TextBounds(const MUtils::NVec2f& pos, float size, const
     nvgFontSize(vg, size);
     nvgTextBounds(vg, viewPos.x, viewPos.y, pszText, nullptr, &bounds[0]);
 
-    return NRectf(bounds[0], bounds[1], bounds[2] - bounds[0], bounds[3] - bounds[1]);
+    auto rcBounds = NRectf(bounds[0], bounds[1], bounds[2] - bounds[0], bounds[3] - bounds[1]);
+    rcBounds = rcBounds + rcBounds.Size() * .5f;
+    return rcBounds;
 }
 
 void CanvasVG::Text(const NVec2f& pos, float size, const NVec4f& color, const char* pszText, const char* pszFace, uint32_t align)

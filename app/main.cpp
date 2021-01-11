@@ -3,6 +3,8 @@
 #include <mutils/math/imgui_glm.h>
 #include <mutils/ui/fbo.h>
 #include <mutils/ui/sdl_imgui_starter.h>
+#include <mutils/ui/colors.h>
+#include <mutils/math/math_utils.h>
 
 #include "config_app.h"
 #include <SDL.h>
@@ -10,10 +12,13 @@
 #include <nodegraph/view/canvas_imgui.h>
 #include <nodegraph/view/canvas_vg.h>
 #include <nodegraph/view/graphview.h>
+#include <nodegraph/view/node_layout.h>
+
+#include <yoga/Yoga.h>
 
 #include <GL/gl3w.h>
 
-//#define USE_VG
+#define USE_VG
 #ifdef USE_VG
 #include <nanovg.h>
 #define NANOVG_GL3_IMPLEMENTATION
@@ -32,6 +37,8 @@ public:
     explicit TestNode(Graph& graph)
         : Node(graph, "UI Test")
     {
+        m_flags = NodeFlags::OwnerDraw;
+
         pSum = AddOutput("Sumf", .0f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
         pSum->GetAttributes().flags |= ParameterFlags::ReadOnly;
 
@@ -61,7 +68,7 @@ public:
         pButton = AddInput("Button", (int64_t)0);
 
         pIntSlider = AddInput("Slider", (int64_t)0);
-        pValue1 = AddInput("0-1f", .5f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1.0f));
+        pValue1 = AddInput("0-111f", .5f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1.0f));
         pValue9 = AddInput("0-1f", .5f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1.0f));
 
         ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
@@ -78,8 +85,8 @@ public:
         buttonAttrib.labels = { "A", "B", "C" };
         pButton->SetAttributes(buttonAttrib);
 
-        if (pValue2)
-            pValue2->SetViewCells(NRectf(0, 0, 1, 1));
+        //   if (pValue2)
+        //      pValue2->SetViewCells(NRectf(0, 0, 1, 1));
         if (pValue3)
             pValue3->SetViewCells(NRectf(1, 0, 1, 1));
         if (pValue4)
@@ -98,10 +105,10 @@ public:
         // Sum
         if (pValue9)
             pValue9->SetViewCells(NRectf(4, 1, 1, 1));
-        if (pValue1)
-            pValue1->SetViewCells(NRectf(5, 1, 1, 1));
-        if (pSum)
-            pSum->SetViewCells(NRectf(3, 1, 1, 1));
+        //if (pValue1)
+        //    pValue1->SetViewCells(NRectf(5, 1, 1, 1));
+        // if (pSum)
+        //    pSum->SetViewCells(NRectf(3, 1, 1, 1));
 
         pSlider->SetViewCells(NRectf(.25f, 1, 2.5f, .5f));
         pIntSlider->SetViewCells(NRectf(.25f, 1.5, 2.5f, .5f));
@@ -109,6 +116,39 @@ public:
 
         auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "Label"));
         pDecorator->gridLocation = NRectf(6, 1, 1, 1);
+       
+        m_spNodeLayout = node_layout_create();
+
+        const NVec2f KnobWidgetSize(70.0f, 90.0f);
+
+        auto pHLayout1 = new MUtils::HLayout();
+        m_spNodeLayout->spContents->AddItem(pHLayout1);
+        pHLayout1->AddItem(pValue1, KnobWidgetSize);
+        pHLayout1->AddItem(pValue2, KnobWidgetSize);
+        pHLayout1->AddItem(pValue3, KnobWidgetSize);
+        pHLayout1->AddItem(pValue4, KnobWidgetSize);
+        pHLayout1->AddItem(pValue5, KnobWidgetSize);
+        pHLayout1->AddItem(pValue6, KnobWidgetSize);
+
+        auto pHLayout2 = new MUtils::HLayout();
+        m_spNodeLayout->spContents->AddItem(pHLayout2);
+        pHLayout2->AddItem(pValue7, KnobWidgetSize); // Set the height
+        pHLayout2->AddItem(pValue8, KnobWidgetSize);
+        pHLayout2->AddItem(pValue9, KnobWidgetSize);
+
+        auto pVLayout3 = new MUtils::VLayout();
+        pVLayout3->AddItem(pValue10, NVec2f(KnobWidgetSize.x, 0.0f));
+        pVLayout3->AddItem(pSum, NVec2f(KnobWidgetSize.x, 0.0f));
+
+        pHLayout2->AddItem(pVLayout3);
+
+        m_spNodeLayout->spRoot->UpdateLayout();
+    }
+
+    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
+    {
+        view.SetDebugVisuals(false);
+        view.DrawNode(*m_spNodeLayout, viewNode);
     }
 
     virtual void Compute() override
@@ -131,6 +171,7 @@ public:
     Pin* pButton = nullptr;
     Pin* pSlider = nullptr;
     Pin* pIntSlider = nullptr;
+    std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
 
 class TestDrawNode : public Node
@@ -144,19 +185,27 @@ public:
         m_flags |= NodeFlags::OwnerDraw;
 
         pSum = AddOutput("Sumf", .5f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
-        //pSum->GetAttributes().flags |= ParameterFlags::ReadOnly;
 
         pValue1 = AddInput("0-1000f", 5.0f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1000.0f));
         pValue1->GetAttributes().taper = 2;
 
         pValue2 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        //pValue2->GetAttributes().thumb = 0.8f;
         pValue2->GetAttributes().step = 0.25f;
 
         //ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
         //sliderAttrib.step = 0.25f;
         //sliderAttrib.thumb = 0.25f;
         //pValue2->SetAttributes(sliderAttrib);
+
+        m_spNodeLayout = node_layout_create();
+        auto pLayout = new MUtils::HLayout();
+        m_spNodeLayout->spContents->AddItem(pLayout);
+
+        pLayout->AddItem(pSum, NVec2f(50.0f, 50.0f));
+        pLayout->AddItem(pValue1, NVec2f(100.0f, 100.0f));
+        pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
+
+        m_spNodeLayout->spRoot->UpdateLayout();
     }
 
     virtual void Compute() override
@@ -165,17 +214,13 @@ public:
 
     virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
     {
-        NVec2f start = viewNode.pos;
-        //canvas.FilledCircle(viewNode.pos, 20.0f, NVec4f(1.0f));
-        view.DrawKnob(canvas, start, 60, false, *pSum);
-
-        start += NVec2f(50.0f, 50.0f);
-        view.DrawSlider(canvas, NRectf(start, start + NVec2f(90.0f, 25.0f)), *pValue2);
+        view.DrawNode(*m_spNodeLayout, viewNode);
     }
 
     Pin* pSum = nullptr;
     Pin* pValue1 = nullptr;
     Pin* pValue2 = nullptr;
+    std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
 
 std::set<Node*> appNodes;
@@ -216,7 +261,6 @@ public:
 
     virtual void InitBeforeDraw() override
     {
-
     }
     virtual void InitDuringDraw() override
     {
@@ -387,9 +431,9 @@ public:
 
                 EndCanvas(*spGraphData->spGraphView->GetCanvas());
 
-                #ifdef USE_VG
+#ifdef USE_VG
                 ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
-                #endif
+#endif
             }
             ImGui::End();
         }

@@ -5,6 +5,7 @@
 #include "nodegraph/model/graph.h"
 #include "nodegraph/view/canvas.h"
 #include "nodegraph/view/viewnode.h"
+#include "nodegraph/view/node_layout.h"
 
 namespace NodeGraph
 {
@@ -41,9 +42,14 @@ public:
     void Show(const MUtils::NVec2i& displaySize, const MUtils::NVec4f& clearColor);
     bool ShouldShowNode(Canvas& canvas, const Node* pNode) const;
 
-    bool DrawKnob(Canvas& canvas, MUtils::NVec2f pos, float knobSize, bool miniKnob, Pin& pin);
-    SliderData DrawSlider(Canvas& canvas, MUtils::NRectf pos, Pin& pin);
-    void DrawButton(Canvas& canvas, MUtils::NRectf pos, Pin& pin);
+    void DrawNode(NodeLayout& layout, ViewNode& viewNode);
+
+    void DrawPin(Pin& pin, ViewNode& viewNode);
+
+    // For drawing individual controls
+    bool DrawKnob(Canvas& canvas, MUtils::NRectf rect, bool miniKnob, Pin& pin);
+    SliderData DrawSlider(Canvas& canvas, MUtils::NRectf rect, Pin& pin);
+    void DrawButton(Canvas& canvas, MUtils::NRectf rect, Pin& pin);
 
     MUtils::NRectf DrawNode(Canvas& canvas, const MUtils::NRectf& pos, Node* pNode);
 
@@ -80,6 +86,11 @@ public:
     Graph* GetGraph() const;
     Canvas* GetCanvas() const;
 
+    void SetDebugVisuals(bool debug)
+    {
+        m_debugVisuals = debug;
+    }
+
 private:
     enum class InputDirection
     {
@@ -101,6 +112,7 @@ private:
 
     bool m_hideCursor = false;
     uint32_t m_currentInputIndex = 0;
+    bool m_debugVisuals = false;
 
     std::map<Parameter*, LabelInfo> m_drawLabels;
 };

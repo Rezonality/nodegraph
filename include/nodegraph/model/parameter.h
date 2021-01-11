@@ -10,6 +10,8 @@
 #include <variant>
 #include <vector>
 
+#include <nodegraph/view/layout_control.h>
+
 namespace NodeGraph
 {
 
@@ -486,8 +488,10 @@ enum
 };
 }
 
-struct ParameterAttributes
+class ParameterAttributes
 {
+public:
+
     // Fixed types once set
     ParameterValue min;
     ParameterValue max;
@@ -503,6 +507,7 @@ struct ParameterAttributes
     std::vector<std::string> labels;
     float taper = 1.0f;
 
+    // LayoutControl
     ParameterAttributes()
     {
     }
