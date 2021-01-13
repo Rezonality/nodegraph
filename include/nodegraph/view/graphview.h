@@ -2,6 +2,8 @@
 
 #include <map>
 
+#include <mutils/string/string_utils.h>
+
 #include "nodegraph/model/graph.h"
 #include "nodegraph/view/canvas.h"
 #include "nodegraph/view/viewnode.h"
@@ -9,6 +11,18 @@
 
 namespace NodeGraph
 {
+
+//#ifdef DECLARE_NODE_STYLES
+#define DECLARE_NODE_STYLE(name) const MUtils::StringId style_##name(#name);
+/*#else
+#define DECLARE_NODE_STYLE(name) extern MUtils::StringId style_##name;
+#endif
+*/
+
+DECLARE_NODE_STYLE(nodeOuter);
+DECLARE_NODE_STYLE(nodeTitleHeight);
+DECLARE_NODE_STYLE(nodeTitlePad);
+DECLARE_NODE_STYLE(nodeContentsPad);
 
 struct SliderData
 {
@@ -43,6 +57,7 @@ public:
     bool ShouldShowNode(Canvas& canvas, const Node* pNode) const;
 
     void DrawNode(NodeLayout& layout, ViewNode& viewNode);
+    MUtils::NRectf DrawNode(Canvas& canvas, const MUtils::NRectf& pos, Node* pNode);
 
     void DrawPin(Pin& pin, ViewNode& viewNode);
 
@@ -51,7 +66,6 @@ public:
     SliderData DrawSlider(Canvas& canvas, MUtils::NRectf rect, Pin& pin);
     void DrawButton(Canvas& canvas, MUtils::NRectf rect, Pin& pin);
 
-    MUtils::NRectf DrawNode(Canvas& canvas, const MUtils::NRectf& pos, Node* pNode);
 
     void DrawLabel(Canvas& canvas, Parameter& param, const LabelInfo& pos);
     void DrawDecorator(Canvas& canvas, NodeDecorator& decorator, const MUtils::NRectf& rc);
@@ -90,6 +104,9 @@ public:
     {
         m_debugVisuals = debug;
     }
+
+public:
+    static void InitStyles();
 
 private:
     enum class InputDirection

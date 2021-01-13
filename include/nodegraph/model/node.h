@@ -206,6 +206,16 @@ public:
         return m_Id;
     }
 
+    const MUtils::NVec2f& GetPos() const
+    {
+        return m_viewPos;
+    }
+
+    void SetPos(const MUtils::NVec2f& pos)
+    {
+        m_viewPos = pos;
+    }
+
     nod::signal<void(Node*)> sigDetach;
     nod::signal<void(Node*)> sigDestroy;
 
@@ -224,6 +234,7 @@ protected:
     uint64_t m_generation = 0;
     MUtils::NRectf m_viewCells;
     MUtils::NVec2f m_gridScale = MUtils::NVec2f(1.0f);
+    MUtils::NVec2f m_viewPos;
     uint32_t m_flags = NodeFlags::None;
     Graph& m_graph;
 };

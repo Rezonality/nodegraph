@@ -1,10 +1,10 @@
 #include <mutils/logger/logger.h>
 
 #include <mutils/math/imgui_glm.h>
+#include <mutils/math/math_utils.h>
+#include <mutils/ui/colors.h>
 #include <mutils/ui/fbo.h>
 #include <mutils/ui/sdl_imgui_starter.h>
-#include <mutils/ui/colors.h>
-#include <mutils/math/math_utils.h>
 
 #include "config_app.h"
 #include <SDL.h>
@@ -116,7 +116,7 @@ public:
 
         auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "Label"));
         pDecorator->gridLocation = NRectf(6, 1, 1, 1);
-       
+
         m_spNodeLayout = node_layout_create();
 
         const NVec2f KnobWidgetSize(70.0f, 90.0f);
@@ -261,6 +261,7 @@ public:
 
     virtual void InitBeforeDraw() override
     {
+        GraphView::InitStyles();
     }
     virtual void InitDuringDraw() override
     {
@@ -279,16 +280,24 @@ public:
         auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
 #endif
 
-        m_spGraphA->SetName("Graph A");
-        m_spGraphB->SetName("Graph B");
+        auto fillGraph = [&](std::shared_ptr<GraphData> graphData, const std::string& name) {
+            auto pGraph = graphData->spGraphView->GetGraph();
+            pGraph->SetName(name);
+            auto pTestNode = pGraph->CreateNode<TestNode>();
+            auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
 
-        appNodes.insert(m_spGraphA->CreateNode<TestDrawNode>());
+            pTestNode->SetPos(NVec2f(50.0f, 10.0f));
+            pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
 
-        appNodes.insert(m_spGraphB->CreateNode<EmptyNode>("Empty Node"));
-        appNodes.insert(m_spGraphB->CreateNode<TestNode>());
+            for (auto pNode : pGraph->GetNodes())
+            {
+                appNodes.insert(pNode);
+            }
+            m_graphs.push_back(graphData);
+        };
 
-        m_graphs.push_back(spGraphA);
-        m_graphs.push_back(spGraphB);
+        fillGraph(spGraphA, "Graph A");
+        fillGraph(spGraphB, "Graph B");
     }
 
     virtual void Update(float time, const NVec2i& displaySize) override
@@ -418,6 +427,7 @@ public:
 
         for (auto& spGraphData : m_graphs)
         {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
             if (ImGui::Begin(spGraphData->spGraphView->GetGraph()->Name().c_str()))
             {
                 ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -435,6 +445,7 @@ public:
                 ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
 #endif
             }
+            ImGui::PopStyleVar(1);
             ImGui::End();
         }
     }

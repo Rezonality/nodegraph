@@ -21,6 +21,7 @@ set(NODEGRAPH_VIEW
     ${NODEGRAPH_ROOT}/src/view/viewnode.cpp
     ${NODEGRAPH_ROOT}/src/view/graphview.cpp
     ${NODEGRAPH_ROOT}/src/view/node_layout.cpp
+    ${NODEGRAPH_ROOT}/src/view/style.cpp
     ${NODEGRAPH_ROOT}/src/view/canvas.cpp
     ${NODEGRAPH_ROOT}/src/view/canvas_imgui.cpp
     ${NODEGRAPH_ROOT}/src/view/canvas_vg.cpp
@@ -32,6 +33,8 @@ set(NODEGRAPH_VIEW
     ${NODEGRAPH_ROOT}/include/nodegraph/view/graphview.h
     ${NODEGRAPH_ROOT}/include/nodegraph/view/layout.h
     ${NODEGRAPH_ROOT}/include/nodegraph/view/layout_control.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/view/node_layout.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/view/style.h
 )
 
 set(NODEGRAPH_SOURCE

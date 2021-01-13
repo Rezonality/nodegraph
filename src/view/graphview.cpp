@@ -1,18 +1,23 @@
 #include <map>
 
-#include "nodegraph/view/graphview.h"
-#include "nodegraph/view/viewnode.h"
+#include <fmt/format.h>
 
 #include <nanovg.h>
+
+#define DECLARE_NODE_STYLES
 
 #include <mutils/logger/logger.h>
 #include <mutils/math/math.h>
 #include <mutils/ui/colors.h>
 #include <mutils/ui/dpi.h>
 
-#include <fmt/format.h>
+#include <nodegraph/view/graphview.h>
+#include <nodegraph/view/viewnode.h>
+#include <nodegraph/view/style.h>
 
 using namespace MUtils;
+using namespace MUtils::Theme;
+using namespace MUtils::Style;
 
 namespace
 {
@@ -64,6 +69,20 @@ GraphView::GraphView(Graph* pGraph, std::shared_ptr<Canvas> spCanvas)
         m_spViewData->disabled = false;
         m_spViewData->pendingUpdate = true;
     }));
+}
+
+void GraphView::InitStyles()
+{
+    auto& style = StyleManager::Instance();
+    
+    // For connectors around side
+    style.Set(style_nodeOuter, 20.0f); 
+
+    // Title and padding
+    style.Set(style_nodeTitleHeight, 30.0f);
+    style.Set(style_nodeTitlePad, 4.0f);
+
+    style.Set(style_nodeContentsPad, 2.0f);
 }
 
 bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
@@ -121,7 +140,6 @@ void GraphView::BuildNodes()
             if (ShouldShowNode(*m_spCanvas, pNode))
             {
                 auto spViewNode = std::make_shared<ViewNode>(pNode);
-                spViewNode->pos = NVec2f(50, 50);
 
                 m_spViewData->mapWorldToView[pNode] = spViewNode;
                 m_spViewData->mapNodeCreateOrder[pNode->GetId()] = pNode;
@@ -315,7 +333,7 @@ void GraphView::DrawPin(Pin& pin, ViewNode& viewNode)
     auto& attrib = pin.GetAttributes();
 
     auto rc = pin.GetViewRect();
-    rc.Adjust(viewNode.pos.x, viewNode.pos.y);
+    rc.Adjust(viewNode.pModelNode->GetPos());
 
     DrawKnob(*GetCanvas(), rc, false, pin);
 }
@@ -736,9 +754,8 @@ NRectf GraphView::DrawNode(Canvas& canvas, const NRectf& pos, Node* pNode)
 
     canvas.Text(NVec2f(pos.Center().x, pos.Top() + node_titleBorder + node_titleHeight * .5f), node_titleFontSize, node_TitleColor, pNode->GetName().c_str());
 
-    //#ifdef _DEBUG
     canvas.Text(NVec2f(pos.Left() + node_titleBorder * 3.0f, pos.Top() + node_titleBorder + node_titleHeight * .5f), node_titleFontSize / 2, NVec4f(.9f), fmt::format("{}", pNode->GetGeneration()).c_str());
-    //#endif
+    
     auto contentRect = NRectf(pos.Left() + node_borderPad, pos.Top() + node_titleBorder + node_titleHeight + node_borderPad, pos.Width() - (node_borderPad * 2), pos.Height() - node_titleHeight - (node_titleBorder * 2.0f) - node_borderPad);
 
     return contentRect;
@@ -918,12 +935,17 @@ Canvas* GraphView::GetCanvas() const
 void GraphView::DrawNode(NodeLayout& layout, ViewNode& viewNode)
 {
     auto& canvas = *m_spCanvas;
+    auto& style = StyleManager::Instance();
+    auto& theme = ThemeManager::Instance();
 
+    auto nodePos = viewNode.pModelNode->GetPos();
+
+    // First debug
     if (m_debugVisuals)
     {
         uint32_t index = 0;
         layout.spRoot->VisitLayouts([&](Layout* pLayout) {
-            auto rc = pLayout->GetViewRect().Expanded(pLayout->GetPadding()) + viewNode.pos;
+            auto rc = pLayout->GetViewRect().Expanded(pLayout->GetPadding()) + nodePos;
 
             auto col = NVec4f(.3f, .05f, .05f, .5f);
             canvas.FillRect(rc, col);
@@ -935,14 +957,37 @@ void GraphView::DrawNode(NodeLayout& layout, ViewNode& viewNode)
         });
     }
 
-    auto nodeRect = layout.spRoot->GetViewRect().Expanded(layout.spRoot->GetPadding()) + viewNode.pos;
+    // Shell
+    auto nodeRect = layout.spRoot->GetViewRect() + nodePos;
     canvas.FillRoundedRect(nodeRect, node_borderRadius, node_Color);
 
-    auto titleRect = layout.spTitle->GetViewRect() + viewNode.pos;
+    auto titleRect = layout.spTitle->GetViewRect() + nodePos;
     canvas.FillRoundedRect(titleRect, node_borderRadius, node_TitleBGColor);
+
+    // Connectors
+    auto outerConnectorRect = layout.spRoot->GetViewRect() + nodePos;
+    auto contentRect = layout.spContents->GetViewRect() + nodePos;
+    auto outerRadius = style.GetFloat(style_nodeOuter) * .5f;
+    // L
+    canvas.FilledCircle(NVec2f(outerConnectorRect.Left() - outerRadius,
+        outerConnectorRect.Center().y), outerRadius, theme.GetColor(ThemeColor::AccentColor1));
+
+    // R
+    canvas.FilledCircle(NVec2f(outerConnectorRect.Right() + outerRadius,
+        outerConnectorRect.Center().y), outerRadius, theme.GetColor(ThemeColor::AccentColor1));
+
+    // T
+    canvas.FilledCircle(NVec2f(outerConnectorRect.Center().x,
+        outerConnectorRect.Top() - outerRadius), outerRadius, theme.GetColor(ThemeColor::AccentColor1));
+
+    // B
+    canvas.FilledCircle(NVec2f(outerConnectorRect.Center().x,
+        outerConnectorRect.Bottom() + outerRadius), outerRadius, theme.GetColor(ThemeColor::AccentColor1));
+
 
     canvas.Text(NVec2f(titleRect.Center().x, titleRect.Center().y), node_titleFontSize, node_TitleColor, viewNode.pModelNode->GetName().c_str());
 
+    // Inner contents
     layout.spRoot->VisitLayouts([&](Layout* pLayout) {
         for (auto& pControl : pLayout->GetItems())
         {
@@ -950,7 +995,6 @@ void GraphView::DrawNode(NodeLayout& layout, ViewNode& viewNode)
             if (pPin)
             {
                 DrawPin(*pPin, viewNode);
-            
             }
         }
     });

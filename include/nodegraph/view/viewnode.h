@@ -13,7 +13,6 @@ public:
 
     Node* pModelNode = nullptr;
     bool selected = false;
-    MUtils::NVec2f pos;
 };
 
 } // namespace NodeGraph
