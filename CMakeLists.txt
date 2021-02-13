@@ -26,8 +26,6 @@ project(NodeGraph
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_LIST_DIR}/../vcpkg/packages/mutils_${VCPKG_TARGET_TRIPLET}/lib/cmake/mutils)
 
-
-find_package(imgui REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(gsl-lite REQUIRED)
 find_package(fmt REQUIRED)
