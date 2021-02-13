@@ -10,9 +10,9 @@ class ViewNode
 {
 public:
     explicit ViewNode(Node* pModel);
-
     Node* pModelNode = nullptr;
-    bool selected = false;
+    bool active = false;
+    bool hovered = false;
 };
 
 } // namespace NodeGraph

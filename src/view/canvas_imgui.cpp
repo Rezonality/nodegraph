@@ -12,7 +12,7 @@ const int ArcSegments = 40;
 namespace NodeGraph
 {
 
-void CanvasImGui::Begin(const NVec2f& displaySize, const NVec4f& clearColor)
+void CanvasImGui::Begin(const NVec4f& clearColor)
 {
     origin = ImGui::GetCursorScreenPos();
     auto size = ImGui::GetContentRegionAvail();

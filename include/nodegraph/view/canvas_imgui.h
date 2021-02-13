@@ -9,8 +9,10 @@ using namespace MUtils;
 namespace NodeGraph
 {
 
-inline CanvasInputState& canvas_imgui_update_state(CanvasInputState& state, const MUtils::NRectf& region)
+inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const MUtils::NRectf& region)
 {
+    auto& state = canvas.GetInputState();
+
     auto mousePos = ImGui::GetIO().MousePos;
 
     state.mousePos = MUtils::NVec2f(mousePos.x - region.Left(), mousePos.y - region.Top());
@@ -24,8 +26,8 @@ inline CanvasInputState& canvas_imgui_update_state(CanvasInputState& state, cons
     state.canCapture = ImGui::GetIO().WantCaptureMouse;
     state.mouseDelta = ImGui::GetIO().MouseDelta;
     state.dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+    state.dragDeltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     state.wheelDelta = ImGui::GetIO().MouseWheel;
-    state.resetDrag = false;
     state.captured = false;
 
     if (ImGui::GetIO().KeyCtrl && state.buttonClicked[0] == 1)
@@ -58,7 +60,7 @@ public:
         return ImColor(val.x, val.y, val.z, val.w);
     }
 
-    virtual void Begin(const MUtils::NVec2f& displaySize, const MUtils::NVec4f& clearColor) override;
+    virtual void Begin(const MUtils::NVec4f& clearColor) override;
     virtual void End() override;
     virtual void FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color) override;
     virtual void FilledGradientCircle(const MUtils::NVec2f& center, float radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const MUtils::NVec4f& endColor) override;

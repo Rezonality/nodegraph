@@ -11,20 +11,23 @@ const NVec2f Canvas::PixelToView(const NVec2f& pixel) const
     return (m_viewOrigin + (pixel / m_viewScale));
 }
 
-void Canvas::Update(const NVec2f& regionSize, const CanvasInputState& state)
+void Canvas::HandleMouse()
 {
-    m_inputState = state;
+    // If the input has been captured, we can't handle any more mouse interactions
+    if (m_inputState.captured)
+    {
+        return;
+    }
 
-    auto normalizedRegion = NRectf(0, 0, regionSize.x, regionSize.y);
-    SetPixelRect(normalizedRegion);
+    auto normalizedRegion = m_pixelRect;
 
-    bool mouseInView = normalizedRegion.Contains(state.mousePos);
+    bool mouseInView = normalizedRegion.Contains(m_inputState.mousePos);
 
     // Handle the mouse
     {
         auto viewUnderMouse = GetViewMousePos();
 
-        float wheel = state.wheelDelta;
+        float wheel = m_inputState.wheelDelta;
         if (wheel != 0.0f && mouseInView)
         {
             m_viewScale += wheel * (std::fabs(m_viewScale) * .1f);
@@ -34,14 +37,14 @@ void Canvas::Update(const NVec2f& regionSize, const CanvasInputState& state)
             auto diff = newView - viewUnderMouse;
             m_viewOrigin -= diff;
         }
-        else if ((mouseInView && state.buttonClicked[1]) || (m_capturedMouse && state.buttonDown[1]))
+        else if ((mouseInView && m_inputState.buttonClicked[1]) || (m_capturedMouse && m_inputState.buttonDown[1]))
         {
             auto viewOrigin = PixelToView(NVec2f(0.0f, 0.0f));
-            auto viewDelta = PixelToView(NVec2f(state.mouseDelta.x, state.mouseDelta.y));
+            auto viewDelta = PixelToView(NVec2f(m_inputState.mouseDelta.x, m_inputState.mouseDelta.y));
             m_viewOrigin -= (viewDelta - viewOrigin);
             m_capturedMouse = true;
         }
-        else if (state.buttonDown[1] == 0 )
+        else if (m_inputState.buttonDown[1] == 0)
         {
             m_capturedMouse = false;
         }

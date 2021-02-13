@@ -117,12 +117,10 @@ public:
         auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "Label"));
         pDecorator->gridLocation = NRectf(6, 1, 1, 1);
 
-        m_spNodeLayout = node_layout_create();
-
         const NVec2f KnobWidgetSize(70.0f, 90.0f);
 
         auto pHLayout1 = new MUtils::HLayout();
-        m_spNodeLayout->spContents->AddItem(pHLayout1);
+        GetLayout().spContents->AddItem(pHLayout1);
         pHLayout1->AddItem(pValue1, KnobWidgetSize);
         pHLayout1->AddItem(pValue2, KnobWidgetSize);
         pHLayout1->AddItem(pValue3, KnobWidgetSize);
@@ -131,7 +129,7 @@ public:
         pHLayout1->AddItem(pValue6, KnobWidgetSize);
 
         auto pHLayout2 = new MUtils::HLayout();
-        m_spNodeLayout->spContents->AddItem(pHLayout2);
+        GetLayout().spContents->AddItem(pHLayout2);
         pHLayout2->AddItem(pValue7, KnobWidgetSize); // Set the height
         pHLayout2->AddItem(pValue8, KnobWidgetSize);
         pHLayout2->AddItem(pValue9, KnobWidgetSize);
@@ -142,13 +140,13 @@ public:
 
         pHLayout2->AddItem(pVLayout3);
 
-        m_spNodeLayout->spRoot->UpdateLayout();
+        GetLayout().spRoot->UpdateLayout();
     }
 
     virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
     {
         view.SetDebugVisuals(false);
-        view.DrawNode(*m_spNodeLayout, viewNode);
+        view.DrawNode(viewNode);
     }
 
     virtual void Compute() override
@@ -171,7 +169,6 @@ public:
     Pin* pButton = nullptr;
     Pin* pSlider = nullptr;
     Pin* pIntSlider = nullptr;
-    std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
 
 class TestDrawNode : public Node
@@ -197,15 +194,14 @@ public:
         //sliderAttrib.thumb = 0.25f;
         //pValue2->SetAttributes(sliderAttrib);
 
-        m_spNodeLayout = node_layout_create();
         auto pLayout = new MUtils::HLayout();
-        m_spNodeLayout->spContents->AddItem(pLayout);
+        GetLayout().spContents->AddItem(pLayout);
 
         pLayout->AddItem(pSum, NVec2f(50.0f, 50.0f));
         pLayout->AddItem(pValue1, NVec2f(100.0f, 100.0f));
         pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
 
-        m_spNodeLayout->spRoot->UpdateLayout();
+        GetLayout().spRoot->UpdateLayout();
     }
 
     virtual void Compute() override
@@ -214,7 +210,7 @@ public:
 
     virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
     {
-        view.DrawNode(*m_spNodeLayout, viewNode);
+        view.DrawNode(viewNode);
     }
 
     Pin* pSum = nullptr;
@@ -261,7 +257,7 @@ public:
 
     virtual void InitBeforeDraw() override
     {
-        GraphView::InitStyles();
+        GraphView::Init();
     }
     virtual void InitDuringDraw() override
     {
@@ -326,21 +322,21 @@ public:
     {
     }
 
-    void DrawGraph(GraphData& graphData, const NVec2i& canvasSize)
+    void DrawGraph(GraphData& graphData)
     {
 #ifdef USE_VG
         if (graphData.fbo.fbo == 0)
         {
             graphData.fbo = fbo_create();
         }
-        fbo_resize(graphData.fbo, canvasSize);
+        fbo_resize(graphData.fbo, graphData.spGraphView->GetCanvas()->GetPixelRect().Size());
 
         fbo_bind(graphData.fbo);
 
         //fbo_clear(m_settings.clearColor);
 #endif
 
-        graphData.spGraphView->Show(canvasSize, m_settings.clearColor);
+        graphData.spGraphView->Show(m_settings.clearColor);
         graphData.spGraphView->GetGraph()->Compute(appNodes, 0);
 
 #ifdef USE_VG
@@ -350,17 +346,16 @@ public:
 
     void BeginCanvas(Canvas& canvas, const NRectf& region)
     {
-        static CanvasInputState state;
-        canvas.Update(region.Size(), canvas_imgui_update_state(state, region));
+        canvas.SetPixelRect(NRectf(0.0f, 0.0f, region.Width(), region.Height()));
+        
+        canvas_imgui_update_state(canvas, region);
     }
 
     void EndCanvas(Canvas& canvas)
     {
+        canvas.HandleMouse();
+        
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = (canvas.GetInputState().captured);
-        if (canvas.GetInputState().resetDrag)
-        {
-            ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
-        }
     }
 
     virtual void DrawGUI(const NVec2i& displaySize) override
@@ -437,7 +432,7 @@ public:
 
                 BeginCanvas(*spGraphData->spGraphView->GetCanvas(), region);
 
-                DrawGraph(*spGraphData, region.Size());
+                DrawGraph(*spGraphData);
 
                 EndCanvas(*spGraphData->spGraphView->GetCanvas());
 
@@ -464,6 +459,8 @@ private:
     NVGcontext* vg = nullptr;
     NVec2i m_displaySize = 0;
     ImFont* m_pCanvasFont = nullptr;
+        
+    CanvasInputState m_canvasInputState;
 };
 
 App theApp;

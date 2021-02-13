@@ -5,13 +5,21 @@
 #include "nodegraph/model/graph.h"
 #include "nodegraph/model/node.h"
 #include "nodegraph/model/pin.h"
-
+#include "nodegraph/view/node_layout.h"
 using namespace MUtils;
 
 namespace NodeGraph
 {
 
 uint64_t Node::CurrentId = 0;
+
+Node::Node(Graph& m_graph, const std::string& name)
+    : m_strName(name)
+    , m_graph(m_graph)
+    , m_Id(CurrentId++)
+    , m_spLayout(node_layout_create())
+{
+}
 
 Node::~Node()
 {

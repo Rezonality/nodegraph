@@ -20,7 +20,7 @@ public:
     {
     }
 
-    virtual void Begin(const MUtils::NVec2f& displaySize, const MUtils::NVec4f& clearColor) override;
+    virtual void Begin(const MUtils::NVec4f& clearColor) override;
     virtual void End() override;
 
     NVGcontext* GetVG() const

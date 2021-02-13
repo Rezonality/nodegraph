@@ -22,6 +22,8 @@ class Node;
 class Graph;
 class ViewNode;
 
+struct NodeLayout;
+
 class GraphModify final
 {
 public:
@@ -92,11 +94,7 @@ enum
 class Node
 {
 public:
-    explicit Node(Graph& m_graph, const std::string& name)
-        : m_strName(name)
-        , m_graph(m_graph)
-        , m_Id(CurrentId++){};
-
+    explicit Node(Graph& m_graph, const std::string& name);
     Node(const Node& node) = delete;
     const Node& operator=(const Node& Node) = delete;
 
@@ -216,6 +214,11 @@ public:
         m_viewPos = pos;
     }
 
+    NodeLayout& GetLayout()
+    {
+        return *m_spLayout;
+    }
+
     nod::signal<void(Node*)> sigDetach;
     nod::signal<void(Node*)> sigDestroy;
 
@@ -237,6 +240,7 @@ protected:
     MUtils::NVec2f m_viewPos;
     uint32_t m_flags = NodeFlags::None;
     Graph& m_graph;
+    std::shared_ptr<NodeLayout> m_spLayout;
 };
 
 // A node that has no inputs/outputs or parameters

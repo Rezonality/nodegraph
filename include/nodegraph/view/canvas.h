@@ -31,12 +31,12 @@ struct CanvasInputState
     bool buttonClicked[MouseButtons::MOUSE_MAX];
     bool buttonReleased[MouseButtons::MOUSE_MAX];
     MUtils::NVec2f dragDelta;
+    MUtils::NVec2f dragDeltaRight;
     MUtils::NVec2f mouseDelta;
     bool slowDrag = false;
     float wheelDelta;
     bool canCapture = false;
     bool captured = false;
-    bool resetDrag = false;
 };
 
 class Canvas
@@ -61,7 +61,7 @@ public:
     }
 
     // Drawing functions; These are all in view space, not canvas space
-    virtual void Begin(const MUtils::NVec2f& displaySize, const MUtils::NVec4f& clearColor) = 0;
+    virtual void Begin(const MUtils::NVec4f& clearColor) = 0;
     virtual void End() = 0;
     virtual void FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color) = 0;
     virtual void FilledGradientCircle(const MUtils::NVec2f& center, float radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const MUtils::NVec4f& endColor) = 0;
@@ -99,20 +99,21 @@ public:
     
     virtual void DrawGrid(float viewStep);
 
-    virtual void Update(const MUtils::NVec2f& region, const CanvasInputState& state);
+    virtual void HandleMouse();
+
+    virtual float GetViewScale() const
+    {
+        return m_viewScale;
+    }
 
     virtual MUtils::NVec2f GetViewMousePos() const
     {
         return PixelToView(m_inputState.mousePos);
     }
 
-    const CanvasInputState& GetInputState() const
+    CanvasInputState& GetInputState()
     {
         return m_inputState;
-    }
-    void ResetDragDelta()
-    {
-        m_inputState.resetDrag = true;
     }
 
     void Capture(bool cap)

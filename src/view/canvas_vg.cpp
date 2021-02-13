@@ -6,12 +6,12 @@ using namespace MUtils;
 namespace NodeGraph
 {
 
-void CanvasVG::Begin(const NVec2f& displaySize, const NVec4f& clearColor)
+void CanvasVG::Begin(const NVec4f& clearColor)
 {
-    nvgBeginFrame(GetVG(), float(displaySize.x), float(displaySize.y), 1.0f);
+    nvgBeginFrame(GetVG(), m_pixelRect.Width(), m_pixelRect.Height(), 1.0f);
 
     nvgBeginPath(vg);
-    nvgRect(vg, 0.0f, 0.0f, displaySize.x, displaySize.y);
+    nvgRect(vg, 0.0f, 0.0f, m_pixelRect.Width(), m_pixelRect.Height());
     nvgFillColor(vg, ToNVGColor(clearColor));
     nvgFill(vg);
 }
