@@ -87,6 +87,8 @@ TEST_CASE("Parameters Get and Set", "[Parameters]")
 TEST_CASE("Creation", "[Nodes]")
 {
     Graph g;
+    GraphView::Init();
+
     auto pNode = g.CreateNode<TestNode>();
 
     pNode->pValue1->SetAttributes(ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
