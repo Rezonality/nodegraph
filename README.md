@@ -22,8 +22,8 @@ root/
 Then run the following scripts inside the nodegraph folder
 
 ``` bash
-config_all.bat OR config_all.sh
-build_all.bat OR build_all.sh
+config.bat OR config.sh
+build.bat OR build.sh
 ```
 
 Now in your project CMakeLists.txt, you can add the following to reference the library and pull in all the header paths.  Note there are no include/library defines; the target_link_libraries is enough to pull all the necessary things in.  See the example application for how this works.
