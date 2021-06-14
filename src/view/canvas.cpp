@@ -13,8 +13,9 @@ const NVec2f Canvas::PixelToView(const NVec2f& pixel) const
 
 void Canvas::HandleMouse()
 {
-    // If the input has been captured, we can't handle any more mouse interactions
-    if (m_inputState.captured)
+    // We only handle moving canvas here
+    if (m_inputState.captureState == CaptureState::Parameter ||
+        m_inputState.captureState == CaptureState::MoveNode)
     {
         return;
     }
@@ -37,16 +38,16 @@ void Canvas::HandleMouse()
             auto diff = newView - viewUnderMouse;
             m_viewOrigin -= diff;
         }
-        else if ((mouseInView && m_inputState.buttonClicked[1]) || (m_capturedMouse && m_inputState.buttonDown[1]))
+        else if ((mouseInView && m_inputState.buttonClicked[1]) || ((m_inputState.captureState == CaptureState::MoveCanvas) && m_inputState.buttonDown[1]))
         {
             auto viewOrigin = PixelToView(NVec2f(0.0f, 0.0f));
             auto viewDelta = PixelToView(NVec2f(m_inputState.mouseDelta.x, m_inputState.mouseDelta.y));
             m_viewOrigin -= (viewDelta - viewOrigin);
-            m_capturedMouse = true;
+            m_inputState.captureState = CaptureState::MoveCanvas;
         }
         else if (m_inputState.buttonDown[1] == 0)
         {
-            m_capturedMouse = false;
+            m_inputState.captureState = CaptureState::None;
         }
     }
 }

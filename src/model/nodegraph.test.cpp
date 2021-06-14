@@ -35,7 +35,7 @@ public:
 
     virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode)
     {
-        view.DrawPin(*pSum, viewNode);
+        view.DrawPin(viewNode, *pSum);
     }
 
     Pin* pSum = nullptr;

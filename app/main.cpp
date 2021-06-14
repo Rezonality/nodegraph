@@ -85,6 +85,7 @@ public:
         buttonAttrib.labels = { "A", "B", "C" };
         pButton->SetAttributes(buttonAttrib);
 
+        /*
         //   if (pValue2)
         //      pValue2->SetViewCells(NRectf(0, 0, 1, 1));
         if (pValue3)
@@ -113,6 +114,7 @@ public:
         pSlider->SetViewCells(NRectf(.25f, 1, 2.5f, .5f));
         pIntSlider->SetViewCells(NRectf(.25f, 1.5, 2.5f, .5f));
         pButton->SetViewCells(NRectf(.25f, 2.0, 2.5f, .5f));
+        */
 
         auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "Label"));
         pDecorator->gridLocation = NRectf(6, 1, 1, 1);
@@ -138,7 +140,8 @@ public:
         pVLayout3->AddItem(pValue10, NVec2f(KnobWidgetSize.x, 0.0f));
         pVLayout3->AddItem(pSum, NVec2f(KnobWidgetSize.x, 0.0f));
 
-        pHLayout2->AddItem(pVLayout3);
+        pHLayout2->AddItem(pVLayout3, KnobWidgetSize);
+        pHLayout2->AddItem(pButton, NVec2f(0.0f));
 
         GetLayout().spRoot->UpdateLayout();
     }
@@ -354,8 +357,6 @@ public:
     void EndCanvas(Canvas& canvas)
     {
         canvas.HandleMouse();
-        
-        ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = (canvas.GetInputState().captured);
     }
 
     virtual void DrawGUI(const NVec2i& displaySize) override
@@ -420,6 +421,7 @@ public:
         }
         ImGui::End();
 
+        bool captured = false;
         for (auto& spGraphData : m_graphs)
         {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
@@ -436,10 +438,17 @@ public:
 
                 EndCanvas(*spGraphData->spGraphView->GetCanvas());
 
+                if (spGraphData->spGraphView->GetCanvas()->GetInputState().captureState != CaptureState::None)
+                {
+                    captured = true; 
+                }
+
 #ifdef USE_VG
                 ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
 #endif
             }
+            
+            ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
             ImGui::PopStyleVar(1);
             ImGui::End();
         }

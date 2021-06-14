@@ -73,20 +73,21 @@ public:
     void Show(const MUtils::NVec4f& clearColor);
     bool ShouldShowNode(Canvas& canvas, const Node* pNode) const;
 
+    // Shapes
     void DrawNode(ViewNode& viewNode);
+    void DrawPin(ViewNode& viewNode, Pin& pin);
 
-    void DrawPin(Pin& pin, ViewNode& viewNode);
+    // Controls
+    bool DrawKnob(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect, bool miniKnob);
+    SliderData DrawSlider(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect);
+    void DrawButton(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect);
+   
+    bool CheckCapture(ViewNode& viewNode, Parameter& param, const MUtils::NRectf& region, bool& hover);
+   
+    // Labels/Adornments
+    void DrawLabel(Parameter& param, const LabelInfo& pos);
+    void DrawDecorator(NodeDecorator& decorator, const MUtils::NRectf& rc);
 
-    // For drawing individual controls
-    bool DrawKnob(Canvas& canvas, MUtils::NRectf rect, bool miniKnob, Pin& pin);
-    SliderData DrawSlider(Canvas& canvas, MUtils::NRectf rect, Pin& pin);
-    void DrawButton(Canvas& canvas, MUtils::NRectf rect, Pin& pin);
-
-
-    void DrawLabel(Canvas& canvas, Parameter& param, const LabelInfo& pos);
-    void DrawDecorator(Canvas& canvas, NodeDecorator& decorator, const MUtils::NRectf& rc);
-
-    bool CheckCapture(Canvas& canvas, Parameter& param, const MUtils::NRectf& region, bool& hover);
     bool HideCursor() const
     {
         return m_hideCursor;
@@ -108,7 +109,7 @@ public:
         }
         bool pendingUpdate = true;
         bool disabled = false;
-        std::map<Node*, std::shared_ptr<ViewNode>> mapWorldToView;
+        std::map<Node*, std::shared_ptr<ViewNode>> mapNodeToViewNode;
         std::vector<nod::connection> connections;
         std::deque<Node*> nodeZOrder;
     };
@@ -132,9 +133,6 @@ private:
         X,
         Y
     };
-
-    void EvaluateDragDelta(Canvas& canvas, Pin& pin, float delta, InputDirection dir);
-    void CheckInput(Canvas& canvas, Pin& param, const MUtils::NRectf& region, float rangePerDelta, bool& hover, bool& captured, InputDirection dir);
 
 private:
     Graph* m_pGraph;

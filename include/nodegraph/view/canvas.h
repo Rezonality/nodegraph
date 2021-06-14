@@ -22,6 +22,14 @@ enum class LineCap
     BUTT
 };
 
+enum class CaptureState
+{
+    None,
+    MoveCanvas,
+    MoveNode,
+    Parameter
+};
+
 // Represents the current interaction state with the canvas; used for 
 // tracking mouse manipulation
 struct CanvasInputState
@@ -36,7 +44,7 @@ struct CanvasInputState
     bool slowDrag = false;
     float wheelDelta;
     bool canCapture = false;
-    bool captured = false;
+    CaptureState captureState = CaptureState::None;
 };
 
 class Canvas
@@ -116,18 +124,11 @@ public:
         return m_inputState;
     }
 
-    void Capture(bool cap)
-    {
-        m_inputState.captured = cap;
-    }
-
-
 protected:
     MUtils::NRectf m_pixelRect; // Pixel size on screen of canvas
 
     MUtils::NVec2f m_viewOrigin;
     float m_viewScale = 1.0f;
-    bool m_capturedMouse = false;
 
     CanvasInputState m_inputState;
 };

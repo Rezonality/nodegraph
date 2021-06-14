@@ -28,7 +28,6 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const MUtils:
     state.dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
     state.dragDeltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     state.wheelDelta = ImGui::GetIO().MouseWheel;
-    state.captured = false;
 
     if (ImGui::GetIO().KeyCtrl && state.buttonClicked[0] == 1)
     {

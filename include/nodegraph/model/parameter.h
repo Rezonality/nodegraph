@@ -484,7 +484,8 @@ namespace ParameterFlags
 enum
 {
     None = (0),
-    ReadOnly = (1 << 0)
+    ReadOnly = (1 << 0),
+    NoLabel = (1 << 1),
 };
 }
 
