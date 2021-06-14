@@ -164,6 +164,7 @@ public:
         m_targets.clear();
     }
 
+    /* 
     const MUtils::NRectf& GetViewCells() const
     {
         return m_viewCells;
@@ -173,6 +174,7 @@ public:
     {
         m_viewCells = cells;
     }
+    */
 
 private:
     PinDir m_direction;                     // The direction of this pin

@@ -111,6 +111,7 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
         return true;
 
     // Check for things to show
+    /*
     for (auto& in : pNode->GetInputs())
     {
         if (!in->GetViewCells().Empty())
@@ -125,6 +126,7 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
             return true;
         }
     }
+    */
 
     for (auto& decorator : pNode->GetDecorators())
     {
@@ -362,7 +364,14 @@ void GraphView::DrawPin(Pin& pin, ViewNode& viewNode)
     auto rc = pin.GetViewRect();
     rc.Adjust(viewNode.pModelNode->GetPos());
 
-    DrawKnob(*GetCanvas(), rc, false, pin);
+    if (pin.GetAttributes().ui == ParameterUI::Knob)
+    {
+        DrawKnob(*GetCanvas(), rc, false, pin);
+    }
+    else if (pin.GetAttributes().ui == ParameterUI::Slider)
+    {
+        DrawSlider(*GetCanvas(), rc, pin);
+    }
 }
 
 bool GraphView::DrawKnob(Canvas& canvas, NRectf rect, bool miniKnob, Pin& param)
