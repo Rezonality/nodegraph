@@ -1,13 +1,10 @@
-#include <mutils/logger/logger.h>
 
 #include <mutils/math/imgui_glm.h>
 #include <mutils/math/math_utils.h>
-#include <mutils/ui/colors.h>
 #include <mutils/ui/fbo.h>
 #include <mutils/ui/sdl_imgui_starter.h>
 
 #include "config_app.h"
-#include <SDL.h>
 #include <nodegraph/model/graph.h>
 #include <nodegraph/view/canvas_imgui.h>
 #include <nodegraph/view/canvas_vg.h>
