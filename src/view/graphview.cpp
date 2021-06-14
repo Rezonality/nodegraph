@@ -97,9 +97,7 @@ void GraphView::InitStyles()
     // Title and padding
     style.Set(style_nodeTitleHeight, 30.0f);
     style.Set(style_nodeTitleFontSize, 26.0f);
-    style.Set(style_nodeTitlePad, 4.0f);
-
-    style.Set(style_nodeContentsPad, 2.0f);
+    style.Set(style_nodeLayoutMargin, NVec4f(4.0f));
 }
 
 bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
@@ -948,12 +946,12 @@ void GraphView::DrawNode(ViewNode& viewNode)
     {
         uint32_t index = 0;
         layout.spRoot->VisitLayouts([&](Layout* pLayout) {
-            auto rc = pLayout->GetViewRect().Expanded(pLayout->GetPadding()) + nodePos;
+            auto rc = pLayout->GetViewRect().Expanded(pLayout->GetMargin()) + nodePos;
 
             auto col = NVec4f(.3f, .05f, .05f, .5f);
             m_spCanvas->FillRect(rc, col);
 
-            rc.Expand(-pLayout->GetPadding());
+            rc.Expand(-pLayout->GetMargin());
             col = colors_get_default(index++);
             col.w = .25f;
             m_spCanvas->FillRect(rc, col);

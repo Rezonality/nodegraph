@@ -14,13 +14,13 @@ public:
     virtual NRectf GetViewRect() { return m_viewRect; }
     virtual void SetViewRect(const NRectf& rc) { m_viewRect = rc; }
 
-    virtual NVec4f GetPadding() const { return m_padding; };
-    virtual void SetPadding(const NVec4f& padding) { m_padding = padding; }
+    virtual NVec4f GetMargin() const { return m_margin; };
+    virtual void SetMargin(const NVec4f& margin) { m_margin = margin; }
 
 protected:
     NVec2f m_preferredSize;
     NRectf m_viewRect;
-    NVec4f m_padding = NVec4f(0.0f);//4.0f, 4.0f, 4.0f, 4.0f);
+    NVec4f m_margin = NVec4f(4.0f, 4.0f, 4.0f, 4.0f);
 };
 
 }

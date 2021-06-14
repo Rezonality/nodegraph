@@ -88,6 +88,7 @@ public:
         const NVec2f KnobWidgetSize(70.0f, 90.0f);
 
         auto pHLayout1 = new MUtils::HLayout();
+        pHLayout1->SetMargin(NVec4f(10.0f)); // Margin between controls
         GetLayout().spContents->AddItem(pHLayout1);
         pHLayout1->AddItem(pValue1, KnobWidgetSize);
         pHLayout1->AddItem(pValue2, KnobWidgetSize);
@@ -181,7 +182,7 @@ public:
         //pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
 
         auto pSliderLayout = new MUtils::VLayout();
-        pSliderLayout->SetPadding(NVec4f(0.0f));
+        pSliderLayout->SetMargin(NVec4f(0.0f));
         pLayout->AddItem(pSliderLayout);
         pSliderLayout->AddItem(pValue3, NVec2f(200.0f, 50.0f));
         pSliderLayout->AddItem(pValue4, NVec2f(200.0f, 50.0f));

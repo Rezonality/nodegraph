@@ -21,9 +21,8 @@ namespace NodeGraph
 
 DECLARE_NODE_STYLE(nodeOuter);
 DECLARE_NODE_STYLE(nodeTitleHeight);
-DECLARE_NODE_STYLE(nodeTitlePad);
 DECLARE_NODE_STYLE(nodeTitleFontSize);
-DECLARE_NODE_STYLE(nodeContentsPad);
+DECLARE_NODE_STYLE(nodeLayoutMargin);
 
 #ifdef DECLARE_NODE_COLORS
 #define DECLARE_NODE_COLOR(name) const MUtils::StringId color_##name(#name);

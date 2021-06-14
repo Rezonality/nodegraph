@@ -12,7 +12,6 @@ struct NodeLayout
 {
     std::shared_ptr<MUtils::VLayout> spRoot;
     std::shared_ptr<MUtils::HLayout> spTitle;
-    
     std::shared_ptr<MUtils::VLayout> spContents;
 };
 

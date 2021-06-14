@@ -24,8 +24,9 @@ static int LogLayout(YGConfigRef config, YGNodeRef node, YGLogLevel level, const
 class Layout : public LayoutControl
 {
 public:
-    Layout()
+    Layout(const NVec4f& margin)
     {
+        SetMargin(margin);
 
         yogaParent = YGNodeNewWithConfig(Config());
 
@@ -36,6 +37,11 @@ public:
 
         // Justify main axis to the flex start
         YGNodeStyleSetJustifyContent(yogaParent, YGJustifyFlexStart);
+            
+        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeLeft, m_margin.x);
+        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeRight, m_margin.z);
+        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeTop, m_margin.y);
+        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeBottom, m_margin.w);
     }
 
     virtual void SetSpaceEvenly()
@@ -64,7 +70,7 @@ public:
         {
             YGNodeStyleSetHeightAuto(yogaParent);
         }
-        
+
         if (preferred.x == 0.0f || preferred.y == 0.0f)
         {
             YGNodeStyleSetFlexGrow(yogaParent, 1.0f);
@@ -84,13 +90,9 @@ public:
         return config;
     }
 
-    virtual void SetPadding(const NVec4f& padding)
+    virtual void SetMargin(const NVec4f& padding)
     {
-        m_padding = padding;
-        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeLeft, padding.x);
-        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeRight, padding.z);
-        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeTop, padding.y);
-        YGNodeStyleSetMargin(yogaParent, YGEdge::YGEdgeBottom, padding.w);
+        m_margin = padding;
     }
 
     virtual void AddItem(LayoutControl* pControl, const NVec2f& preferredSize = NVec2f(0.0f))
@@ -102,7 +104,7 @@ public:
         {
             YGNodeInsertChild(yogaParent, pLayout->yogaParent, YGNodeGetChildCount(yogaParent));
             yogaNodes.push_back(pLayout->yogaParent);
-          
+
             pLayout->SetPreferredSize(preferredSize);
         }
         else
@@ -112,7 +114,11 @@ public:
             auto ygNode = YGNodeNewWithConfig(Config());
 
             YGNodeStyleSetFlexWrap(ygNode, YGWrapNoWrap);
-            YGNodeStyleSetMargin(ygNode, YGEdge::YGEdgeAll, 8.0f);
+            
+            YGNodeStyleSetMargin(ygNode, YGEdge::YGEdgeLeft, m_margin.x);
+            YGNodeStyleSetMargin(ygNode, YGEdge::YGEdgeRight, m_margin.z);
+            YGNodeStyleSetMargin(ygNode, YGEdge::YGEdgeTop, m_margin.y);
+            YGNodeStyleSetMargin(ygNode, YGEdge::YGEdgeBottom, m_margin.w);
 
             // Override layout size preference
             if (preferredSize.x != 0.0f)
@@ -142,6 +148,7 @@ public:
             yogaNodes.push_back(ygNode);
 
             YGNodeInsertChild(yogaParent, ygNode, YGNodeGetChildCount(yogaParent));
+
         }
     }
 
@@ -153,7 +160,7 @@ public:
             for (uint32_t i = 0; i < pLayout->items.size(); i++)
             {
                 auto pLayoutChild = dynamic_cast<Layout*>(pLayout->items[i]);
-                    
+
                 auto topLeft = NVec2f(YGNodeLayoutGetLeft(pLayout->yogaNodes[i]), YGNodeLayoutGetTop(pLayout->yogaNodes[i])) + relative;
                 pLayout->items[i]->SetViewRect(NRectf(topLeft.x, topLeft.y, YGNodeLayoutGetWidth(pLayout->yogaNodes[i]), YGNodeLayoutGetHeight(pLayout->yogaNodes[i])));
                 if (pLayoutChild)
@@ -162,7 +169,7 @@ public:
                 }
             }
         };
-                
+
         SetViewRect(NRectf(YGNodeLayoutGetLeft(yogaParent), YGNodeLayoutGetTop(yogaParent), YGNodeLayoutGetWidth(yogaParent), YGNodeLayoutGetHeight(yogaParent)));
 
         fnVisit(this, GetViewRect().topLeftPx);
@@ -198,8 +205,8 @@ protected:
 class VLayout : public Layout
 {
 public:
-    VLayout()
-        : Layout()
+    VLayout(const NVec4f& margin = NVec4f(4.0f))
+        : Layout(margin)
     {
         YGNodeStyleSetFlexDirection(yogaParent, YGFlexDirection::YGFlexDirectionColumn);
     }
@@ -208,26 +215,11 @@ public:
 class HLayout : public Layout
 {
 public:
-    HLayout()
-        : Layout()
+    HLayout(const NVec4f& margin = NVec4f(4.0f))
+        : Layout(margin)
     {
         YGNodeStyleSetFlexDirection(yogaParent, YGFlexDirection::YGFlexDirectionRow);
     }
 };
-
-/*
-class HLayout : public Layout
-{
-public:
-    virtual void Update() override
-    {
-        NRectf rc(0, 0, 0, 0);
-        for (auto& item : items)
-        {
-            auto preferred = item->GetPreferredSize();
-        }
-    }
-};
-*/
 
 } // namespace MUtils
