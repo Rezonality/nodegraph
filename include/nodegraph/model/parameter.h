@@ -468,6 +468,7 @@ enum class ParameterUI
     Knob,
     Button,
     Text,
+    MiniSlider,
     Custom
 };
 

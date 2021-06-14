@@ -1,13 +1,10 @@
-#include <mutils/logger/logger.h>
 
 #include <mutils/math/imgui_glm.h>
 #include <mutils/math/math_utils.h>
-#include <mutils/ui/colors.h>
 #include <mutils/ui/fbo.h>
 #include <mutils/ui/sdl_imgui_starter.h>
 
 #include "config_app.h"
-#include <SDL.h>
 #include <nodegraph/model/graph.h>
 #include <nodegraph/view/canvas_imgui.h>
 #include <nodegraph/view/canvas_vg.h>
@@ -85,37 +82,6 @@ public:
         buttonAttrib.labels = { "A", "B", "C" };
         pButton->SetAttributes(buttonAttrib);
 
-        /*
-        //   if (pValue2)
-        //      pValue2->SetViewCells(NRectf(0, 0, 1, 1));
-        if (pValue3)
-            pValue3->SetViewCells(NRectf(1, 0, 1, 1));
-        if (pValue4)
-            pValue4->SetViewCells(NRectf(2, 0, 1, 1));
-        if (pValue5)
-            pValue5->SetViewCells(NRectf(3, 0, .5, .5));
-        if (pValue6)
-            pValue6->SetViewCells(NRectf(4, 0, 1, 1));
-        if (pValue7)
-            pValue7->SetViewCells(NRectf(5, 0, 1, 1));
-        if (pValue8)
-            pValue8->SetViewCells(NRectf(6, 0, 1, 1));
-        if (pValue10)
-            pValue10->SetViewCells(NRectf(7, 0, 1, 1));
-
-        // Sum
-        if (pValue9)
-            pValue9->SetViewCells(NRectf(4, 1, 1, 1));
-        //if (pValue1)
-        //    pValue1->SetViewCells(NRectf(5, 1, 1, 1));
-        // if (pSum)
-        //    pSum->SetViewCells(NRectf(3, 1, 1, 1));
-
-        pSlider->SetViewCells(NRectf(.25f, 1, 2.5f, .5f));
-        pIntSlider->SetViewCells(NRectf(.25f, 1.5, 2.5f, .5f));
-        pButton->SetViewCells(NRectf(.25f, 2.0, 2.5f, .5f));
-        */
-
         auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "Label"));
         pDecorator->gridLocation = NRectf(6, 1, 1, 1);
 
@@ -192,7 +158,17 @@ public:
         pValue2 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue2->GetAttributes().step = 0.25f;
 
+        pValue3 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue3->GetAttributes().step = 0.25f;
+       
+        pValue4 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue4->GetAttributes().step = 0.25f;
+        
+        pValue5 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue5->GetAttributes().step = 0.25f;
         //ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
+        pValue6 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue6->GetAttributes().step = 0.25f;
         //sliderAttrib.step = 0.25f;
         //sliderAttrib.thumb = 0.25f;
         //pValue2->SetAttributes(sliderAttrib);
@@ -202,7 +178,15 @@ public:
 
         pLayout->AddItem(pSum, NVec2f(50.0f, 50.0f));
         pLayout->AddItem(pValue1, NVec2f(100.0f, 100.0f));
-        pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
+        //pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
+
+        auto pSliderLayout = new MUtils::VLayout();
+        pSliderLayout->SetPadding(NVec4f(0.0f));
+        pLayout->AddItem(pSliderLayout);
+        pSliderLayout->AddItem(pValue3, NVec2f(200.0f, 50.0f));
+        pSliderLayout->AddItem(pValue4, NVec2f(200.0f, 50.0f));
+        pSliderLayout->AddItem(pValue5, NVec2f(200.0f, 50.0f));
+        pSliderLayout->AddItem(pValue6, NVec2f(200.0f, 50.0f));
 
         GetLayout().spRoot->UpdateLayout();
     }
@@ -219,6 +203,10 @@ public:
     Pin* pSum = nullptr;
     Pin* pValue1 = nullptr;
     Pin* pValue2 = nullptr;
+    Pin* pValue3 = nullptr;
+    Pin* pValue4 = nullptr;
+    Pin* pValue5 = nullptr;
+    Pin* pValue6 = nullptr;
     std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
 

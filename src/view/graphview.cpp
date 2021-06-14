@@ -111,6 +111,7 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
         return true;
 
     // Check for things to show
+    /*
     for (auto& in : pNode->GetInputs())
     {
         if (!in->GetViewCells().Empty())
@@ -125,6 +126,7 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
             return true;
         }
     }
+    */
 
     for (auto& decorator : pNode->GetDecorators())
     {
