@@ -1029,6 +1029,9 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto outerConnectorRect = layout.spRoot->GetViewRect() + nodePos;
     auto contentRect = layout.spContents->GetViewRect() + nodePos;
     auto outerRadius = style.GetFloat(style_nodeOuter) * .5f;
+
+    DrawSlab(NRectf(outerConnectorRect.Center().x - outerRadius, outerConnectorRect.Bottom(), outerRadius * 2.0, outerRadius * 2.0f), theme.Get(color_AccentColor1));
+    /*
     // L
     m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Left() - outerRadius,
                                  outerConnectorRect.Center().y),
@@ -1048,6 +1051,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
     m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Center().x,
                                  outerConnectorRect.Bottom() + outerRadius),
         outerRadius, theme.Get(color_AccentColor1));
+        */
 
     m_spCanvas->Text(NVec2f(titleRect.Center().x, titleRect.Center().y), style.GetFloat(style_nodeTitleFontSize), theme.Get(color_nodeTitleColor), viewNode.pModelNode->GetName().c_str());
 
