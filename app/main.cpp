@@ -61,10 +61,10 @@ public:
         pValue8 = AddInput("0->1%", 0.0f, ParameterAttributes(ParameterUI::Knob, (float)0.0f, (float)1.0f));
         pValue8->GetAttributes().displayType = ParameterDisplayType::Percentage;
 
-        pSlider = AddInput("Slider", 0.5f);
+        pSlider = AddInput("Variable A", 0.5f);
         pButton = AddInput("Button", (int64_t)0);
 
-        pIntSlider = AddInput("Slider", (int64_t)0);
+        pIntSlider = AddInput("Foobar 1,3,3", (int64_t)0);
         pValue1 = AddInput("0-111f", .5f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1.0f));
         pValue9 = AddInput("0-1f", .5f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1.0f));
 
@@ -156,13 +156,13 @@ public:
         pValue1 = AddInput("0-1000f", 5.0f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1000.0f));
         pValue1->GetAttributes().taper = 2;
 
-        pValue2 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue2 = AddInput("Foobar1", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue2->GetAttributes().step = 0.25f;
 
-        pValue3 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue3 = AddInput("Amplification", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue3->GetAttributes().step = 0.25f;
        
-        pValue4 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue4 = AddInput("Noise", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue4->GetAttributes().step = 0.25f;
         
         pValue5 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
@@ -182,12 +182,12 @@ public:
         //pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
 
         auto pSliderLayout = new MUtils::VLayout();
-        pSliderLayout->SetMargin(NVec4f(0.0f));
+        pSliderLayout->SetMargin(NVec4f(1.0f));
         pLayout->AddItem(pSliderLayout);
-        pSliderLayout->AddItem(pValue3, NVec2f(200.0f, 50.0f));
-        pSliderLayout->AddItem(pValue4, NVec2f(200.0f, 50.0f));
-        pSliderLayout->AddItem(pValue5, NVec2f(200.0f, 50.0f));
-        pSliderLayout->AddItem(pValue6, NVec2f(200.0f, 50.0f));
+        pSliderLayout->AddItem(pValue3, NVec2f(200.0f, 30.0f));
+        pSliderLayout->AddItem(pValue4, NVec2f(200.0f, 30.0f));
+        pSliderLayout->AddItem(pValue5, NVec2f(200.0f, 30.0f));
+        pSliderLayout->AddItem(pValue6, NVec2f(200.0f, 30.0f));
 
         GetLayout().spRoot->UpdateLayout();
     }

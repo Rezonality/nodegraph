@@ -26,6 +26,9 @@ DECLARE_NODE_STYLE(nodeLayoutMargin);
 DECLARE_NODE_STYLE(nodeBorderRadius);
 DECLARE_NODE_STYLE(nodeShadowSize);
 
+DECLARE_NODE_STYLE(controlTextMargin);
+DECLARE_NODE_STYLE(controlShadowSize);
+
 #ifdef DECLARE_NODE_COLORS
 #define DECLARE_NODE_COLOR(name) const MUtils::StringId color_##name(#name);
 #else
@@ -41,7 +44,10 @@ DECLARE_NODE_COLOR(nodeButtonTextColor);
 DECLARE_NODE_COLOR(nodeHLColor);
 DECLARE_NODE_COLOR(nodeShadowColor);
 
+DECLARE_NODE_COLOR(controlKeyColor1);
 DECLARE_NODE_COLOR(controlShadowColor);
+DECLARE_NODE_COLOR(controlFillColor);
+DECLARE_NODE_COLOR(controlFillColorHL);
 
 struct SliderData
 {

@@ -76,16 +76,21 @@ void GraphView::InitColors()
     auto& theme = ThemeManager::Instance();
 
     theme.Set(color_nodeBackground, NVec4f(.3f, .3f, .3f, 1.0f));
-    theme.Set(color_nodeHoverBackground, NVec4f(.35f, .35f, .35f, 1.0f));
-    theme.Set(color_nodeActiveBackground, NVec4f(.37f, .37f, .37f, 1.0f));
+    theme.Set(color_nodeHoverBackground, NVec4f(.31f, .31f, .31f, 1.0f));
+    theme.Set(color_nodeActiveBackground, NVec4f(.32f, .32f, .32f, 1.0f));
 
     theme.Set(color_nodeTitleColor, NVec4f(1.0f, 1.0f, 1.0f, 1.0f));
     theme.Set(color_nodeTitleBGColor, NVec4f(0.4f, .4f, 0.4f, 1.0f));
     theme.Set(color_nodeButtonTextColor, NVec4f(0.15f, .15f, 0.15f, 1.0f));
+    //theme.Set(color_nodeButtonTextColor, NVec4f(.9f, .9f, .9f, 1.0f));
     theme.Set(color_nodeHLColor, NVec4f(0.98f, 0.48f, 0.28f, 1.0f));
     theme.Set(color_nodeShadowColor, NVec4f(0.1f, 0.1f, 0.1f, .75f));
 
-    theme.Set(color_controlShadowColor, NVec4f(0.8f, 0.8f, 0.8f, .75f));
+    theme.Set(color_controlShadowColor, NVec4f(0.2f, 0.2f, 0.2f, 1.0f)); // Border/shadow
+    theme.Set(color_controlFillColor, NVec4f(.55f, .55f, 0.55f, 1.0f)); // Knob color, button background, slider background
+    theme.Set(color_controlFillColorHL, NVec4f(.60f, .60f, 0.60f, 1.0f)); // Highlighted version of above
+
+    theme.Set(color_controlKeyColor1, NVec4f(0.98f, 0.48f, 0.18f, 1.0f)); // Alternate color for slider thumb, knob surround, etc.
 }
 
 void GraphView::InitStyles()
@@ -98,9 +103,12 @@ void GraphView::InitStyles()
     // Title and padding
     style.Set(style_nodeTitleHeight, 30.0f);
     style.Set(style_nodeTitleFontSize, 26.0f);
-    style.Set(style_nodeLayoutMargin, NVec4f(4.0f));
+    style.Set(style_nodeLayoutMargin, NVec4f(2.0f));
     style.Set(style_nodeBorderRadius, 7.0f);
     style.Set(style_nodeShadowSize, 4.0f);
+    
+    style.Set(style_controlTextMargin, 2.0f);
+    style.Set(style_controlShadowSize, 2.0f);
 }
 
 bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
@@ -170,6 +178,10 @@ void GraphView::BuildNodes()
 
 bool GraphView::CheckCapture(ViewNode& viewNode, Parameter& param, const NRectf& region, bool& hover)
 {
+    auto pos = m_spCanvas->GetViewMousePos();
+    bool overParam = region.Contains(NVec2f(pos.x, pos.y));
+    hover = overParam;
+
     auto const& state = m_spCanvas->GetInputState();
     if (!state.canCapture)
     {
@@ -186,15 +198,12 @@ bool GraphView::CheckCapture(ViewNode& viewNode, Parameter& param, const NRectf&
         return false;
     }
 
-    if (m_spCanvas->GetInputState().captureState == CaptureState::MoveNode ||
-        m_spCanvas->GetInputState().captureState == CaptureState::MoveCanvas)
+    if (m_spCanvas->GetInputState().captureState == CaptureState::MoveNode || m_spCanvas->GetInputState().captureState == CaptureState::MoveCanvas)
     {
         m_pCaptureParam = nullptr;
         return false;
     }
 
-    auto pos = m_spCanvas->GetViewMousePos();
-    bool overParam = region.Contains(NVec2f(pos.x, pos.y));
 
     if (m_pCaptureParam == nullptr)
     {
@@ -225,7 +234,7 @@ bool GraphView::CheckCapture(ViewNode& viewNode, Parameter& param, const NRectf&
     {
         hover = false;
     }
-    
+
     if (m_pCaptureParam)
     {
         m_spCanvas->GetInputState().captureState = CaptureState::Parameter;
@@ -340,9 +349,7 @@ void GraphView::DrawPin(ViewNode& viewNode, Pin& pin)
 
 bool GraphView::DrawKnob(ViewNode& viewNode, Pin& param, NRectf rect, bool miniKnob)
 {
-    NVec4f color(0.45f, 0.45f, 0.45f, 1.0f);
     NVec4f colorLabel(0.35f, 0.35f, 0.35f, 1.0f);
-    NVec4f colorHL(0.68f, 0.68f, 0.68f, 1.0f);
     NVec4f channelColor(0.38f, 0.38f, 0.38f, 1.0f);
     NVec4f shadowColor(0.1f, 0.1f, 0.1f, .5f);
     NVec4f channelHLColor(0.98f, 0.48f, 0.28f, 1.0f);
@@ -353,6 +360,7 @@ bool GraphView::DrawKnob(ViewNode& viewNode, Pin& param, NRectf rect, bool miniK
     float channelGap = 4;
 
     auto& style = StyleManager::Instance();
+    auto& theme = ThemeManager::Instance();
     auto fontHeight = widget_fontHeight;
     if (rect.Height() < (fontHeight * 2.0f))
     {
@@ -492,6 +500,8 @@ bool GraphView::DrawKnob(ViewNode& viewNode, Pin& param, NRectf rect, bool miniK
     m_spCanvas->FilledCircle(knobRegion.Center(), innerSize, shadowColor);
     innerSize -= node_shadowSize;
 
+    auto color = theme.Get(color_controlFillColor);
+    auto colorHL = theme.Get(color_controlFillColorHL);
     if (param.GetAttributes().flags & ParameterFlags::ReadOnly)
     {
         color.w = .6f;
@@ -502,7 +512,7 @@ bool GraphView::DrawKnob(ViewNode& viewNode, Pin& param, NRectf rect, bool miniK
     else if (hover || captured)
     {
         markColor = markHLColor;
-        color = colorHL;
+        color = theme.Get(color_controlFillColorHL);
     }
 
     // Only draw the actual knob if big enough
@@ -591,13 +601,11 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
 {
     auto& theme = ThemeManager::Instance();
 
-    NVec4f color(0.30f, 0.30f, 0.30f, 1.0f);
-    NVec4f colorHL(0.35f, 0.35f, 0.35f, 1.0f);
     NVec4f channelColor(0.18f, 0.18f, 0.18f, 1.0f);
     auto shadowColor = theme.Get(color_controlShadowColor);
     NVec4f channelHLColor(0.98f, 0.48f, 0.28f, 1.0f);
     NVec4f channelHighColor(0.98f, 0.10f, 0.10f, 1.0f);
-    NVec4f markColor(.55f, .55f, 0.55f, 1.0f);
+    NVec4f markColor(.45f, .45f, 0.45f, 1.0f);
     NVec4f markHLColor(1.0f, 1.0f, 1.0f, 1.0f);
     NVec4f fontColor(.8f, .8f, .8f, 1.0f);
 
@@ -624,18 +632,16 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
         }
     }
 
+    auto shadowSize = style.GetFloat(style_controlShadowSize);
+
     // Draw the shadow
-    m_spCanvas->FillRect(region, /*style.GetFloat(style_nodeBorderRadius),*/ shadowColor);
+    m_spCanvas->FillRoundedRect(region, style.GetFloat(style_nodeBorderRadius), shadowColor);
 
     // Now we are at the contents
-    region.Adjust(node_shadowSize, node_shadowSize, -node_shadowSize, -node_shadowSize);
-
-    // Draw the interior
-    m_spCanvas->FillGradientRoundedRect(region, 0,/*style.GetFloat(style_nodeBorderRadius),*/ region, color, colorHL);
+    region.Adjust(shadowSize, shadowSize, -shadowSize, -shadowSize);
 
     SliderData ret;
 
-    region.Adjust(node_borderPad, node_borderPad, -node_borderPad, -node_borderPad);
     ret.channel = region;
 
     float fThumb = 1.0f / (fRange / fStep);
@@ -674,21 +680,31 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
         }
     }
 
+    auto fillColor = theme.Get(color_controlFillColor);
     if (hover || captured)
     {
-        markColor += NVec4f(.1f, .1f, .1f, 0.0f);
+        fillColor = theme.Get(color_controlFillColorHL);
     }
 
+    // Draw the interior
+    m_spCanvas->FillRoundedRect(region, style.GetFloat(style_nodeBorderRadius), fillColor);
+
     // Draw the thumb
-    m_spCanvas->FillRect(thumbRect, /*style.GetFloat(style_nodeBorderRadius),*/ markColor);
+    m_spCanvas->FillRoundedRect(thumbRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_controlKeyColor1));
+
+    std::ostringstream str;
+    str << param.GetName() << ": " << param.GetValue<float>();
+    m_spCanvas->Text(NVec2f(region.Left() + style.GetFloat(style_controlTextMargin), region.Center().y), region.Height(), theme.Get(color_nodeButtonTextColor), str.str().c_str(), nullptr, Canvas::TEXT_ALIGN_MIDDLE | Canvas::TEXT_ALIGN_LEFT);
 
     ret.thumb = thumbRect;
 
+    /*
     auto node_titleFontSize = style.GetFloat(style_nodeTitleFontSize);
     if ((captured || hover) && (param.GetAttributes().displayType != ParameterDisplayType::None))
     {
         m_drawLabels[&param] = LabelInfo(NVec2f(thumbRect.Center().x, thumbRect.Top() - node_titleFontSize));
     }
+    */
     return ret;
 };
 
@@ -700,9 +716,7 @@ void GraphView::DrawButton(ViewNode& viewNode, Pin& param, NRectf region)
     NVec4f shadowColor(0.25f, 0.25f, 0.25f, 1.0f);
     NVec4f channelHLColor(0.98f, 0.48f, 0.18f, 1.0f);
     NVec4f channelHighColor(0.98f, 0.10f, 0.10f, 1.0f);
-    NVec4f markColor(.55f, .55f, 0.55f, 1.0f);
     NVec4f markHLColor(1.0f, 1.0f, 1.0f, 1.0f);
-    NVec4f fontColor(.8f, .8f, .8f, 1.0f);
 
     auto& attrib = param.GetAttributes();
     auto& theme = ThemeManager::Instance();
@@ -763,20 +777,20 @@ void GraphView::DrawButton(ViewNode& viewNode, Pin& param, NRectf region)
             param.SetFrom<int64_t>(currentButton);
         }
 
-        auto buttonColor = markColor;
+        auto buttonColor = theme.Get(color_controlFillColor);
 
         if (!attrib.multiSelect)
         {
             if (i == currentButton)
             {
-                buttonColor = channelHLColor;
+                buttonColor = theme.Get(color_controlKeyColor1);
             }
         }
         else
         {
             if (currentButton & ((int64_t)1 << i))
             {
-                buttonColor = channelHLColor;
+                buttonColor = theme.Get(color_controlKeyColor1);
             }
         }
         auto buttonHLColor = buttonColor + NVec4f(.05f, .05f, .05f, 0.0f);
@@ -852,7 +866,7 @@ void GraphView::HandleInput()
             {
                 m_pCaptureNode = nullptr;
             }
-        
+
             if (m_spCanvas->GetInputState().captureState == CaptureState::None)
             {
                 pView->active = false;
@@ -993,22 +1007,22 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto outerRadius = style.GetFloat(style_nodeOuter) * .5f;
     // L
     m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Left() - outerRadius,
-                            outerConnectorRect.Center().y),
+                                 outerConnectorRect.Center().y),
         outerRadius, theme.Get(color_AccentColor1));
 
     // R
     m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Right() + outerRadius,
-                            outerConnectorRect.Center().y),
+                                 outerConnectorRect.Center().y),
         outerRadius, theme.Get(color_AccentColor1));
 
     // T
     m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Center().x,
-                            outerConnectorRect.Top() - outerRadius),
+                                 outerConnectorRect.Top() - outerRadius),
         outerRadius, theme.Get(color_AccentColor1));
 
     // B
     m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Center().x,
-                            outerConnectorRect.Bottom() + outerRadius),
+                                 outerConnectorRect.Bottom() + outerRadius),
         outerRadius, theme.Get(color_AccentColor1));
 
     m_spCanvas->Text(NVec2f(titleRect.Center().x, titleRect.Center().y), style.GetFloat(style_nodeTitleFontSize), theme.Get(color_nodeTitleColor), viewNode.pModelNode->GetName().c_str());
