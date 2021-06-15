@@ -9,7 +9,7 @@ using namespace MUtils;
 namespace NodeGraph
 {
 
-inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const MUtils::NRectf& region)
+inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const MUtils::NRectf& region, bool forceCanCapture = false)
 {
     auto& state = canvas.GetInputState();
 
@@ -23,7 +23,7 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const MUtils:
         state.buttonReleased[i] = ImGui::GetIO().MouseReleased[i];
         state.buttonDown[i] = ImGui::GetIO().MouseDown[i];
     }
-    state.canCapture = ImGui::GetIO().WantCaptureMouse;
+    state.canCapture = ImGui::GetIO().WantCaptureMouse || forceCanCapture;
     state.mouseDelta = ImGui::GetIO().MouseDelta;
     state.dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
     state.dragDeltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);

@@ -25,6 +25,10 @@
 using namespace MUtils;
 using namespace NodeGraph;
 
+namespace
+{
+bool singleView = true;
+}
 #undef ERROR
 class TestNode : public Node
 {
@@ -256,17 +260,17 @@ public:
     {
 
         m_spGraphA = std::make_shared<Graph>();
-        //m_spGraphB = std::make_shared<Graph>();
+        m_spGraphB = std::make_shared<Graph>();
 
 #ifdef USE_VG
         auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
         vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
         nvgCreateFont(vg, "sans", fontPath.string().c_str());
         auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasVG>(vg));
-        //auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
+        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
 #else
         auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
-        //auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
+        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
 #endif
 
         auto fillGraph = [&](std::shared_ptr<GraphData> graphData, const std::string& name) {
@@ -286,7 +290,7 @@ public:
         };
 
         fillGraph(spGraphA, "Graph A");
-        //fillGraph(spGraphB, "Graph B");
+        fillGraph(spGraphB, "Graph B");
     }
 
     virtual void Update(float time, const NVec2i& displaySize) override
@@ -341,7 +345,7 @@ public:
     {
         canvas.SetPixelRect(NRectf(0.0f, 0.0f, region.Width(), region.Height()));
 
-        canvas_imgui_update_state(canvas, region);
+        canvas_imgui_update_state(canvas, region, singleView);
     }
 
     void EndCanvas(Canvas& canvas)
@@ -358,69 +362,62 @@ public:
         static const bool opt_padding = false;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-        if (opt_fullscreen)
+        if (!singleView)
         {
-            ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-        else
-        {
-            dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-        }
-
-        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-        // and handle the pass-thru hole, so we ask Begin() to not render a background.
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
-
-        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-        // all active windows docked into it will lose their parent and become undocked.
-        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-        if (!opt_padding)
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-        ImGui::Begin("DockSpace Demo", &p_open, window_flags);
-        if (!opt_padding)
-            ImGui::PopStyleVar();
-
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
-
-        // DockSpace
-        ImGuiIO& io = ImGui::GetIO();
-        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("Options"))
+            // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+            // because it would be confusing to have two docking targets within each others.
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+            if (opt_fullscreen)
             {
+                ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImGui::SetNextWindowPos(viewport->WorkPos);
+                ImGui::SetNextWindowSize(viewport->WorkSize);
+                ImGui::SetNextWindowViewport(viewport->ID);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+                window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
             }
-            ImGui::EndMenuBar();
+            else
+            {
+                dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+            }
+
+            // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+            // and handle the pass-thru hole, so we ask Begin() to not render a background.
+            if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+                window_flags |= ImGuiWindowFlags_NoBackground;
+
+            // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+            // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+            // all active windows docked into it will lose their parent and become undocked.
+            // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+            // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+            if (!opt_padding)
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+            ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+            if (!opt_padding)
+                ImGui::PopStyleVar();
+
+            if (opt_fullscreen)
+                ImGui::PopStyleVar(2);
+
+            // DockSpace
+            ImGuiIO& io = ImGui::GetIO();
+            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
         }
-        ImGui::End();
 
         bool captured = false;
         for (auto& spGraphData : m_graphs)
         {
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
-            if (ImGui::Begin(spGraphData->spGraphView->GetGraph()->Name().c_str()))
+            if (singleView)
             {
-                ImVec2 pos = ImGui::GetCursorScreenPos();
-                NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+                ImVec2 pos = ImGui::GetWindowViewport()->Pos;
+                NRectf region = NRectf(0.0f, 0.0f, ImGui::GetWindowViewport()->Size.x, ImGui::GetWindowViewport()->Size.y);
 
-                ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + region.Width(), pos.y + region.Height()), ImColor(.2f, .2f, .2f, 1.0f));
+                ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(region.topLeftPx.x, region.topLeftPx.y), ImVec2(region.bottomRightPx.x, region.bottomRightPx.y), ImColor(.6f, .2f, .2f, 1.0f));
 
                 BeginCanvas(*spGraphData->spGraphView->GetCanvas(), region);
 
@@ -434,16 +431,50 @@ public:
                 }
 
 #ifdef USE_VG
-                ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::GetBackgroundDrawList()->AddImage(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.topLeftPx.x, region.topLeftPx.y), ImVec2(region.bottomRightPx.x, region.bottomRightPx.y), ImVec2(0, 1), ImVec2(1, 0));
 #endif
+                // Only the first graph
+                break;
             }
-            ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
-            ImGui::PopStyleVar(1);
-            ImGui::End();
+            else
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
+                if (ImGui::Begin(spGraphData->spGraphView->GetGraph()->Name().c_str()))
+                {
+                    ImVec2 pos = ImGui::GetCursorScreenPos();
+                    NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+
+                    ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + region.Width(), pos.y + region.Height()), ImColor(.2f, .2f, .2f, 1.0f));
+
+                    BeginCanvas(*spGraphData->spGraphView->GetCanvas(), region);
+
+                    DrawGraph(*spGraphData);
+
+                    EndCanvas(*spGraphData->spGraphView->GetCanvas());
+
+                    if (spGraphData->spGraphView->GetCanvas()->GetInputState().captureState != CaptureState::None)
+                    {
+                        captured = true;
+                    }
+
+#ifdef USE_VG
+                    ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+#endif
+                }
+                ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
+                ImGui::PopStyleVar(1);
+                ImGui::End();
+            }
+        }
+
+        if (!singleView)
+        {
+            ImGui::End(); // Dockspace
         }
     }
 
-    virtual AppStarterSettings& GetSettings() override
+    virtual AppStarterSettings&
+    GetSettings() override
     {
         return m_settings;
     }
@@ -451,7 +482,7 @@ public:
 private:
     std::vector<std::shared_ptr<GraphData>> m_graphs;
     std::shared_ptr<Graph> m_spGraphA;
-    //std::shared_ptr<Graph> m_spGraphB;
+    std::shared_ptr<Graph> m_spGraphB;
 
     AppStarterSettings m_settings;
     NVGcontext* vg = nullptr;
