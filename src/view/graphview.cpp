@@ -32,7 +32,6 @@ float knobWidget_miniSize = 75.0f;
 // A little daylight
 float node_textGap = 1.0f;
 float node_shadowSize = 2.0f;
-float node_borderRadius = 7.0f;
 float node_borderPad = 2.0f;
 float node_buttonPad = 2.0f;
 float node_pinPad = 4.0f;
@@ -84,7 +83,9 @@ void GraphView::InitColors()
     theme.Set(color_nodeTitleBGColor, NVec4f(0.4f, .4f, 0.4f, 1.0f));
     theme.Set(color_nodeButtonTextColor, NVec4f(0.15f, .15f, 0.15f, 1.0f));
     theme.Set(color_nodeHLColor, NVec4f(0.98f, 0.48f, 0.28f, 1.0f));
-    theme.Set(color_nodeShadowColor, NVec4f(0.1f, 0.1f, 0.1f, 1.0f));
+    theme.Set(color_nodeShadowColor, NVec4f(0.1f, 0.1f, 0.1f, .75f));
+
+    theme.Set(color_controlShadowColor, NVec4f(0.8f, 0.8f, 0.8f, .75f));
 }
 
 void GraphView::InitStyles()
@@ -98,6 +99,8 @@ void GraphView::InitStyles()
     style.Set(style_nodeTitleHeight, 30.0f);
     style.Set(style_nodeTitleFontSize, 26.0f);
     style.Set(style_nodeLayoutMargin, NVec4f(4.0f));
+    style.Set(style_nodeBorderRadius, 7.0f);
+    style.Set(style_nodeShadowSize, 4.0f);
 }
 
 bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
@@ -586,10 +589,12 @@ bool GraphView::DrawKnob(ViewNode& viewNode, Pin& param, NRectf rect, bool miniK
 
 SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
 {
+    auto& theme = ThemeManager::Instance();
+
     NVec4f color(0.30f, 0.30f, 0.30f, 1.0f);
     NVec4f colorHL(0.35f, 0.35f, 0.35f, 1.0f);
     NVec4f channelColor(0.18f, 0.18f, 0.18f, 1.0f);
-    NVec4f shadowColor(0.8f, 0.8f, 0.8f, .5f);
+    auto shadowColor = theme.Get(color_controlShadowColor);
     NVec4f channelHLColor(0.98f, 0.48f, 0.28f, 1.0f);
     NVec4f channelHighColor(0.98f, 0.10f, 0.10f, 1.0f);
     NVec4f markColor(.55f, .55f, 0.55f, 1.0f);
@@ -620,13 +625,13 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
     }
 
     // Draw the shadow
-    m_spCanvas->FillRoundedRect(region, node_borderRadius, shadowColor);
+    m_spCanvas->FillRect(region, /*style.GetFloat(style_nodeBorderRadius),*/ shadowColor);
 
     // Now we are at the contents
     region.Adjust(node_shadowSize, node_shadowSize, -node_shadowSize, -node_shadowSize);
 
     // Draw the interior
-    m_spCanvas->FillGradientRoundedRect(region, node_borderRadius, region, color, colorHL);
+    m_spCanvas->FillGradientRoundedRect(region, 0,/*style.GetFloat(style_nodeBorderRadius),*/ region, color, colorHL);
 
     SliderData ret;
 
@@ -675,7 +680,7 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
     }
 
     // Draw the thumb
-    m_spCanvas->FillRoundedRect(thumbRect, node_borderRadius, markColor);
+    m_spCanvas->FillRect(thumbRect, /*style.GetFloat(style_nodeBorderRadius),*/ markColor);
 
     ret.thumb = thumbRect;
 
@@ -701,9 +706,10 @@ void GraphView::DrawButton(ViewNode& viewNode, Pin& param, NRectf region)
 
     auto& attrib = param.GetAttributes();
     auto& theme = ThemeManager::Instance();
+    auto& style = StyleManager::Instance();
 
     // Draw the shadow
-    m_spCanvas->FillRoundedRect(region, node_borderRadius, shadowColor);
+    m_spCanvas->FillRoundedRect(region, style.GetFloat(style_nodeBorderRadius), shadowColor);
 
     // Now we are at the contents
     region.Adjust(node_shadowSize, node_shadowSize, -node_shadowSize, -node_shadowSize);
@@ -784,18 +790,18 @@ void GraphView::DrawButton(ViewNode& viewNode, Pin& param, NRectf region)
         if (numButtons == 1)
         {
             buttonRegion.Adjust(0, 0, 1, 0);
-            m_spCanvas->FillGradientRoundedRect(buttonRegion, node_borderRadius, buttonRegion, buttonColor, buttonHLColor);
+            m_spCanvas->FillGradientRoundedRect(buttonRegion, style.GetFloat(style_nodeBorderRadius), buttonRegion, buttonColor, buttonHLColor);
         }
         else
         {
             if (i == 0 && m_spCanvas->HasGradientVarying())
             {
-                m_spCanvas->FillGradientRoundedRectVarying(buttonRegion, NVec4f(node_borderRadius, 0.0f, 0.0f, node_borderRadius), buttonRegion, buttonColor, buttonHLColor);
+                m_spCanvas->FillGradientRoundedRectVarying(buttonRegion, NVec4f(style.GetFloat(style_nodeBorderRadius), 0.0f, 0.0f, style.GetFloat(style_nodeBorderRadius)), buttonRegion, buttonColor, buttonHLColor);
             }
             else if (i == numButtons - 1 && m_spCanvas->HasGradientVarying())
             {
                 buttonRegion.Adjust(0, 0, 1, 0);
-                m_spCanvas->FillGradientRoundedRectVarying(buttonRegion, NVec4f(0.0f, node_borderRadius, node_borderRadius, 0.0f), buttonRegion, buttonColor, buttonHLColor);
+                m_spCanvas->FillGradientRoundedRectVarying(buttonRegion, NVec4f(0.0f, style.GetFloat(style_nodeBorderRadius), style.GetFloat(style_nodeBorderRadius), 0.0f), buttonRegion, buttonColor, buttonHLColor);
             }
             else
             {
@@ -973,9 +979,13 @@ void GraphView::DrawNode(ViewNode& viewNode)
         nodeColor = theme.Get(color_nodeBackground);
     }
 
-    m_spCanvas->FillRoundedRect(nodeRect, node_borderRadius, nodeColor);
+    nodeRect.Adjust(style.GetFloat(style_nodeShadowSize), style.GetFloat(style_nodeShadowSize));
+    m_spCanvas->FillRoundedRect(nodeRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeShadowColor));
+    nodeRect.Adjust(-style.GetFloat(style_nodeShadowSize), -style.GetFloat(style_nodeShadowSize));
 
-    m_spCanvas->FillRoundedRect(titleRect, node_borderRadius, theme.Get(color_nodeTitleBGColor));
+    m_spCanvas->FillRoundedRect(nodeRect, style.GetFloat(style_nodeBorderRadius), nodeColor);
+
+    m_spCanvas->FillRoundedRect(titleRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
 
     // Connectors
     auto outerConnectorRect = layout.spRoot->GetViewRect() + nodePos;
