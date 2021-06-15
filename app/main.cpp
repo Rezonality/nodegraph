@@ -160,11 +160,12 @@ public:
         pValue2->GetAttributes().step = 0.25f;
 
         pValue3 = AddInput("Amplification", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        pValue3->GetAttributes().step = 0.25f;
-       
+        pValue3->GetAttributes().step = 0.01f;
+        pValue3->GetAttributes().taper = 4;
+
         pValue4 = AddInput("Noise", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue4->GetAttributes().step = 0.25f;
-        
+
         pValue5 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue5->GetAttributes().step = 0.25f;
         //ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
@@ -255,17 +256,17 @@ public:
     {
 
         m_spGraphA = std::make_shared<Graph>();
-        m_spGraphB = std::make_shared<Graph>();
+        //m_spGraphB = std::make_shared<Graph>();
 
 #ifdef USE_VG
         auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
         vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
         nvgCreateFont(vg, "sans", fontPath.string().c_str());
         auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasVG>(vg));
-        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
+        //auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
 #else
         auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
-        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
+        //auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
 #endif
 
         auto fillGraph = [&](std::shared_ptr<GraphData> graphData, const std::string& name) {
@@ -285,7 +286,7 @@ public:
         };
 
         fillGraph(spGraphA, "Graph A");
-        fillGraph(spGraphB, "Graph B");
+        //fillGraph(spGraphB, "Graph B");
     }
 
     virtual void Update(float time, const NVec2i& displaySize) override
@@ -339,7 +340,7 @@ public:
     void BeginCanvas(Canvas& canvas, const NRectf& region)
     {
         canvas.SetPixelRect(NRectf(0.0f, 0.0f, region.Width(), region.Height()));
-        
+
         canvas_imgui_update_state(canvas, region);
     }
 
@@ -429,14 +430,13 @@ public:
 
                 if (spGraphData->spGraphView->GetCanvas()->GetInputState().captureState != CaptureState::None)
                 {
-                    captured = true; 
+                    captured = true;
                 }
 
 #ifdef USE_VG
                 ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
 #endif
             }
-            
             ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
             ImGui::PopStyleVar(1);
             ImGui::End();
@@ -451,13 +451,13 @@ public:
 private:
     std::vector<std::shared_ptr<GraphData>> m_graphs;
     std::shared_ptr<Graph> m_spGraphA;
-    std::shared_ptr<Graph> m_spGraphB;
+    //std::shared_ptr<Graph> m_spGraphB;
 
     AppStarterSettings m_settings;
     NVGcontext* vg = nullptr;
     NVec2i m_displaySize = 0;
     ImFont* m_pCanvasFont = nullptr;
-        
+
     CanvasInputState m_canvasInputState;
 };
 

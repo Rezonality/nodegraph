@@ -87,9 +87,16 @@ public:
     void DrawPin(ViewNode& viewNode, Pin& pin);
 
     // Controls
+    MUtils::NRectf GetInnerRegion(const MUtils::NRectf& region) const;
+    MUtils::NRectf GetShadowRegion(const MUtils::NRectf& region) const;
+    void SplitRegionAddPad(const MUtils::NRectf& region, MUtils::NRectf& remainRegion, MUtils::NRectf& padRegion) const;
+
     bool DrawKnob(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect, bool miniKnob);
     SliderData DrawSlider(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect);
     void DrawButton(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect);
+    void DrawSlab(const MUtils::NRectf& rect, const MUtils::NVec4f& color);
+    MUtils::NRectf DrawConnectorPad(const MUtils::NRectf& region, const MUtils::NVec4f& color);
+
    
     bool CheckCapture(ViewNode& viewNode, Parameter& param, const MUtils::NRectf& region, bool& hover);
    

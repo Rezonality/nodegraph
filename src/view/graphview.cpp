@@ -88,7 +88,7 @@ void GraphView::InitColors()
 
     theme.Set(color_controlShadowColor, NVec4f(0.2f, 0.2f, 0.2f, 1.0f)); // Border/shadow
     theme.Set(color_controlFillColor, NVec4f(.55f, .55f, 0.55f, 1.0f)); // Knob color, button background, slider background
-    theme.Set(color_controlFillColorHL, NVec4f(.60f, .60f, 0.60f, 1.0f)); // Highlighted version of above
+    theme.Set(color_controlFillColorHL, NVec4f(.65f, .65f, 0.65f, 1.0f)); // Highlighted version of above
 
     theme.Set(color_controlKeyColor1, NVec4f(0.98f, 0.48f, 0.18f, 1.0f)); // Alternate color for slider thumb, knob surround, etc.
 }
@@ -104,9 +104,9 @@ void GraphView::InitStyles()
     style.Set(style_nodeTitleHeight, 30.0f);
     style.Set(style_nodeTitleFontSize, 26.0f);
     style.Set(style_nodeLayoutMargin, NVec4f(2.0f));
-    style.Set(style_nodeBorderRadius, 7.0f);
+    style.Set(style_nodeBorderRadius, 4.0f);
     style.Set(style_nodeShadowSize, 4.0f);
-    
+
     style.Set(style_controlTextMargin, 2.0f);
     style.Set(style_controlShadowSize, 2.0f);
 }
@@ -203,7 +203,6 @@ bool GraphView::CheckCapture(ViewNode& viewNode, Parameter& param, const NRectf&
         m_pCaptureParam = nullptr;
         return false;
     }
-
 
     if (m_pCaptureParam == nullptr)
     {
@@ -597,82 +596,85 @@ bool GraphView::DrawKnob(ViewNode& viewNode, Pin& param, NRectf rect, bool miniK
     return m_pCaptureParam == &param;
 }
 
-SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
+NRectf GraphView::GetShadowRegion(const NRectf& region) const
 {
-    auto& theme = ThemeManager::Instance();
-
-    NVec4f channelColor(0.18f, 0.18f, 0.18f, 1.0f);
-    auto shadowColor = theme.Get(color_controlShadowColor);
-    NVec4f channelHLColor(0.98f, 0.48f, 0.28f, 1.0f);
-    NVec4f channelHighColor(0.98f, 0.10f, 0.10f, 1.0f);
-    NVec4f markColor(.45f, .45f, 0.45f, 1.0f);
-    NVec4f markHLColor(1.0f, 1.0f, 1.0f, 1.0f);
-    NVec4f fontColor(.8f, .8f, .8f, 1.0f);
-
-    auto& attrib = param.GetAttributes();
     auto& style = StyleManager::Instance();
+    auto shadowSize = style.GetFloat(style_controlShadowSize);
+    NRectf newRegion = region;
+    newRegion.Adjust(shadowSize, shadowSize, 0.0f, 0.0f);
+    return newRegion;
+}
 
-    float fMin = 0.0f;
-    float fMax = 1.0f;
-    float fCurrentVal = (float)param.Normalized();
-    float fStep = (float)param.NormalizedStep();
+NRectf GraphView::GetInnerRegion(const NRectf& region) const
+{
+    auto& style = StyleManager::Instance();
+    auto shadowSize = style.GetFloat(style_controlShadowSize);
+    NRectf newRegion = region;
+    newRegion.Adjust(0.0f, 0.0f, -shadowSize, -shadowSize);
+    return newRegion;
+}
 
-    float fRange = std::max(fMax - fMin, std::numeric_limits<float>::epsilon());
+void GraphView::SplitRegionAddPad(const NRectf& region, NRectf& remainRegion, NRectf& padRegion) const
+{
+    float padSize = 20.0f;
+    float padPad = 4.0f;
+    remainRegion = region;
+    remainRegion.Adjust(0.0f, 0.0f, -padSize - padPad, 0.0f);
+    
+    padRegion = NRectf(remainRegion.Right() + padPad, remainRegion.Top(), padSize, remainRegion.Height());
+}
 
-    std::string label;
-    if (!(attrib.flags & ParameterFlags::NoLabel))
-    {
-        if (!attrib.labels.empty())
-        {
-            label = attrib.labels[0];
-        }
-        else
-        {
-            label = param.GetName();
-        }
-    }
+void GraphView::DrawSlab(const NRectf& region, const NVec4f& color)
+{
+    auto& style = StyleManager::Instance();
+    auto& theme = ThemeManager::Instance();
 
     auto shadowSize = style.GetFloat(style_controlShadowSize);
 
     // Draw the shadow
-    m_spCanvas->FillRoundedRect(region, style.GetFloat(style_nodeBorderRadius), shadowColor);
+    m_spCanvas->FillRoundedRect(GetShadowRegion(region), style.GetFloat(style_nodeBorderRadius), theme.Get(color_controlShadowColor));
 
-    // Now we are at the contents
-    region.Adjust(shadowSize, shadowSize, -shadowSize, -shadowSize);
+    // Draw the interior
+    m_spCanvas->FillRoundedRect(GetInnerRegion(region), style.GetFloat(style_nodeBorderRadius), color);
+}
 
-    SliderData ret;
+SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
+{
+    auto& style = StyleManager::Instance();
+    auto& theme = ThemeManager::Instance();
+    auto& attrib = param.GetAttributes();
 
-    ret.channel = region;
-
+    bool hover = false;
+    bool captured = false;
+    float fMin = 0.0f;
+    float fMax = 1.0f;
+    float fCurrentVal = (float)param.Normalized();
+    float fStep = (float)param.NormalizedStep();
+    float fRange = std::max(fMax - fMin, std::numeric_limits<float>::epsilon());
     float fThumb = 1.0f / (fRange / fStep);
+
     if (attrib.thumb.type != ParameterType::None)
     {
         fThumb = attrib.thumb.To<float>();
     }
 
-    float fThumbWidth = region.Width() * fThumb;
-    float fRegionWidthNoThumb = region.Width() - fThumbWidth;
+    NRectf sliderRegion, padRegion;
+    SplitRegionAddPad(region, sliderRegion, padRegion);
 
-    // Clamp to sensible range
+    auto innerRegion = GetInnerRegion(sliderRegion);
+    float fThumbWidth = std::max(innerRegion.Width() * fThumb, 6.0f);
+    float fRegionWidthNoThumb = innerRegion.Width() - fThumbWidth;
     auto fVal = std::clamp(fCurrentVal, fMin, fMax);
-
-    NRectf thumbRect = NRectf(region.Left() + fVal * fRegionWidthNoThumb,
-        region.Top(),
-        fThumbWidth,
-        region.Height());
-
-    bool hover = false;
-    bool captured = false;
     float rangePerPixel = fRange / fRegionWidthNoThumb;
 
     if (param.GetSource() == nullptr)
     {
         // Update the slider if it is being clicked
-        captured = CheckCapture(viewNode, param, region, hover);
+        captured = CheckCapture(viewNode, param, innerRegion, hover);
         if (captured)
         {
             auto pos = m_spCanvas->GetViewMousePos();
-            auto fNewVal = ((pos.x - region.Left()) * rangePerPixel) - (fThumbWidth * .5f * rangePerPixel);
+            auto fNewVal = ((pos.x - innerRegion.Left()) * rangePerPixel) - (fThumbWidth * .5f * rangePerPixel);
 
             auto fQuant = std::floor(fNewVal / fStep) * fStep;
 
@@ -685,45 +687,67 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
     {
         fillColor = theme.Get(color_controlFillColorHL);
     }
+    
+    DrawSlab(padRegion, fillColor);
+    DrawSlab(sliderRegion, fillColor);
 
-    // Draw the interior
-    m_spCanvas->FillRoundedRect(region, style.GetFloat(style_nodeBorderRadius), fillColor);
+    NRectf thumbRect = NRectf(innerRegion.Left() + fVal * fRegionWidthNoThumb,
+        innerRegion.Top(),
+        fThumbWidth,
+        innerRegion.Height());
 
     // Draw the thumb
     m_spCanvas->FillRoundedRect(thumbRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_controlKeyColor1));
 
-    std::ostringstream str;
-    str << param.GetName() << ": " << param.GetValue<float>();
-    m_spCanvas->Text(NVec2f(region.Left() + style.GetFloat(style_controlTextMargin), region.Center().y), region.Height(), theme.Get(color_nodeButtonTextColor), str.str().c_str(), nullptr, Canvas::TEXT_ALIGN_MIDDLE | Canvas::TEXT_ALIGN_LEFT);
-
-    ret.thumb = thumbRect;
-
-    /*
-    auto node_titleFontSize = style.GetFloat(style_nodeTitleFontSize);
-    if ((captured || hover) && (param.GetAttributes().displayType != ParameterDisplayType::None))
+    if (!(attrib.flags & ParameterFlags::NoLabel))
     {
-        m_drawLabels[&param] = LabelInfo(NVec2f(thumbRect.Center().x, thumbRect.Top() - node_titleFontSize));
+        std::string label;
+        if (!attrib.labels.empty())
+        {
+            label = attrib.labels[0];
+        }
+        else
+        {
+            label = param.GetName();
+        }
+
+        std::string str;
+        auto val = param.GetValue<float>();
+        if (int(val) == val)
+        {
+            str = fmt::format("{}: {}", label, int(val));
+        }
+        else
+        {
+            str = fmt::format("{}: {:.3f}", label, val);
+            str = string_right_trim(str, "0");
+        }
+        m_spCanvas->Text(NVec2f(region.Left() + style.GetFloat(style_controlTextMargin), region.Center().y - 2.0f), region.Height(), theme.Get(color_nodeButtonTextColor), str.c_str(), nullptr, Canvas::TEXT_ALIGN_MIDDLE | Canvas::TEXT_ALIGN_LEFT);
     }
-    */
+    else
+    {
+        // Hover value; since it is not in the label
+        auto node_titleFontSize = style.GetFloat(style_nodeTitleFontSize);
+        if ((captured || hover) && (param.GetAttributes().displayType != ParameterDisplayType::None))
+        {
+            m_drawLabels[&param] = LabelInfo(NVec2f(thumbRect.Center().x, thumbRect.Top() - node_titleFontSize));
+        }
+    }
+
+    SliderData ret;
+    ret.channel = region;
+    ret.thumb = thumbRect;
     return ret;
-};
+}
 
 void GraphView::DrawButton(ViewNode& viewNode, Pin& param, NRectf region)
 {
-    NVec4f color(0.30f, 0.30f, 0.30f, 1.0f);
-    NVec4f colorHL(0.35f, 0.35f, 0.35f, 1.0f);
-    NVec4f channelColor(0.18f, 0.18f, 0.18f, 1.0f);
-    NVec4f shadowColor(0.25f, 0.25f, 0.25f, 1.0f);
-    NVec4f channelHLColor(0.98f, 0.48f, 0.18f, 1.0f);
-    NVec4f channelHighColor(0.98f, 0.10f, 0.10f, 1.0f);
-    NVec4f markHLColor(1.0f, 1.0f, 1.0f, 1.0f);
-
     auto& attrib = param.GetAttributes();
     auto& theme = ThemeManager::Instance();
     auto& style = StyleManager::Instance();
 
     // Draw the shadow
-    m_spCanvas->FillRoundedRect(region, style.GetFloat(style_nodeBorderRadius), shadowColor);
+    m_spCanvas->FillRoundedRect(region, style.GetFloat(style_nodeBorderRadius), theme.Get(color_controlShadowColor));
 
     // Now we are at the contents
     region.Adjust(node_shadowSize, node_shadowSize, -node_shadowSize, -node_shadowSize);
