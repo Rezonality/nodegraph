@@ -21,6 +21,7 @@ namespace NodeGraph
 
 DECLARE_NODE_STYLE(nodeOuter);
 DECLARE_NODE_STYLE(nodeTitleHeight);
+DECLARE_NODE_STYLE(nodePadSize);
 DECLARE_NODE_STYLE(nodeTitleFontSize);
 DECLARE_NODE_STYLE(nodeLayoutMargin);
 DECLARE_NODE_STYLE(nodeBorderRadius);
@@ -48,6 +49,9 @@ DECLARE_NODE_COLOR(controlKeyColor1);
 DECLARE_NODE_COLOR(controlShadowColor);
 DECLARE_NODE_COLOR(controlFillColor);
 DECLARE_NODE_COLOR(controlFillColorHL);
+
+DECLARE_NODE_COLOR(flowData);
+DECLARE_NODE_COLOR(flowControl);
 
 struct SliderData
 {

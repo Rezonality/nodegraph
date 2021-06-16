@@ -163,7 +163,7 @@ public:
         pValue2 = AddInput("Foobar1", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue2->GetAttributes().step = 0.25f;
 
-        pValue3 = AddInput("Amplification", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pValue3 = AddInput("Amp", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue3->GetAttributes().step = 0.01f;
         pValue3->GetAttributes().taper = 4;
 

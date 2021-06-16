@@ -89,8 +89,10 @@ void GraphView::InitColors()
     theme.Set(color_controlShadowColor, NVec4f(0.2f, 0.2f, 0.2f, 1.0f)); // Border/shadow
     theme.Set(color_controlFillColor, NVec4f(.55f, .55f, 0.55f, 1.0f)); // Knob color, button background, slider background
     theme.Set(color_controlFillColorHL, NVec4f(.65f, .65f, 0.65f, 1.0f)); // Highlighted version of above
-
     theme.Set(color_controlKeyColor1, NVec4f(0.98f, 0.48f, 0.18f, 1.0f)); // Alternate color for slider thumb, knob surround, etc.
+
+    theme.Set(color_flowData, NVec4f(0.8f, 0.6f, 0.3f, 1.0f));
+    theme.Set(color_flowControl, theme.Get(color_controlKeyColor1));
 }
 
 void GraphView::InitStyles()
@@ -100,10 +102,13 @@ void GraphView::InitStyles()
     // For connectors around side
     style.Set(style_nodeOuter, 20.0f);
 
+    float margin = 2.0f;
+
     // Title and padding
     style.Set(style_nodeTitleHeight, 30.0f);
+    style.Set(style_nodePadSize, 24.0f);
     style.Set(style_nodeTitleFontSize, 26.0f);
-    style.Set(style_nodeLayoutMargin, NVec4f(2.0f));
+    style.Set(style_nodeLayoutMargin, NVec4f(margin));
     style.Set(style_nodeBorderRadius, 4.0f);
     style.Set(style_nodeShadowSize, 4.0f);
 
@@ -616,11 +621,13 @@ NRectf GraphView::GetInnerRegion(const NRectf& region) const
 
 void GraphView::SplitRegionAddPad(const NRectf& region, NRectf& remainRegion, NRectf& padRegion) const
 {
-    float padSize = 20.0f;
+    auto& style = StyleManager::Instance();
+    auto padSize = style.GetFloat(style_nodePadSize);
     float padPad = 4.0f;
     remainRegion = region;
     remainRegion.Adjust(0.0f, 0.0f, -padSize - padPad, 0.0f);
-    
+
+    padSize = std::max(padSize, remainRegion.Height());
     padRegion = NRectf(remainRegion.Right() + padPad, remainRegion.Top(), padSize, remainRegion.Height());
 }
 
@@ -687,8 +694,8 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
     {
         fillColor = theme.Get(color_controlFillColorHL);
     }
-    
-    DrawSlab(padRegion, fillColor);
+
+    DrawSlab(padRegion, theme.Get(color_flowControl));
     DrawSlab(sliderRegion, fillColor);
 
     NRectf thumbRect = NRectf(innerRegion.Left() + fVal * fRegionWidthNoThumb,
@@ -1026,40 +1033,36 @@ void GraphView::DrawNode(ViewNode& viewNode)
     m_spCanvas->FillRoundedRect(nodeRect, style.GetFloat(style_nodeBorderRadius), nodeColor);
 
     m_spCanvas->FillRoundedRect(titleRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
-    m_spCanvas->FillRoundedRect(footerRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
+    //m_spCanvas->FillRoundedRect(footerRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
 
     // Connectors
-    auto outerConnectorRect = layout.spRoot->GetViewRect() + nodePos;
-    auto contentRect = layout.spContents->GetViewRect() + nodePos;
-    auto outerRadius = style.GetFloat(style_nodeOuter) * .5f;
+    auto margin = style.GetFloat(style_nodeLayoutMargin);
+    auto padSize = style.GetFloat(style_nodePadSize);
 
-    // B, T, L, R
-    DrawSlab(NRectf(outerConnectorRect.Center().x - outerRadius, outerConnectorRect.Bottom(), outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
-    DrawSlab(NRectf(outerConnectorRect.Center().x - outerRadius, outerConnectorRect.Top() - outerRadius, outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
-    DrawSlab(NRectf(outerConnectorRect.Left() - outerRadius, outerConnectorRect.Center().y, outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
-    DrawSlab(NRectf(outerConnectorRect.Right(), outerConnectorRect.Center().y, outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
-    /*
-    // L
-    m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Left() - outerRadius,
-                                 outerConnectorRect.Center().y),
-        outerRadius, theme.Get(color_AccentColor1));
+    int numPads = 2;
+    for (int side = 0; side < 2; side++)
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            float left;
+            if (side == 0)
+            {
+                left = titleRect.Left() + margin + (i * margin * 2 + i * padSize);
+            }
+            else
+            {
+                left = titleRect.Right() - (numPads * margin * 2 + numPads * padSize) + margin + (i * margin * 2 + i * padSize);
+            }
+            DrawSlab(NRectf(left, titleRect.Top() + (titleRect.Height() - padSize) * .5f, padSize, padSize), theme.Get(i == 0 ? color_flowData : color_flowControl));
+            
+            auto footerPad = NRectf(footerRect.Left() + margin + (i * margin * 2 + i * padSize), footerRect.Top() + margin, padSize, padSize);
+            auto footerRadius = footerPad.Height() * .5f;
+            m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y) + NVec2f(style.GetFloat(style_controlShadowSize)), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(color_nodeShadowColor));
+            m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(i == 0 ? color_flowData : color_flowControl));
+        }
+    }
 
-    // R
-    m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Right() + outerRadius,
-                                 outerConnectorRect.Center().y),
-        outerRadius, theme.Get(color_AccentColor1));
-
-    // T
-    m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Center().x,
-                                 outerConnectorRect.Top() - outerRadius),
-        outerRadius, theme.Get(color_AccentColor1));
-
-    // B
-    m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Center().x,
-                                 outerConnectorRect.Bottom() + outerRadius),
-        outerRadius, theme.Get(color_AccentColor1));
-        */
-
+    // Title text
     m_spCanvas->Text(NVec2f(titleRect.Center().x, titleRect.Center().y), style.GetFloat(style_nodeTitleFontSize), theme.Get(color_nodeTitleColor), viewNode.pModelNode->GetName().c_str());
 
     // Inner contents
