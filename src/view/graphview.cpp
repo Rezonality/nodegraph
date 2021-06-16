@@ -872,8 +872,9 @@ void GraphView::HandleInput()
 
         auto nodeRect = layout.spRoot->GetViewRect() + pNode->GetPos();
         auto titleRect = layout.spTitle->GetViewRect() + pNode->GetPos();
+        auto footerRect = layout.spFooter->GetViewRect() + pNode->GetPos();
         bool overNode = nodeRect.Contains(NVec2f(pos.x, pos.y));
-        bool overTitle = titleRect.Contains(NVec2f(pos.x, pos.y));
+        bool overTitle = titleRect.Contains(NVec2f(pos.x, pos.y)) || footerRect.Contains(NVec2f(pos.x, pos.y));
 
         pView->hovered = overNode;
         auto isRightDrag = (overNode && state.buttonClicked[MouseButtons::MOUSE_RIGHT]) || (state.buttonDown[MouseButtons::MOUSE_RIGHT] && m_pCaptureNode == pNode);
@@ -982,6 +983,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto nodePos = viewNode.pModelNode->GetPos();
     auto nodeRect = layout.spRoot->GetViewRect() + nodePos;
     auto titleRect = layout.spTitle->GetViewRect() + nodePos;
+    auto footerRect = layout.spFooter->GetViewRect() + nodePos;
 
     auto mousePos = m_spCanvas->GetViewMousePos();
 
@@ -1024,13 +1026,18 @@ void GraphView::DrawNode(ViewNode& viewNode)
     m_spCanvas->FillRoundedRect(nodeRect, style.GetFloat(style_nodeBorderRadius), nodeColor);
 
     m_spCanvas->FillRoundedRect(titleRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
+    m_spCanvas->FillRoundedRect(footerRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
 
     // Connectors
     auto outerConnectorRect = layout.spRoot->GetViewRect() + nodePos;
     auto contentRect = layout.spContents->GetViewRect() + nodePos;
     auto outerRadius = style.GetFloat(style_nodeOuter) * .5f;
 
-    DrawSlab(NRectf(outerConnectorRect.Center().x - outerRadius, outerConnectorRect.Bottom(), outerRadius * 2.0, outerRadius * 2.0f), theme.Get(color_AccentColor1));
+    // B, T, L, R
+    DrawSlab(NRectf(outerConnectorRect.Center().x - outerRadius, outerConnectorRect.Bottom(), outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
+    DrawSlab(NRectf(outerConnectorRect.Center().x - outerRadius, outerConnectorRect.Top() - outerRadius, outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
+    DrawSlab(NRectf(outerConnectorRect.Left() - outerRadius, outerConnectorRect.Center().y, outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
+    DrawSlab(NRectf(outerConnectorRect.Right(), outerConnectorRect.Center().y, outerRadius * 2.0f, outerRadius * 2.0f), theme.Get(color_AccentColor1));
     /*
     // L
     m_spCanvas->FilledCircle(NVec2f(outerConnectorRect.Left() - outerRadius,

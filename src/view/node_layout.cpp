@@ -20,10 +20,12 @@ std::shared_ptr<NodeLayout> node_layout_create()
     // Layout margin is the border around the layout contents (not the spacing of inner items)
     spNodeLayout->spRoot = std::make_shared<VLayout>(style.GetVec4f(style_nodeLayoutMargin));
     spNodeLayout->spTitle = std::make_shared<HLayout>(style.GetVec4f(style_nodeLayoutMargin));
+    spNodeLayout->spFooter = std::make_shared<HLayout>(style.GetVec4f(style_nodeLayoutMargin));
     spNodeLayout->spContents = std::make_shared<VLayout>(style.GetVec4f(style_nodeLayoutMargin));
 
     spNodeLayout->spRoot->AddItem(spNodeLayout->spTitle.get(), NVec2f(0.0f, style.GetFloat(style_nodeTitleHeight)));
     spNodeLayout->spRoot->AddItem(spNodeLayout->spContents.get(), NVec2f(0.0f, 0.0f));
+    spNodeLayout->spRoot->AddItem(spNodeLayout->spFooter.get(), NVec2f(0.0f, style.GetFloat(style_nodeTitleHeight)));
 
     return spNodeLayout;
 }
