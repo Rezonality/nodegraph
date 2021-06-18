@@ -216,6 +216,80 @@ public:
     std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
 
+class NumberNode : public Node
+{
+public:
+    DECLARE_NODE(NumberNode, test);
+
+    explicit NumberNode(Graph& graph)
+        : Node(graph, "Number")
+    {
+        m_flags |= NodeFlags::OwnerDraw;
+
+        pNumber = AddInput("Number", 1.0f, ParameterAttributes(ParameterUI::Slider, 0.0f, 10.0f));
+        pNumber->GetAttributes().step = 0.01f;
+        
+        pOutput = AddOutput("Number", (IControlData*)nullptr);
+
+        auto pLayout = new MUtils::HLayout();
+        GetLayout().spContents->AddItem(pLayout);
+
+        pLayout->AddItem(pNumber, NVec2f(200.0f, 30.0f));
+        GetLayout().spRoot->UpdateLayout();
+    }
+
+    virtual void Compute() override
+    {
+    }
+
+    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
+    {
+        view.DrawNode(viewNode);
+    }
+
+    Pin* pNumber = nullptr;
+    Pin* pOutput = nullptr;
+    std::shared_ptr<NodeLayout> m_spNodeLayout;
+};
+
+class AdderNode : public Node
+{
+public:
+    DECLARE_NODE(AdderNode, test);
+
+    explicit AdderNode(Graph& graph)
+        : Node(graph, "Add")
+    {
+        m_flags |= NodeFlags::OwnerDraw;
+
+        pA = AddInput("A", (IControlData*)nullptr);
+        pB = AddInput("B", (IControlData*)nullptr);
+        
+        pSum = AddOutput("Sum", (IControlData*)nullptr);
+
+        auto pLayout = new MUtils::HLayout();
+        GetLayout().spRoot->SetPreferredSize(NVec2f(300.0f, 0.0f));
+        GetLayout().spContents->AddItem(pLayout);
+
+        //pLayout->AddItem(pNumber, NVec2f(200.0f, 30.0f));
+        GetLayout().spRoot->UpdateLayout();
+    }
+
+    virtual void Compute() override
+    {
+    }
+
+    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
+    {
+        view.DrawNode(viewNode);
+    }
+
+    Pin* pA = nullptr;
+    Pin* pB = nullptr;
+    Pin* pSum = nullptr;
+    std::shared_ptr<NodeLayout> m_spNodeLayout;
+};
+
 std::set<Node*> appNodes;
 
 struct GraphData
@@ -278,9 +352,15 @@ public:
             pGraph->SetName(name);
             auto pTestNode = pGraph->CreateNode<TestNode>();
             auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
+            auto pNumberNode1 = pGraph->CreateNode<NumberNode>();
+            auto pNumberNode2 = pGraph->CreateNode<NumberNode>();
+            auto pAdd = pGraph->CreateNode<AdderNode>();
 
             pTestNode->SetPos(NVec2f(50.0f, 10.0f));
             pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
+            pNumberNode1->SetPos(NVec2f(400.0f, 50.0f));
+            pNumberNode2->SetPos(NVec2f(500.0f, 50.0f));
+            pAdd->SetPos(NVec2f(450.0f, 100.0f));
 
             for (auto pNode : pGraph->GetNodes())
             {

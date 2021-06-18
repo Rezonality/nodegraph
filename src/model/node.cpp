@@ -252,6 +252,8 @@ Pin* Node::AddInput(const std::string& strName, IFlowData* val, const ParameterA
     auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
     m_inputs.push_back(pPin);
     m_flowInputs.push_back(pPin);
+    m_flowControlInputs.clear();
+
     return pPin;
 }
 
@@ -262,6 +264,7 @@ Pin* Node::AddInput(const std::string& strName, IControlData* val, const Paramet
     auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
     m_inputs.push_back(pPin);
     m_controlInputs.push_back(pPin);
+    m_flowControlInputs.clear();
     return pPin;
 }
 
@@ -272,6 +275,7 @@ Pin* Node::AddOutput(const std::string& strName, IFlowData* val, const Parameter
     auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
     m_outputs.push_back(pPin);
     m_flowOutputs.push_back(pPin);
+    m_flowControlOutputs.clear();
     return pPin;
 }
 
@@ -282,6 +286,7 @@ Pin* Node::AddOutput(const std::string& strName, IControlData* val, const Parame
     auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
     m_outputs.push_back(pPin);
     m_controlOutputs.push_back(pPin);
+    m_flowControlOutputs.clear();
     return pPin;
 }
 
@@ -323,6 +328,26 @@ uint32_t Node::Flags() const
 void Node::SetFlags(uint32_t flags)
 {
     m_flags = flags;
+}
+
+const std::vector<Pin*>& Node::GetFlowControlInputs() const
+{
+    if (m_flowControlInputs.empty())
+    {
+        m_flowControlInputs = m_flowInputs;
+        m_flowControlInputs.insert(m_flowControlInputs.end(), m_controlInputs.begin(), m_controlInputs.end());
+    }
+    return m_flowControlInputs;
+}
+
+const std::vector<Pin*>& Node::GetFlowControlOutputs() const
+{
+    if (m_flowControlOutputs.empty())
+    {
+        m_flowControlOutputs = m_flowOutputs;
+        m_flowControlOutputs.insert(m_flowControlOutputs.end(), m_controlOutputs.begin(), m_controlOutputs.end());
+    }
+    return m_flowControlOutputs;
 }
 
 } // namespace NodeGraph

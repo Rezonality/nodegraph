@@ -986,6 +986,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto& style = StyleManager::Instance();
     auto& theme = ThemeManager::Instance();
     auto& layout = viewNode.pModelNode->GetLayout();
+    auto& node = *viewNode.pModelNode;
 
     auto nodePos = viewNode.pModelNode->GetPos();
     auto nodeRect = layout.spRoot->GetViewRect() + nodePos;
@@ -1039,27 +1040,42 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto margin = style.GetFloat(style_nodeLayoutMargin);
     auto padSize = style.GetFloat(style_nodePadSize);
 
-    int numPads = 2;
-    for (int side = 0; side < 2; side++)
-    {
-        for (int i = 0; i < 2; i++)
+    auto drawIO = [=](int i, int maxPads, bool flow, bool in, int side = 0) {
+        auto& theme = ThemeManager::Instance();
+        auto& style = StyleManager::Instance();
+        float left;
+        if (side == 0)
         {
-            float left;
-            if (side == 0)
-            {
-                left = titleRect.Left() + margin + (i * margin * 2 + i * padSize);
-            }
-            else
-            {
-                left = titleRect.Right() - (numPads * margin * 2 + numPads * padSize) + margin + (i * margin * 2 + i * padSize);
-            }
-            DrawSlab(NRectf(left, titleRect.Top() + (titleRect.Height() - padSize) * .5f, padSize, padSize), theme.Get(i == 0 ? color_flowData : color_flowControl));
-            
+            left = titleRect.Left() + margin + (i * margin * 2 + i * padSize);
+        }
+        else
+        {
+            left = titleRect.Right() - (maxPads * margin * 2 + maxPads * padSize) + margin + (i * margin * 2 + i * padSize);
+        }
+
+        if (in)
+        {
+            DrawSlab(NRectf(left, titleRect.Top() + (titleRect.Height() - padSize) * .5f, padSize, padSize), theme.Get(flow ? color_flowData : color_flowControl));
+        }
+        else
+        {
             auto footerPad = NRectf(footerRect.Left() + margin + (i * margin * 2 + i * padSize), footerRect.Top() + margin, padSize, padSize);
             auto footerRadius = footerPad.Height() * .5f;
             m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y) + NVec2f(style.GetFloat(style_controlShadowSize)), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(color_nodeShadowColor));
-            m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(i == 0 ? color_flowData : color_flowControl));
+            m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(flow ? color_flowData : color_flowControl));
         }
+    };
+
+    auto& inputs = node.GetFlowControlInputs();
+    for (int i = 0; i < inputs.size(); i++)
+    {
+        drawIO(i, int(inputs.size()), inputs[i]->GetType() == ParameterType::FlowData, true, 0);
+    }
+    
+    auto& outputs = node.GetFlowControlOutputs();
+    for (int i = 0; i < outputs.size(); i++)
+    {
+        drawIO(i, int(outputs.size()), outputs[i]->GetType() == ParameterType::FlowData, false, 0);
     }
 
     // Title text

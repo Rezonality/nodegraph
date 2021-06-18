@@ -115,7 +115,7 @@ public:
     // Get
     virtual ctti::type_id_t GetType() const = 0;
     virtual const char* GetAPIName() const = 0;
-    
+
     const std::string& GetName() const
     {
         return m_strName;
@@ -150,6 +150,9 @@ public:
     {
         return m_flowOutputs;
     }
+
+    const std::vector<Pin*>& GetFlowControlInputs() const;
+    const std::vector<Pin*>& GetFlowControlOutputs() const;
 
     Pin* GetPin(const std::string& name) const;
 
@@ -233,6 +236,8 @@ protected:
     std::vector<Pin*> m_flowOutputs;
     std::vector<Pin*> m_controlInputs;
     std::vector<Pin*> m_controlOutputs;
+    mutable std::vector<Pin*> m_flowControlInputs;
+    mutable std::vector<Pin*> m_flowControlOutputs;
     std::vector<NodeDecorator*> m_decorators;
     uint64_t m_generation = 0;
     MUtils::NRectf m_viewCells;
