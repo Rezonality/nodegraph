@@ -109,4 +109,49 @@ void Canvas::DrawGrid(float viewStep)
     }
 }
 
+void Canvas::CubicBezier(std::vector<NVec2f>& path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level)
+{
+    float dx = x4 - x1;
+    float dy = y4 - y1;
+    float d2 = (x2 - x4) * dy - (y2 - y4) * dx;
+    float d3 = (x3 - x4) * dy - (y3 - y4) * dx;
+    d2 = (d2 >= 0) ? d2 : -d2;
+    d3 = (d3 >= 0) ? d3 : -d3;
+    if ((d2 + d3) * (d2 + d3) < tess_tol * (dx * dx + dy * dy))
+    {
+        path.push_back(NVec2f(x4, y4));
+    }
+    else if (level < 10)
+    {
+        float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
+        float x23 = (x2 + x3) * 0.5f, y23 = (y2 + y3) * 0.5f;
+        float x34 = (x3 + x4) * 0.5f, y34 = (y3 + y4) * 0.5f;
+        float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
+        float x234 = (x23 + x34) * 0.5f, y234 = (y23 + y34) * 0.5f;
+        float x1234 = (x123 + x234) * 0.5f, y1234 = (y123 + y234) * 0.5f;
+        CubicBezier(path, x1, y1, x12, y12, x123, y123, x1234, y1234, tess_tol, level + 1);
+        CubicBezier(path, x1234, y1234, x234, y234, x34, y34, x4, y4, tess_tol, level + 1);
+    }
+}
+
+void Canvas::DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2, const MUtils::NVec2f& p3, const MUtils::NVec2f& p4)
+{
+    pointStorage.clear();
+    pointStorage.push_back(p1);
+    CubicBezier(pointStorage, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, 1.f, 0);
+
+    BeginStroke(pointStorage[0], 2.0f, NVec4f(1.0f));
+    for (int i = 1; i < pointStorage.size(); i++)
+    {
+        LineTo(pointStorage[i]);
+    }
+    EndStroke();
+
+    /*
+    BeginStroke(p1, 2.0f, NVec4f(1.0f));
+    LineTo(p4);
+    EndStroke();
+    */
+}
+
 } // namespace NodeGraph

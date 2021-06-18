@@ -1036,6 +1036,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
     m_spCanvas->FillRoundedRect(titleRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
     //m_spCanvas->FillRoundedRect(footerRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
 
+    m_spCanvas->DrawCubicBezier(titleRect.TopRight(), titleRect.TopRight() + NVec2f(200.0f, 100.0f), footerRect.bottomRightPx + NVec2f(300.0f, -100.0f), footerRect.bottomRightPx + NVec2f(400.0f, 0.0f));
     // Connectors
     auto margin = style.GetFloat(style_nodeLayoutMargin);
     auto padSize = style.GetFloat(style_nodePadSize);
@@ -1063,6 +1064,9 @@ void GraphView::DrawNode(ViewNode& viewNode)
             auto footerRadius = footerPad.Height() * .5f;
             m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y) + NVec2f(style.GetFloat(style_controlShadowSize)), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(color_nodeShadowColor));
             m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(flow ? color_flowData : color_flowControl));
+
+            //m_spCanvas->DrawCubicBezier(footerRect.Center(), titleRect.TopRight() + NVec2f(200.0f, 100.0f), footerRect.bottomRightPx + NVec2f(300.0f, -100.0f), footerRect.bottomRightPx + NVec2f(400.0f, 0.0f));
+
         }
     };
 
@@ -1076,6 +1080,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
     for (int i = 0; i < outputs.size(); i++)
     {
         drawIO(i, int(outputs.size()), outputs[i]->GetType() == ParameterType::FlowData, false, 0);
+    
     }
 
     // Title text

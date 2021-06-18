@@ -351,14 +351,15 @@ public:
             auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
             auto pNumberNode1 = pGraph->CreateNode<NumberNode>();
             auto pNumberNode2 = pGraph->CreateNode<NumberNode>();
-            auto pAdd = pGraph->CreateNode<SumNode>();
+            auto pSum = pGraph->CreateNode<SumNode>();
 
             pTestNode->SetPos(NVec2f(50.0f, 10.0f));
             pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
-            pNumberNode1->SetPos(NVec2f(400.0f, 50.0f));
-            pNumberNode2->SetPos(NVec2f(500.0f, 50.0f));
-            pAdd->SetPos(NVec2f(450.0f, 100.0f));
+            pNumberNode1->SetPos(NVec2f(400.0f, 250.0f));
+            pNumberNode2->SetPos(NVec2f(500.0f, 250.0f));
+            pSum->SetPos(NVec2f(450.0f, 400.0f));
 
+            pNumberNode1->ConnectTo(pSum, "Number", "Input");
             for (auto pNode : pGraph->GetNodes())
             {
                 appNodes.insert(pNode);

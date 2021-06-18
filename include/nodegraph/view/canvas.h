@@ -106,6 +106,7 @@ public:
     virtual MUtils::NRectf TextBounds(const MUtils::NVec2f& pos, float size, const char* pszText) const = 0;
     
     virtual void DrawGrid(float viewStep);
+    virtual void DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2, const MUtils::NVec2f& p3, const MUtils::NVec2f& p4);
 
     virtual void HandleMouse();
 
@@ -124,6 +125,7 @@ public:
         return m_inputState;
     }
 
+    void CubicBezier(std::vector<MUtils::NVec2f>& path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level);
 protected:
     MUtils::NRectf m_pixelRect; // Pixel size on screen of canvas
 
@@ -131,6 +133,8 @@ protected:
     float m_viewScale = 1.0f;
 
     CanvasInputState m_inputState;
+
+    std::vector<MUtils::NVec2f> pointStorage;
 };
 
 } // namespace NodeGraph
