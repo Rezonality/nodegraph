@@ -308,7 +308,7 @@ class App : public IAppStarterClient
 public:
     App()
     {
-        m_settings.flags |= AppStarterFlags::DockingEnable;
+        m_settings.flags |= AppStarterFlags::DockingEnable | /*AppStarterFlags::ShowDemoWindow |*/ AppStarterFlags::RefreshOnEvents;
         m_settings.startSize = NVec2i(1680, 1000);
         m_settings.clearColor = NVec4f(.2f, .2f, .2f, 1.0f);
         m_settings.appName = "NodeGraph Test";
@@ -316,7 +316,7 @@ public:
 
     // Inherited via IAppStarterClient
     virtual fs::path GetRootPath() const override
-    {
+    { 
         return fs::path(NODEGRAPH_ROOT);
     }
 
