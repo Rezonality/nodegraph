@@ -252,19 +252,17 @@ public:
     std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
 
-class AdderNode : public Node
+class SumNode : public Node
 {
 public:
-    DECLARE_NODE(AdderNode, test);
+    DECLARE_NODE(SumNode, test);
 
-    explicit AdderNode(Graph& graph)
+    explicit SumNode(Graph& graph)
         : Node(graph, "Add")
     {
         m_flags |= NodeFlags::OwnerDraw;
 
-        pA = AddInput("A", (IControlData*)nullptr);
-        pB = AddInput("B", (IControlData*)nullptr);
-        
+        pInput = AddInput("Input", (IControlData*)nullptr);
         pSum = AddOutput("Sum", (IControlData*)nullptr);
 
         auto pLayout = new MUtils::HLayout();
@@ -284,8 +282,7 @@ public:
         view.DrawNode(viewNode);
     }
 
-    Pin* pA = nullptr;
-    Pin* pB = nullptr;
+    Pin* pInput = nullptr;
     Pin* pSum = nullptr;
     std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
@@ -354,7 +351,7 @@ public:
             auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
             auto pNumberNode1 = pGraph->CreateNode<NumberNode>();
             auto pNumberNode2 = pGraph->CreateNode<NumberNode>();
-            auto pAdd = pGraph->CreateNode<AdderNode>();
+            auto pAdd = pGraph->CreateNode<SumNode>();
 
             pTestNode->SetPos(NVec2f(50.0f, 10.0f));
             pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
