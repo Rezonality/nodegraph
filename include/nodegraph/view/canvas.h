@@ -106,7 +106,7 @@ public:
     virtual MUtils::NRectf TextBounds(const MUtils::NVec2f& pos, float size, const char* pszText) const = 0;
     
     virtual void DrawGrid(float viewStep);
-    virtual void DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2, const MUtils::NVec2f& p3, const MUtils::NVec2f& p4);
+    virtual void DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2, const MUtils::NVec2f& p3, const MUtils::NVec2f& p4, const MUtils::NVec4f& color);
 
     virtual void HandleMouse();
 

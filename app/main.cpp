@@ -117,12 +117,6 @@ public:
         GetLayout().spRoot->UpdateLayout();
     }
 
-    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
-    {
-        view.SetDebugVisuals(false);
-        view.DrawNode(viewNode);
-    }
-
     virtual void Compute() override
     {
         if (pSum)
@@ -201,11 +195,6 @@ public:
     {
     }
 
-    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
-    {
-        view.DrawNode(viewNode);
-    }
-
     Pin* pSum = nullptr;
     Pin* pValue1 = nullptr;
     Pin* pValue2 = nullptr;
@@ -242,11 +231,6 @@ public:
     {
     }
 
-    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
-    {
-        view.DrawNode(viewNode);
-    }
-
     Pin* pNumber = nullptr;
     Pin* pOutput = nullptr;
     std::shared_ptr<NodeLayout> m_spNodeLayout;
@@ -266,7 +250,6 @@ public:
         pSum = AddOutput("Sum", (IControlData*)nullptr);
 
         auto pLayout = new MUtils::HLayout();
-        GetLayout().spRoot->SetPreferredSize(NVec2f(300.0f, 0.0f));
         GetLayout().spContents->AddItem(pLayout);
 
         //pLayout->AddItem(pNumber, NVec2f(200.0f, 30.0f));
@@ -275,11 +258,6 @@ public:
 
     virtual void Compute() override
     {
-    }
-
-    virtual void Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode) override
-    {
-        view.DrawNode(viewNode);
     }
 
     Pin* pInput = nullptr;
@@ -360,6 +338,7 @@ public:
             pSum->SetPos(NVec2f(450.0f, 400.0f));
 
             pNumberNode1->ConnectTo(pSum, "Number", "Input");
+            //pNumberNode2->ConnectTo(pSum, "Number", "Input");
             for (auto pNode : pGraph->GetNodes())
             {
                 appNodes.insert(pNode);

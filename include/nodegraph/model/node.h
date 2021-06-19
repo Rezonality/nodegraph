@@ -190,7 +190,7 @@ public:
     void SetCustomViewCells(const MUtils::NRectf& cells);
 
     virtual void PreDraw(){};
-    virtual void Draw(GraphView&, Canvas&, ViewNode&){};
+    virtual void Draw(GraphView&, Canvas&, ViewNode&);
     virtual void DrawCustom(GraphView& view, Canvas& canvas, const MUtils::NRectf&){};
     virtual void DrawCustomPin(GraphView& view, Canvas& canvas, const MUtils::NRectf&, Pin& pin){};
 
@@ -216,6 +216,8 @@ public:
     {
         m_viewPos = pos;
     }
+
+    MUtils::NVec2f GetCenter() const;
 
     NodeLayout& GetLayout()
     {

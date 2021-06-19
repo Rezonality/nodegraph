@@ -6,6 +6,8 @@
 #include "nodegraph/model/node.h"
 #include "nodegraph/model/pin.h"
 #include "nodegraph/view/node_layout.h"
+
+#include "nodegraph/view/graphview.h"
 using namespace MUtils;
 
 namespace NodeGraph
@@ -348,6 +350,17 @@ const std::vector<Pin*>& Node::GetFlowControlOutputs() const
         m_flowControlOutputs.insert(m_flowControlOutputs.end(), m_controlOutputs.begin(), m_controlOutputs.end());
     }
     return m_flowControlOutputs;
+}
+
+void Node::Draw(GraphView& view, Canvas& canvas, ViewNode& viewNode)
+{
+    view.SetDebugVisuals(false);
+    view.DrawNode(viewNode);
+}
+
+MUtils::NVec2f Node::GetCenter() const
+{
+    return m_spLayout->spRoot->GetViewRect().Center() + m_viewPos;
 }
 
 } // namespace NodeGraph

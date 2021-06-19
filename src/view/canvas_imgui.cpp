@@ -45,7 +45,7 @@ void CanvasImGui::FilledGradientCircle(const MUtils::NVec2f& center, float radiu
     //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
     viewCenter += NVec2f(origin);
 
-    // TODO: Should be gradient
+    // TODO: Should be gradient but can't do it on ImGui yet
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(startColor), CircleSegments);
 }

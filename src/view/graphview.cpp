@@ -121,8 +121,7 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
     if (pNode->Flags() & NodeFlags::Hidden)
         return false;
 
-    if (pNode->Flags() & NodeFlags::OwnerDraw)
-        return true;
+    //if (pNode->Flags() & NodeFlags::OwnerDraw)
 
     // Check for things to show
     /*
@@ -142,6 +141,7 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
     }
     */
 
+        /*
     for (auto& decorator : pNode->GetDecorators())
     {
         if (!decorator->gridLocation.Empty())
@@ -150,8 +150,9 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
 
     if (!pNode->GetCustomViewCells().Empty())
         return true;
+        */
 
-    return false;
+    return true;
 }
 
 // Building pending view nodes
@@ -176,6 +177,7 @@ void GraphView::BuildNodes()
 
                 m_spViewData->mapNodeToViewNode[pNode] = spViewNode;
                 m_spViewData->nodeZOrder.push_back(pNode);
+                pNode->GetLayout().spRoot->UpdateLayout();
             }
         }
     }
@@ -876,6 +878,8 @@ void GraphView::HandleInput()
     {
         auto pView = m_spViewData->mapNodeToViewNode[pNode];
         auto& layout = pNode->GetLayout();
+        if (layout.spRoot == nullptr)
+            continue;
 
         auto nodeRect = layout.spRoot->GetViewRect() + pNode->GetPos();
         auto titleRect = layout.spTitle->GetViewRect() + pNode->GetPos();
@@ -962,6 +966,37 @@ void GraphView::Show(const NVec4f& clearColor)
         pNode->Draw(*this, *m_spCanvas, *pView);
     }
 
+    auto drawConnector = [=](Pin* pPin) {
+        if (pPin->GetTargets().empty())
+        {
+            return;
+        }
+
+        auto& theme = ThemeManager::Instance();
+        auto& style = StyleManager::Instance();
+
+        for (auto& pTarget : pPin->GetTargets())
+        {
+            auto srcRect = pPin->GetPadRect();
+            auto dstRect = pTarget->GetPadRect();
+
+            auto dist = (dstRect.Center().x - srcRect.Center().x) / 3;
+        
+            const auto& col = theme.Get((pPin->GetType() == ParameterType::FlowData) ? color_flowData : color_flowControl);
+            m_spCanvas->DrawCubicBezier(srcRect.Center(), srcRect.Center() + NVec2f(dist, 0.0f), dstRect.Center() - NVec2(dist, 0.0f), dstRect.Center(), col);
+        
+        }
+    };
+
+    for (auto& pNode : m_spViewData->nodeZOrder)
+    {
+        auto& outputs = pNode->GetFlowControlOutputs();
+        for (int i = 0; i < outputs.size(); i++)
+        {
+            drawConnector(outputs[i]);
+        }
+    }
+
     for (auto& [param, info] : m_drawLabels)
     {
         DrawLabel(*param, info);
@@ -1032,18 +1067,41 @@ void GraphView::DrawNode(ViewNode& viewNode)
     nodeRect.Adjust(-style.GetFloat(style_nodeShadowSize), -style.GetFloat(style_nodeShadowSize));
 
     m_spCanvas->FillRoundedRect(nodeRect, style.GetFloat(style_nodeBorderRadius), nodeColor);
-
     m_spCanvas->FillRoundedRect(titleRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
-    //m_spCanvas->FillRoundedRect(footerRect, style.GetFloat(style_nodeBorderRadius), theme.Get(color_nodeTitleBGColor));
 
-    m_spCanvas->DrawCubicBezier(titleRect.TopRight(), titleRect.TopRight() + NVec2f(200.0f, 100.0f), footerRect.bottomRightPx + NVec2f(300.0f, -100.0f), footerRect.bottomRightPx + NVec2f(400.0f, 0.0f));
     // Connectors
     auto margin = style.GetFloat(style_nodeLayoutMargin);
     auto padSize = style.GetFloat(style_nodePadSize);
 
-    auto drawIO = [=](int i, int maxPads, bool flow, bool in, int side = 0) {
+    auto drawIO = [=](Pin* pPin, int i, int maxPads, bool in, int side = 0) {
         auto& theme = ThemeManager::Instance();
         auto& style = StyleManager::Instance();
+        bool flow = (pPin->GetType() == ParameterType::FlowData);
+
+        // Figure out which side the io pad lives on based on the where it is relative to the other node it is connected to
+        if (pPin->GetDirection() == PinDir::Input)
+        {
+            if (pPin->GetSource() && pPin->GetSource()->GetOwnerNode().GetCenter().x < pPin->GetOwnerNode().GetCenter().x)
+            {
+                side = 0;
+            }
+            else
+            {
+                side = 1;
+            }
+        }
+        else
+        {
+            if (!pPin->GetTargets().empty() && (*pPin->GetTargets().begin())->GetOwnerNode().GetCenter().x < pPin->GetOwnerNode().GetCenter().x)
+            {
+                side = 0;
+            }
+            else
+            {
+                side = 1;
+            }
+        }
+
         float left;
         if (side == 0)
         {
@@ -1054,33 +1112,33 @@ void GraphView::DrawNode(ViewNode& viewNode)
             left = titleRect.Right() - (maxPads * margin * 2 + maxPads * padSize) + margin + (i * margin * 2 + i * padSize);
         }
 
+        NRectf rcPad;
         if (in)
         {
-            DrawSlab(NRectf(left, titleRect.Top() + (titleRect.Height() - padSize) * .5f, padSize, padSize), theme.Get(flow ? color_flowData : color_flowControl));
+            rcPad = NRectf(left, titleRect.Top() + (titleRect.Height() - padSize) * .5f, padSize, padSize);
+            DrawSlab(rcPad, theme.Get(flow ? color_flowData : color_flowControl));
         }
         else
         {
-            auto footerPad = NRectf(footerRect.Left() + margin + (i * margin * 2 + i * padSize), footerRect.Top() + margin, padSize, padSize);
-            auto footerRadius = footerPad.Height() * .5f;
+            rcPad = NRectf(left, footerRect.Top() + margin, padSize, padSize);
+            auto footerRadius = rcPad.Height() * .5f;
             m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y) + NVec2f(style.GetFloat(style_controlShadowSize)), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(color_nodeShadowColor));
             m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(flow ? color_flowData : color_flowControl));
-
-            //m_spCanvas->DrawCubicBezier(footerRect.Center(), titleRect.TopRight() + NVec2f(200.0f, 100.0f), footerRect.bottomRightPx + NVec2f(300.0f, -100.0f), footerRect.bottomRightPx + NVec2f(400.0f, 0.0f));
-
         }
+        pPin->SetPadRect(rcPad);
     };
+
 
     auto& inputs = node.GetFlowControlInputs();
     for (int i = 0; i < inputs.size(); i++)
     {
-        drawIO(i, int(inputs.size()), inputs[i]->GetType() == ParameterType::FlowData, true, 0);
+        drawIO(inputs[i], i, int(inputs.size()), true, 0);
     }
-    
+
     auto& outputs = node.GetFlowControlOutputs();
     for (int i = 0; i < outputs.size(); i++)
     {
-        drawIO(i, int(outputs.size()), outputs[i]->GetType() == ParameterType::FlowData, false, 0);
-    
+        drawIO(outputs[i],i, int(outputs.size()), false, 0);
     }
 
     // Title text

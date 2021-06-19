@@ -49,6 +49,12 @@ public:
         YGNodeStyleSetJustifyContent(yogaParent, YGJustifySpaceEvenly);
     }
 
+    virtual void SetMinSize(const NVec2f& minSize)
+    {
+        YGNodeStyleSetMinWidth(yogaParent, minSize.x);
+        YGNodeStyleSetMinHeight(yogaParent, minSize.y);
+    }
+
     virtual void SetPreferredSize(const NVec2f& preferred) override
     {
         m_preferredSize = preferred;
@@ -105,6 +111,7 @@ public:
             YGNodeInsertChild(yogaParent, pLayout->yogaParent, YGNodeGetChildCount(yogaParent));
             yogaNodes.push_back(pLayout->yogaParent);
 
+            // This lets the layout grow if 0,0 or fixes size; it needs to be set
             pLayout->SetPreferredSize(preferredSize);
         }
         else

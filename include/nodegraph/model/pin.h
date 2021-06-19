@@ -164,6 +164,15 @@ public:
         m_targets.clear();
     }
 
+    void SetPadRect(MUtils::NRectf& pad)
+    {
+        m_padRect = pad;
+    }
+
+    const MUtils::NRectf& GetPadRect() const
+    {
+        return m_padRect; 
+    }
     /* 
     const MUtils::NRectf& GetViewCells() const
     {
@@ -186,6 +195,7 @@ private:
     Pin* m_pSource = nullptr;               // Which pin I'm connected from
 
     MUtils::NRectf m_viewCells = MUtils::NRectf(0, 0, 0, 0);            // Cells that this parameter should be shown in for UI
+    MUtils::NRectf m_padRect;
 };
 
 

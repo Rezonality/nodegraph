@@ -134,13 +134,13 @@ void Canvas::CubicBezier(std::vector<NVec2f>& path, float x1, float y1, float x2
     }
 }
 
-void Canvas::DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2, const MUtils::NVec2f& p3, const MUtils::NVec2f& p4)
+void Canvas::DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2, const MUtils::NVec2f& p3, const MUtils::NVec2f& p4, const MUtils::NVec4f& color)
 {
     pointStorage.clear();
     pointStorage.push_back(p1);
     CubicBezier(pointStorage, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, 1.f, 0);
 
-    BeginStroke(pointStorage[0], 2.0f, NVec4f(1.0f));
+    BeginStroke(pointStorage[0], 2.0f, color);
     for (int i = 1; i < pointStorage.size(); i++)
     {
         LineTo(pointStorage[i]);
