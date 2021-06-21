@@ -668,7 +668,14 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
     }
 
     NRectf sliderRegion, padRegion;
-    SplitRegionAddPad(region, sliderRegion, padRegion);
+    if (param.GetSource() != nullptr)
+    {
+        SplitRegionAddPad(region, sliderRegion, padRegion);
+    }
+    else
+    {
+        sliderRegion = region;
+    }
 
     auto innerRegion = GetInnerRegion(sliderRegion);
     float fThumbWidth = std::max(innerRegion.Width() * fThumb, 6.0f);
@@ -697,7 +704,10 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
         fillColor = theme.Get(color_controlFillColorHL);
     }
 
-    DrawSlab(padRegion, theme.Get(color_flowControl));
+    if (!padRegion.Empty())
+    {
+        DrawSlab(padRegion, theme.Get(color_flowControl));
+    }
     DrawSlab(sliderRegion, fillColor);
 
     NRectf thumbRect = NRectf(innerRegion.Left() + fVal * fRegionWidthNoThumb,
