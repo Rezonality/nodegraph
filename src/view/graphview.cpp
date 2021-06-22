@@ -1037,6 +1037,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto nodeRect = layout.spRoot->GetViewRect() + nodePos;
     auto titleRect = layout.spTitle->GetViewRect() + nodePos;
     auto footerRect = layout.spFooter->GetViewRect() + nodePos;
+    auto contentRect = layout.spContents->GetViewRect() + nodePos;
 
     auto mousePos = m_spCanvas->GetViewMousePos();
 
@@ -1125,12 +1126,12 @@ void GraphView::DrawNode(ViewNode& viewNode)
         NRectf rcPad;
         if (in)
         {
-            rcPad = NRectf(left, titleRect.Top() + (titleRect.Height() - padSize) * .5f, padSize, padSize);
+            rcPad = NRectf(left, titleRect.Top() - padSize, padSize, padSize);
             DrawSlab(rcPad, theme.Get(flow ? color_flowData : color_flowControl));
         }
         else
         {
-            rcPad = NRectf(left, footerRect.Top() + margin, padSize, padSize);
+            rcPad = NRectf(left, contentRect.Bottom(), padSize, padSize);
             auto footerRadius = rcPad.Height() * .5f;
             m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y) + NVec2f(style.GetFloat(style_controlShadowSize)), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(color_nodeShadowColor));
             m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(flow ? color_flowData : color_flowControl));

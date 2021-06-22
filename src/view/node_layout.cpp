@@ -25,7 +25,7 @@ std::shared_ptr<NodeLayout> node_layout_create()
 
     spNodeLayout->spRoot->AddItem(spNodeLayout->spTitle.get(), NVec2f(0.0f, style.GetFloat(style_nodeTitleHeight)));
     spNodeLayout->spRoot->AddItem(spNodeLayout->spContents.get(), NVec2f(0.0f, 0.0f));
-    spNodeLayout->spRoot->AddItem(spNodeLayout->spFooter.get(), NVec2f(0.0f, style.GetFloat(style_nodeTitleHeight)));
+    spNodeLayout->spRoot->AddItem(spNodeLayout->spFooter.get(), NVec2f(0.0f, 0.0f));//style.GetFloat(style_nodeTitleHeight)));
 
     // TODO: Calculate a minimum title size for nodes with small UI?
     // Minimum size for now

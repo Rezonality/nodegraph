@@ -218,7 +218,7 @@ public:
         pNumber = AddInput("Number", 1.0f, ParameterAttributes(ParameterUI::Slider, 0.0f, 10.0f));
         pNumber->GetAttributes().step = 0.01f;
         
-        pOutput = AddOutput("Number", (IControlData*)nullptr);
+        pOutput = AddOutput("Output", (IControlData*)nullptr);
 
         auto pLayout = new MUtils::HLayout();
         GetLayout().spContents->AddItem(pLayout);
@@ -337,7 +337,8 @@ public:
             pNumberNode2->SetPos(NVec2f(500.0f, 250.0f));
             pSum->SetPos(NVec2f(450.0f, 400.0f));
 
-            pNumberNode1->ConnectTo(pSum, "Number", "Input");
+            pNumberNode1->ConnectTo(pSum, "Output", "Input");
+            pNumberNode2->ConnectTo(pNumberNode1, "Output", "Number");
             //pNumberNode2->ConnectTo(pSum, "Number", "Input");
             for (auto pNode : pGraph->GetNodes())
             {
