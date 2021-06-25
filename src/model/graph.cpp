@@ -102,7 +102,7 @@ void Graph::Compute(const std::set<Node*>& outNodes, int64_t numTicks)
 
         for (auto& pin : pEvalNode->GetInputs())
         {
-            if (pin->GetDirection() == PinDir::Input && (pin->GetType() == ParameterType::FlowData || pin->GetType() == ParameterType::ControlData))
+            if (pin->GetDirection() == PinDir::Input && (pin->GetType() == ParameterType::FlowData))
             {
                 auto pSource = pin->GetSource();
                 if (pSource != nullptr && pSource->GetOwnerNode().GetGeneration() != currentGeneration)
@@ -154,14 +154,14 @@ std::vector<Pin*> Graph::GetControlSurface() const
     {
         for (auto& in : pNode->GetInputs())
         {
-            if ((in->GetSource() == nullptr) && (in->GetType() != ParameterType::FlowData) && (in->GetType() != ParameterType::ControlData))
+            if ((in->GetSource() == nullptr) && (in->GetType() != ParameterType::FlowData))
             {
                 pins.emplace_back(in);
             }
         }
         for (auto& in : pNode->GetOutputs())
         {
-            if ((in->GetType() != ParameterType::FlowData) && (in->GetType() != ParameterType::ControlData))
+            if (in->GetType() != ParameterType::FlowData)
             {
                 pins.emplace_back(in);
             }

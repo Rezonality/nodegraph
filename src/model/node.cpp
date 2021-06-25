@@ -103,13 +103,7 @@ void Node::ConnectIndexTo(Node* pDest, uint32_t outputIndex, int32_t inputIndex)
         if (m_outputs[outputIndex]->GetType() == ParameterType::FlowData)
         {
             int size = (int)pDest->GetFlowInputs().size();
-            pDest->AddInput(std::string("Flow_") + std::to_string(size), (IFlowData*)nullptr);
-            inputIndex = size;
-        }
-        else if (m_outputs[outputIndex]->GetType() == ParameterType::ControlData)
-        {
-            int size = (int)pDest->GetControlInputs().size();
-            pDest->AddInput(std::string("Control_") + std::to_string(size), (IControlData*)nullptr);
+            pDest->AddInputFlow(std::string("Flow_") + std::to_string(size), (IFlowData*)new FlowData(0, ParameterType::Float));
             inputIndex = size;
         }
         else
@@ -188,12 +182,7 @@ void Node::ConnectTo(Node* pDest, const std::string& outputName, const std::stri
             if (pOut->GetType() == ParameterType::FlowData)
             {
                 int size = (int)pDest->GetFlowInputs().size();
-                pIn = pDest->AddInput(std::string("Flow_") + std::to_string(size), (IFlowData*)nullptr);
-            }
-            else if (pOut->GetType() == ParameterType::ControlData)
-            {
-                int size = (int)pDest->GetControlInputs().size();
-                pIn = pDest->AddInput(std::string("Control_") + std::to_string(size), (IControlData*)nullptr);
+                pIn = pDest->AddInputFlow(std::string("Flow_") + std::to_string(size), (IFlowData*)new FlowData(0, ParameterType::Float));
             }
             else
             {
@@ -247,7 +236,7 @@ Pin* Node::GetPin(const std::string& name) const
     }
     return nullptr;
 }
-Pin* Node::AddInput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
+Pin* Node::AddInputFlow(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
 {
     GRAPH_MODIFY(m_graph);
 
@@ -259,35 +248,13 @@ Pin* Node::AddInput(const std::string& strName, IFlowData* val, const ParameterA
     return pPin;
 }
 
-Pin* Node::AddInput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
-{
-    GRAPH_MODIFY(m_graph);
-
-    auto pPin = new Pin(*this, PinDir::Input, strName, val, attrib);
-    m_inputs.push_back(pPin);
-    m_controlInputs.push_back(pPin);
-    m_flowControlInputs.clear();
-    return pPin;
-}
-
-Pin* Node::AddOutput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
+Pin* Node::AddOutputFlow(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib)
 {
     GRAPH_MODIFY(m_graph);
 
     auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
     m_outputs.push_back(pPin);
     m_flowOutputs.push_back(pPin);
-    m_flowControlOutputs.clear();
-    return pPin;
-}
-
-Pin* Node::AddOutput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib)
-{
-    GRAPH_MODIFY(m_graph);
-
-    auto pPin = new Pin(*this, PinDir::Output, strName, val, attrib);
-    m_outputs.push_back(pPin);
-    m_controlOutputs.push_back(pPin);
     m_flowControlOutputs.clear();
     return pPin;
 }

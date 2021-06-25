@@ -157,7 +157,7 @@ public:
     Pin* GetPin(const std::string& name) const;
 
     // Make an output pin
-    template <class T>
+    template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
     Pin* AddOutput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
         GraphModify __modify(m_graph);
@@ -165,11 +165,10 @@ public:
         return m_outputs[m_outputs.size() - 1];
     }
 
-    Pin* AddOutput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{});
-    Pin* AddOutput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib = ParameterAttributes{});
+    Pin* AddOutputFlow(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{});
 
     // Make an input pin
-    template <class T>
+    template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
     Pin* AddInput(const std::string& strName, T val, const ParameterAttributes& attrib = ParameterAttributes{})
     {
         GraphModify __modify(m_graph);
@@ -177,8 +176,7 @@ public:
         return m_inputs[m_inputs.size() - 1];
     }
 
-    Pin* AddInput(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{});
-    Pin* AddInput(const std::string& strName, IControlData* val, const ParameterAttributes& attrib = ParameterAttributes{});
+    Pin* AddInputFlow(const std::string& strName, IFlowData* val, const ParameterAttributes& attrib = ParameterAttributes{});
 
     NodeDecorator* AddDecorator(NodeDecorator* decorator);
 

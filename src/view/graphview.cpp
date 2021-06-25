@@ -21,8 +21,7 @@ using namespace MUtils;
 using namespace MUtils::Theme;
 using namespace MUtils::Style;
 
-namespace
-{
+namespace {
 
 float widget_fontHeight = 28.0f;
 float widget_fontHeightSmall = 16.0f;
@@ -39,8 +38,7 @@ float node_gridScale = 125.0f;
 float node_labelPad = 6.0f;
 } // namespace
 
-namespace NodeGraph
-{
+namespace NodeGraph {
 
 GraphView::GraphView(Graph* pGraph, std::shared_ptr<Canvas> spCanvas)
     : m_pGraph(pGraph)
@@ -86,7 +84,7 @@ void GraphView::InitColors()
     theme.Set(color_nodeHLColor, NVec4f(0.98f, 0.48f, 0.28f, 1.0f));
     theme.Set(color_nodeShadowColor, NVec4f(0.1f, 0.1f, 0.1f, .75f));
 
-    theme.Set(color_controlShadowColor, NVec4f(0.2f, 0.2f, 0.2f, 1.0f)); // Border/shadow
+    theme.Set(color_controlShadowColor, NVec4f(0.1f, 0.1f, 0.1f, 1.0f)); // Border/shadow
     theme.Set(color_controlFillColor, NVec4f(.55f, .55f, 0.55f, 1.0f)); // Knob color, button background, slider background
     theme.Set(color_controlFillColorHL, NVec4f(.65f, .65f, 0.65f, 1.0f)); // Highlighted version of above
     theme.Set(color_controlKeyColor1, NVec4f(0.98f, 0.48f, 0.18f, 1.0f)); // Alternate color for slider thumb, knob surround, etc.
@@ -141,7 +139,7 @@ bool GraphView::ShouldShowNode(Canvas& canvas, const Node* pNode) const
     }
     */
 
-        /*
+    /*
     for (auto& decorator : pNode->GetDecorators())
     {
         if (!decorator->gridLocation.Empty())
@@ -183,7 +181,7 @@ void GraphView::BuildNodes()
     }
 }
 
-bool GraphView::CheckCapture(ViewNode& viewNode, Parameter& param, const NRectf& region, bool& hover)
+bool GraphView::CheckCapture(ViewNode& viewNode, Pin& param, const NRectf& region, bool& hover)
 {
     auto pos = m_spCanvas->GetViewMousePos();
     bool overParam = region.Contains(NVec2f(pos.x, pos.y));
@@ -221,7 +219,7 @@ bool GraphView::CheckCapture(ViewNode& viewNode, Parameter& param, const NRectf&
                 // Make this the new start state
                 m_pCaptureParam = &param;
                 m_mouseStart = NVec2f(pos.x, pos.y);
-                m_pStartValue = std::make_shared<Parameter>(*m_pCaptureParam);
+                m_pStartValue = m_pCaptureParam;
             }
         }
     }
@@ -647,6 +645,56 @@ void GraphView::DrawSlab(const NRectf& region, const NVec4f& color)
     m_spCanvas->FillRoundedRect(GetInnerRegion(region), style.GetFloat(style_nodeBorderRadius), color);
 }
 
+void GraphView::DrawTri(const NRectf& region, const NVec4f& color, Side orient)
+{
+    auto& style = StyleManager::Instance();
+    auto& theme = ThemeManager::Instance();
+
+    auto fill = [=](auto r, auto color) {
+        NVec2f points[3];
+
+        switch (orient)
+        {
+        case Side::Left:
+        {
+            points[0] = NVec2f(r.Left(), r.Center().y);
+            points[1] = r.TopRight();
+            points[2] = r.bottomRightPx;
+        }
+        break;
+        case Side::Right:
+        {
+            points[0] = NVec2f(r.Right(), r.Center().y);
+            points[1] = r.topLeftPx;
+            points[2] = r.BottomLeft();
+        }
+        break;
+        case Side::Top:
+        {
+            points[0] = r.BottomLeft();
+            points[1] = NVec2f(r.Center().x, r.Top());
+            points[2] = r.bottomRightPx;
+        }
+        break;
+        case Side::Bottom:
+        {
+            points[0] = r.topLeftPx;
+            points[1] = NVec2f(r.Center().x, r.Bottom());
+            points[2] = r.TopRight();
+        }
+        break;
+        }
+
+        m_spCanvas->BeginPath(points[2], color);
+        m_spCanvas->LineTo(points[1]);
+        m_spCanvas->LineTo(points[0]);
+        m_spCanvas->LineTo(points[2]);
+        m_spCanvas->EndPath();
+    };
+    fill(GetShadowRegion(region), theme.Get(color_controlShadowColor));
+    fill(GetInnerRegion(region), color);
+}
+
 SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
 {
     auto& style = StyleManager::Instance();
@@ -671,6 +719,7 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
     if (param.GetSource() != nullptr)
     {
         SplitRegionAddPad(region, sliderRegion, padRegion);
+        param.SetPadRect(padRegion, Side::Left, Side::Right);
     }
     else
     {
@@ -706,7 +755,8 @@ SliderData GraphView::DrawSlider(ViewNode& viewNode, Pin& param, NRectf region)
 
     if (!padRegion.Empty())
     {
-        DrawSlab(padRegion, theme.Get(color_flowControl));
+        //DrawSlab(padRegion, theme.Get(color_flowControl));
+        DrawTri(padRegion, theme.Get(color_flowControl), Side::Left);
     }
     DrawSlab(sliderRegion, fillColor);
 
@@ -982,6 +1032,12 @@ void GraphView::Show(const NVec4f& clearColor)
             return;
         }
 
+        /*if ((*pPin->GetTargets().begin())->GetOwnerNode().GetName() != "Add")
+        {
+            return; 
+        }
+        */
+
         auto& theme = ThemeManager::Instance();
         auto& style = StyleManager::Instance();
 
@@ -989,12 +1045,59 @@ void GraphView::Show(const NVec4f& clearColor)
         {
             auto srcRect = pPin->GetPadRect();
             auto dstRect = pTarget->GetPadRect();
+            auto srcOrient = pPin->GetPadLocation();
+            auto dstOrient = pTarget->GetPadLocation();
 
-            auto dist = (dstRect.Center().x - srcRect.Center().x) / 3;
-        
-            const auto& col = theme.Get((pPin->GetType() == ParameterType::FlowData) ? color_flowData : color_flowControl);
-            m_spCanvas->DrawCubicBezier(srcRect.Center(), srcRect.Center() + NVec2f(dist, 0.0f), dstRect.Center() - NVec2(dist, 0.0f), dstRect.Center(), col);
-        
+            NVec2f srcDist;
+            switch (srcOrient)
+            {
+            case Side::Left:
+                srcDist = NVec2f(-1, 0);
+                break;
+            case Side::Right:
+                srcDist = NVec2f(1, 0);
+                break;
+            case Side::Top:
+                srcDist = NVec2f(0, -1);
+                break;
+            case Side::Bottom:
+                srcDist = NVec2f(0, 1);
+                break;
+            }
+            
+            NVec2f dstDist;
+            switch (dstOrient)
+            {
+            case Side::Left:
+                dstDist = NVec2f(-1, 0);
+                break;
+            case Side::Right:
+                dstDist = NVec2f(1, 0);
+                break;
+            case Side::Top:
+                dstDist = NVec2f(0, -1);
+                break;
+            case Side::Bottom:
+                dstDist = NVec2f(0, 1);
+                break;
+            }
+
+            auto maxDist = std::max(std::abs(srcRect.Center().x - dstRect.Center().x), std::abs(srcRect.Center().y - dstRect.Center().y)) * .3f;
+            maxDist = std::max(maxDist, dstRect.Width() * 3.0f);
+
+            dstDist *= maxDist;
+            srcDist *= maxDist;
+
+            NVec4f col;
+            if (pPin->GetType() == ParameterType::FlowData)
+            {
+                col = theme.Get(pPin->GetFlowData()->GetFlowType() == FlowType_Data ? color_flowControl : color_flowData);
+            }
+            else
+            {
+                col = theme.Get(color_flowData);
+            }
+            m_spCanvas->DrawCubicBezier(srcRect.Center(), srcRect.Center() + srcDist, dstRect.Center() + dstDist, dstRect.Center(), col);
         }
     };
 
@@ -1083,62 +1186,112 @@ void GraphView::DrawNode(ViewNode& viewNode)
     // Connectors
     auto margin = style.GetFloat(style_nodeLayoutMargin);
     auto padSize = style.GetFloat(style_nodePadSize);
+    auto padSizeHalf = padSize * .5f;
 
-    auto drawIO = [=](Pin* pPin, int i, int maxPads, bool in, int side = 0) {
+    NVec2f targetSites[4];
+    uint32_t siteCount[4] = { 0, 0, 0, 0 };
+    targetSites[int(Side::Left)] = NVec2f(nodeRect.Left() - padSize, nodeRect.Center().y - padSizeHalf);
+    targetSites[int(Side::Right)] = NVec2f(nodeRect.Right(), nodeRect.Center().y - padSizeHalf);
+    targetSites[int(Side::Top)] = NVec2f(nodeRect.Center().x - padSizeHalf, nodeRect.Top() - padSize);
+    targetSites[int(Side::Bottom)] = NVec2f(nodeRect.Center().x - padSizeHalf, nodeRect.Bottom());
+
+    auto drawIO = [=, &siteCount](Pin* pPin, int i, int maxPads, bool in, int side = 0) {
         auto& theme = ThemeManager::Instance();
         auto& style = StyleManager::Instance();
-        bool flow = (pPin->GetType() == ParameterType::FlowData);
+        uint32_t type = pPin->GetFlowData()->GetFlowType();
 
+        NVec2f center = nodeRect.Center();
+        NVec2f otherCenter;
+        bool input = false;
         // Figure out which side the io pad lives on based on the where it is relative to the other node it is connected to
         if (pPin->GetDirection() == PinDir::Input)
         {
-            if (pPin->GetSource() && pPin->GetSource()->GetOwnerNode().GetCenter().x < pPin->GetOwnerNode().GetCenter().x)
+            input = true;
+            if (pPin->GetSource())
             {
-                side = 0;
+                otherCenter = pPin->GetSource()->GetOwnerNode().GetCenter();
             }
             else
             {
-                side = 1;
+                otherCenter = nodeRect.Top();
             }
         }
         else
         {
-            if (!pPin->GetTargets().empty() && (*pPin->GetTargets().begin())->GetOwnerNode().GetCenter().x < pPin->GetOwnerNode().GetCenter().x)
+            if (!pPin->GetTargets().empty())
             {
-                side = 0;
+                otherCenter = (*pPin->GetTargets().begin())->GetOwnerNode().GetCenter();
             }
             else
             {
-                side = 1;
+                otherCenter = nodeRect.Bottom();
             }
         }
 
-        float left;
-        if (side == 0)
+        auto diff = otherCenter - center;
+
+        Side orient;
+        Side location;
+        NVec2f sitePos;
+        if (fabs(diff.x) > fabs(diff.y))
         {
-            left = titleRect.Left() + margin + (i * margin * 2 + i * padSize);
+            if (diff.x >= 0.0f)
+            {
+                orient = Side::Right;
+                location = Side::Right;
+                sitePos = targetSites[int(Side::Right)];
+                sitePos.x += (siteCount[int(Side::Right)]++ * (padSize + margin));
+            }
+            else
+            {
+                orient = Side::Left;
+                location = Side::Left;
+                sitePos = targetSites[int(Side::Left)];
+                sitePos.x -= (siteCount[int(Side::Left)]++ * (padSize + margin));
+            }
         }
         else
         {
-            left = titleRect.Right() - (maxPads * margin * 2 + maxPads * padSize) + margin + (i * margin * 2 + i * padSize);
+            if (diff.y >= 0.0f)
+            {
+                orient = Side::Bottom;
+                location = Side::Bottom;
+                sitePos = targetSites[int(Side::Bottom)];
+                sitePos.y += (siteCount[int(Side::Bottom)]++ * (padSize + margin));
+            }
+            else
+            {
+                orient = Side::Top;
+                location = Side::Top;
+                sitePos = targetSites[int(Side::Top)];
+                sitePos.y -= (siteCount[int(Side::Top)]++ * (padSize + margin));
+            }
         }
 
         NRectf rcPad;
-        if (in)
+        rcPad = NRectf(sitePos.x, sitePos.y, padSize, padSize);
+        
+        if (input)
         {
-            rcPad = NRectf(left, titleRect.Top() - padSize, padSize, padSize);
-            DrawSlab(rcPad, theme.Get(flow ? color_flowData : color_flowControl));
+            switch (orient)
+            {
+            case Side::Left:
+                orient = Side::Right;
+                break;
+            case Side::Right:
+                orient = Side::Left;
+                break;
+            case Side::Top:
+                orient = Side::Bottom;
+                break;
+            case Side::Bottom:
+                orient = Side::Top;
+                break;
+            }
         }
-        else
-        {
-            rcPad = NRectf(left, contentRect.Bottom(), padSize, padSize);
-            auto footerRadius = rcPad.Height() * .5f;
-            m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y) + NVec2f(style.GetFloat(style_controlShadowSize)), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(color_nodeShadowColor));
-            m_spCanvas->FilledCircle(NVec2f(left + footerRadius, footerRect.Center().y), footerRadius - style.GetFloat(style_controlShadowSize), theme.Get(flow ? color_flowData : color_flowControl));
-        }
-        pPin->SetPadRect(rcPad);
+        DrawTri(rcPad, theme.Get(type == FlowType_Data ? color_flowControl : color_flowData), orient);
+        pPin->SetPadRect(rcPad, orient, location);
     };
-
 
     auto& inputs = node.GetFlowControlInputs();
     for (int i = 0; i < inputs.size(); i++)
@@ -1149,7 +1302,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto& outputs = node.GetFlowControlOutputs();
     for (int i = 0; i < outputs.size(); i++)
     {
-        drawIO(outputs[i],i, int(outputs.size()), false, 0);
+        drawIO(outputs[i], i, int(outputs.size()), false, 0);
     }
 
     // Title text

@@ -99,10 +99,12 @@ public:
     SliderData DrawSlider(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect);
     void DrawButton(ViewNode& viewNode, Pin& pin, MUtils::NRectf rect);
     void DrawSlab(const MUtils::NRectf& rect, const MUtils::NVec4f& color);
+    void DrawTri(const MUtils::NRectf& region, const MUtils::NVec4f& color, Side orient);
+
     MUtils::NRectf DrawConnectorPad(const MUtils::NRectf& region, const MUtils::NVec4f& color);
 
    
-    bool CheckCapture(ViewNode& viewNode, Parameter& param, const MUtils::NRectf& region, bool& hover);
+    bool CheckCapture(ViewNode& viewNode, Pin& param, const MUtils::NRectf& region, bool& hover);
    
     // Labels/Adornments
     void DrawLabel(Parameter& param, const LabelInfo& pos);
@@ -159,11 +161,11 @@ private:
     std::shared_ptr<Canvas> m_spCanvas;
     std::shared_ptr<GraphViewData> m_spViewData;
 
-    Parameter* m_pCaptureParam = nullptr;
+    Pin* m_pCaptureParam = nullptr;
     Node* m_pCaptureNode = nullptr;
 
     MUtils::NVec2f m_mouseStart;
-    std::shared_ptr<Parameter> m_pStartValue;
+    Pin* m_pStartValue;
 
     bool m_hideCursor = false;
     uint32_t m_currentInputIndex = 0;

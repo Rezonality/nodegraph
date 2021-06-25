@@ -215,10 +215,10 @@ public:
     {
         m_flags |= NodeFlags::OwnerDraw;
 
-        pNumber = AddInput("Number", 1.0f, ParameterAttributes(ParameterUI::Slider, 0.0f, 10.0f));
+        pNumber = AddInput("Number", 1.0f, ParameterAttributes(ParameterUI::Slider, -1.0f, 1.0f));
         pNumber->GetAttributes().step = 0.01f;
         
-        pOutput = AddOutput("Output", (IControlData*)nullptr);
+        pOutput = AddOutputFlow("Output", new FlowData(FlowType_Data, ParameterType::Float));
 
         auto pLayout = new MUtils::HLayout();
         GetLayout().spContents->AddItem(pLayout);
@@ -229,6 +229,7 @@ public:
 
     virtual void Compute() override
     {
+        pOutput->GetFlowData()->From(*pNumber);
     }
 
     Pin* pNumber = nullptr;
@@ -236,6 +237,43 @@ public:
     std::shared_ptr<NodeLayout> m_spNodeLayout;
 };
 
+class SinNode : public Node
+{
+public:
+    DECLARE_NODE(SinNode, test);
+
+    explicit SinNode(Graph& graph)
+        : Node(graph, "Sin")
+    {
+        m_flags |= NodeFlags::OwnerDraw;
+
+        pAmp = AddInput("Amp", 1.0f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
+        pAmp->GetAttributes().step = 0.01f;
+        
+        pFreq = AddInput("Freq", 1.0f, ParameterAttributes(ParameterUI::Slider, 1.0f, 10.0f));
+        pFreq->GetAttributes().step = 0.1f;
+        
+        pOutput = AddOutputFlow("Sin", new FlowData(FlowType_Data, ParameterType::Float));
+
+        auto pLayout = new MUtils::VLayout();
+        GetLayout().spContents->AddItem(pLayout);
+
+        pLayout->AddItem(pAmp, NVec2f(200.0f, 30.0f));
+        pLayout->AddItem(pFreq, NVec2f(200.0f, 30.0f));
+        GetLayout().spRoot->UpdateLayout();
+    }
+
+    virtual void Compute() override
+    {
+        pOutput->GetFlowData()->From(pAmp->To<float>() * (float)sin(pFreq->To<float>() * timer_get_elapsed_seconds(myTimer)));
+    }
+
+    MUtils::timer myTimer;
+    Pin* pFreq = nullptr;
+    Pin* pAmp = nullptr;
+    Pin* pOutput = nullptr;
+    std::shared_ptr<NodeLayout> m_spNodeLayout;
+};
 class SumNode : public Node
 {
 public:
@@ -246,8 +284,8 @@ public:
     {
         m_flags |= NodeFlags::OwnerDraw;
 
-        pInput = AddInput("Input", (IControlData*)nullptr);
-        pSum = AddOutput("Sum", (IControlData*)nullptr);
+        pInput = AddInputFlow("Input", new FlowData(FlowType_Data, ParameterType::Float));
+        pSum = AddOutputFlow("Sum", new FlowData(FlowType_Data, ParameterType::Float));
 
         auto pLayout = new MUtils::HLayout();
         GetLayout().spContents->AddItem(pLayout);
@@ -283,7 +321,7 @@ class App : public IAppStarterClient
 public:
     App()
     {
-        m_settings.flags |= AppStarterFlags::DockingEnable | /*AppStarterFlags::ShowDemoWindow |*/ AppStarterFlags::RefreshOnEvents;
+        m_settings.flags |= AppStarterFlags::DockingEnable /*AppStarterFlags::ShowDemoWindow | AppStarterFlags::RefreshOnEvents*/;
         m_settings.startSize = NVec2i(1680, 1000);
         m_settings.clearColor = NVec4f(.2f, .2f, .2f, 1.0f);
         m_settings.appName = "NodeGraph Test";
@@ -328,17 +366,17 @@ public:
             auto pTestNode = pGraph->CreateNode<TestNode>();
             auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
             auto pNumberNode1 = pGraph->CreateNode<NumberNode>();
-            auto pNumberNode2 = pGraph->CreateNode<NumberNode>();
+            auto pSinNode = pGraph->CreateNode<SinNode>();
             auto pSum = pGraph->CreateNode<SumNode>();
 
             pTestNode->SetPos(NVec2f(50.0f, 10.0f));
             pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
             pNumberNode1->SetPos(NVec2f(400.0f, 250.0f));
-            pNumberNode2->SetPos(NVec2f(500.0f, 250.0f));
+            pSinNode->SetPos(NVec2f(500.0f, 250.0f));
             pSum->SetPos(NVec2f(450.0f, 400.0f));
 
             pNumberNode1->ConnectTo(pSum, "Output", "Input");
-            pNumberNode2->ConnectTo(pNumberNode1, "Output", "Number");
+            pSinNode->ConnectTo(pNumberNode1, "Sin", "Number");
             //pNumberNode2->ConnectTo(pSum, "Number", "Input");
             for (auto pNode : pGraph->GetNodes())
             {

@@ -2,36 +2,28 @@
 
 #include <cassert>
 #include <cstdint>
-#include <variant>
 #include <unordered_set>
+#include <variant>
 
 #include <mutils/math/math.h>
 
+#include "nodegraph/model/flow_data.h"
 #include "nodegraph/model/parameter.h"
 #include "nodegraph/view/layout_control.h"
 
-namespace NodeGraph
-{
+namespace NodeGraph {
 
 class Node;
-
-class IFlowData
-{
-public:
-    virtual ~IFlowData() {}
-};
-
-class IControlData
-{
-public:
-    virtual ~IControlData() {}
-};
-
 
 enum class PinDir
 {
     Input,
     Output
+};
+
+enum class Side
+{
+    Left, Right, Top, Bottom
 };
 
 // A pin on an audio node; connects (optionally) to another node.
@@ -43,7 +35,6 @@ public:
     Pin(Node& node, PinDir pinDir, const std::string& pinName, bool bVal, const ParameterAttributes& attribs = {});
     Pin(Node& node, PinDir pinDir, const std::string& pinName, int64_t val, const ParameterAttributes& attribs = {});
     Pin(Node& node, PinDir pinDir, const std::string& pinName, IFlowData* pData, const ParameterAttributes& attribs = {});
-    Pin(Node& node, PinDir pinDir, const std::string& pinName, IControlData* pData, const ParameterAttributes& attribs = {});
     Pin(Node& node, PinDir pinDir, const std::string& pinName, const std::string& pData, const ParameterAttributes& attribs = {});
 
     Pin(Node& o, PinDir pinDir, const std::string& pinName, const Parameter& param);
@@ -52,7 +43,6 @@ public:
     Pin(const Pin& pin) = delete;
     void operator=(const Pin& pin) = delete;
 
-    
     void ConnectTo(Pin& out)
     {
         assert(m_direction == PinDir::Output);
@@ -86,18 +76,6 @@ public:
         }
         return m_pSource->GetFlowData();
     }
-    
-    virtual IControlData* GetControlData() const override
-    {
-        assert(m_value.type == ParameterType::ControlData);
-        if (m_pSource == nullptr)
-        {
-            // might wind up null
-            return Parameter::GetControlData();
-        }
-        return m_pSource->GetControlData();
-    }
-
 
     template <typename T>
     T GetValue() const
@@ -164,14 +142,26 @@ public:
         m_targets.clear();
     }
 
-    void SetPadRect(MUtils::NRectf& pad)
+    void SetPadRect(MUtils::NRectf& pad, Side orient, Side location)
     {
         m_padRect = pad;
+        m_padOrientation = orient;
+        m_padLocation = location;
     }
 
     const MUtils::NRectf& GetPadRect() const
     {
-        return m_padRect; 
+        return m_padRect;
+    }
+
+    Side GetPadOrientation() const
+    {
+        return m_padOrientation; 
+    }
+    
+    Side GetPadLocation() const
+    {
+        return m_padLocation; 
     }
     /* 
     const MUtils::NRectf& GetViewCells() const
@@ -185,18 +175,24 @@ public:
     }
     */
 
+    double Normalized();
+    double Pin::NormalizedStep() const;
+    double NormalizedOrigin() const;
+    void SetFromNormalized(double val);
+
 private:
-    PinDir m_direction;                     // The direction of this pin
-    std::string m_strName;                  // The name of this pin
+    PinDir m_direction; // The direction of this pin
+    std::string m_strName; // The name of this pin
 
-    Node& m_owner;                          // Node that owns this pin
+    Node& m_owner; // Node that owns this pin
 
-    std::unordered_set<Pin*> m_targets;     // Which pins I'm connected to
-    Pin* m_pSource = nullptr;               // Which pin I'm connected from
+    std::unordered_set<Pin*> m_targets; // Which pins I'm connected to
+    Pin* m_pSource = nullptr; // Which pin I'm connected from
 
-    MUtils::NRectf m_viewCells = MUtils::NRectf(0, 0, 0, 0);            // Cells that this parameter should be shown in for UI
+    MUtils::NRectf m_viewCells = MUtils::NRectf(0, 0, 0, 0); // Cells that this parameter should be shown in for UI
     MUtils::NRectf m_padRect;
+    Side m_padOrientation;
+    Side m_padLocation;
 };
-
 
 } // namespace NodeGraph

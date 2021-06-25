@@ -17,7 +17,6 @@ namespace NodeGraph
 
 // Data that flows between nodes, of generic type
 class IFlowData;
-class IControlData;
 
 enum class ParameterType
 {
@@ -27,9 +26,30 @@ enum class ParameterType
     Int64,
     Bool,
     String,
-    FlowData,
-    ControlData
+    FlowData
 };
+
+inline uint32_t GetParameterTypeSize(ParameterType type)
+{
+    switch (type)
+    {
+    default:
+    case ParameterType::String:
+    case ParameterType::None:
+    case ParameterType::FlowData:
+        assert(!"error?");
+        return 1;
+    case ParameterType::Float:
+        return sizeof(float);
+    case ParameterType::Double:
+        return sizeof(double);
+    case ParameterType::Int64:
+        return sizeof(int64_t);
+    case ParameterType::Bool:
+        return sizeof(bool);
+        break;
+    }
+}
 
 struct ParameterValue
 {
@@ -40,7 +60,6 @@ struct ParameterValue
         int64_t iVal;
         bool bVal;
         IFlowData* pFVal;
-        IControlData* pCVal;
     };
     std::string sVal;
     ParameterType type = ParameterType::None;
@@ -76,9 +95,6 @@ struct ParameterValue
         case ParameterType::FlowData:
             pFVal = val.pFVal;
             break;
-        case ParameterType::ControlData:
-            pCVal = val.pCVal;
-            break;
         default:
             break;
         }
@@ -108,9 +124,6 @@ struct ParameterValue
             break;
         case ParameterType::FlowData:
             return pFVal == val.pFVal;
-            break;
-        case ParameterType::ControlData:
-            return pCVal == val.pCVal;
             break;
         default:
             break;
@@ -154,12 +167,6 @@ struct ParameterValue
             return false;
         return pFVal == val;
     }
-    bool operator==(const IControlData* const& val)
-    {
-        if (type != ParameterType::ControlData)
-            return false;
-        return pCVal == val;
-    }
 
     bool operator!=(const float& val)
     {
@@ -182,10 +189,6 @@ struct ParameterValue
         return !operator==(val);
     }
     bool operator!=(const IFlowData* const& val)
-    {
-        return !operator==(val);
-    }
-    bool operator!=(const IControlData* const& val)
     {
         return !operator==(val);
     }
@@ -220,11 +223,6 @@ struct ParameterValue
     {
         pFVal = ptr;
         type = ParameterType::FlowData;
-    }
-    explicit ParameterValue(IControlData* const& ptr)
-    {
-        pCVal = ptr;
-        type = ParameterType::ControlData;
     }
 
     float operator=(const float& f)
@@ -307,20 +305,6 @@ struct ParameterValue
         return pFVal;
     }
 
-    IControlData* operator=(IControlData* const& v)
-    {
-        if (type == ParameterType::ControlData)
-        {
-            type = ParameterType::ControlData;
-        }
-        if (type != ParameterType::ControlData)
-        {
-            throw std::invalid_argument("Not control data!");
-        }
-        pCVal = v;
-        return pCVal;
-    }
-
     explicit operator float() const
     {
         if (type != ParameterType::Float)
@@ -361,17 +345,11 @@ struct ParameterValue
         }
         return pFVal;
     }
-    explicit operator IControlData*() const
-    {
-        if (type != ParameterType::ControlData)
-        {
-            throw std::invalid_argument("Not flow data!");
-        }
-        return pCVal;
-    }
 
-    template <class T> T To() const;
-    template <class T> void SetFrom(const T& value);
+    template <class T>
+    T To() const;
+    template <class T>
+    void SetFrom(const T& value);
 };
 
 template <class T>
@@ -401,7 +379,7 @@ inline T ParameterValue::To() const
     return v;
 };
 
-template<>
+template <>
 inline std::string ParameterValue::To() const
 {
     switch (type)
@@ -414,8 +392,6 @@ inline std::string ParameterValue::To() const
         return std::to_string(iVal);
     case ParameterType::Bool:
         return std::to_string(bVal);
-    case ParameterType::ControlData:
-        return ":Control";
     case ParameterType::FlowData:
         return ":Flow";
     default:
@@ -493,7 +469,6 @@ enum
 class ParameterAttributes
 {
 public:
-
     // Fixed types once set
     ParameterValue min;
     ParameterValue max;
@@ -573,8 +548,8 @@ public:
 
         m_generation++;
 
-        // Always immediate
-        if (m_value.type == ParameterType::FlowData || m_value.type == ParameterType::ControlData || m_value.type == ParameterType::String)
+        // Always immediate; can't interpolate this kind of data
+        if (m_value.type == ParameterType::FlowData || m_value.type == ParameterType::String)
         {
             m_value = val;
         }
@@ -673,13 +648,6 @@ public:
     {
     }
 
-    explicit Parameter(IControlData* val, const ParameterAttributes& attrib = ParameterAttributes{})
-        : m_value(val)
-        , m_initValue(val)
-        , m_attributes(attrib)
-    {
-    }
-
     void SetAttributes(const ParameterAttributes& attributes)
     {
         m_attributes = attributes;
@@ -690,17 +658,38 @@ public:
         return m_attributes;
     }
 
-    // Get a value that isn't a flow data
+    // Get a value and convert from flow data 
     template <class T>
     T To() const
     {
         if (m_value.type == ParameterType::FlowData)
         {
+            void* pData = nullptr;
+
+            // Convert the flow data to a stream of the same data type
+            if (std::is_same_v<T, float>)
+            {
+                pData = m_value.pFVal->To(ParameterType::Float);
+            }
+            else if (std::is_same_v<T, double>)
+            {
+                pData = m_value.pFVal->To(ParameterType::Double);
+            }
+            else if (std::is_same_v<T, int64_t>)
+            {
+                pData = m_value.pFVal->To(ParameterType::Int64);
+            }
+            else if (std::is_same_v<T, bool>)
+            {
+                pData = m_value.pFVal->To(ParameterType::Bool);
+            }
+
+            if (pData)
+            {
+                return *((T*)pData);
+            }
+
             throw std::invalid_argument("Can't request flow data with GetValue");
-        }
-        else if (m_value.type == ParameterType::ControlData)
-        {
-            throw std::invalid_argument("Can't request control data with GetValue");
         }
         return m_value.To<T>();
     }
@@ -719,15 +708,6 @@ public:
         return m_value.pFVal;
     }
 
-    virtual IControlData* GetControlData() const
-    {
-        if (m_value.type != ParameterType::ControlData)
-        {
-            throw std::invalid_argument("Not control data!");
-        }
-        return m_value.pCVal;
-    }
-
     // Update the current value of the parameter
     ParameterValue Update(uint64_t tick)
     {
@@ -740,7 +720,7 @@ public:
 
         m_generation++;
 
-        if (m_value.type == ParameterType::String || m_value.type == ParameterType::FlowData || m_value.type == ParameterType::ControlData)
+        if (m_value.type == ParameterType::String || m_value.type == ParameterType::FlowData)
         {
             m_endValue = m_value;
             return m_value;
@@ -877,66 +857,6 @@ public:
         return m_initValue;
     }
 
-    // Note can be greater than 1 if the value is out of bounds
-    double Normalized()
-    {
-        auto min = m_attributes.min.To<double>();
-        auto max = m_attributes.max.To<double>();
-
-        double ret;
-        if (m_attributes.taper == 1.0f)
-        {
-            ret = (To<double>() - min) / (max - min);
-        }
-        else
-        {
-            ret = std::pow(((To<double>() - min) / (max - min)), (1.0 / m_attributes.taper));
-        }
-        return std::clamp(ret, 0.0, 1.0);
-    }
-
-    double NormalizedStep() const
-    {
-        auto min = m_attributes.min.To<double>();
-        auto max = m_attributes.max.To<double>();
-        return std::abs(m_attributes.step.To<double>() / (max - min));
-    }
-
-    double NormalizedOrigin() const
-    {
-        auto min = m_attributes.min.To<double>();
-        auto max = m_attributes.max.To<double>();
-        auto origin = m_attributes.origin.To<double>();
-        origin = std::max(origin, min);
-
-        double ret;
-        if (m_attributes.taper == 1.0f)
-        {
-            ret = ((m_attributes.origin.To<double>() - min) / (max - min));
-        }
-        else
-        {
-            // Taper == 1 is linear
-            auto p = (origin - min) / (max - min);
-            ret = (std::pow(p, (1.0 / (double)m_attributes.taper)));
-        }
-        return std::clamp(ret, 0.0, 1.0);
-    }
-
-    void SetFromNormalized(double val)
-    {
-        auto min = m_attributes.min.To<double>();
-        auto max = m_attributes.max.To<double>();
-
-        val = std::clamp(val, 0.0, 1.0);
-        if (m_attributes.taper == 1.0f)
-        {
-            SetFrom<double>(min + (max - min) * val);
-        }
-
-        // algebraic taper
-        SetFrom<double>(min + (max - min) * std::pow(val, m_attributes.taper));
-    }
 
     void Shadow(Parameter* pParam)
     {
@@ -967,7 +887,7 @@ public:
         {
             m_pPrevShadow->m_pNextShadow = m_pNextShadow;
         }
-        
+
         if (m_pNextShadow != nullptr)
         {
             m_pNextShadow->m_pPrevShadow = m_pPrevShadow;
