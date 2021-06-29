@@ -669,19 +669,19 @@ public:
             // Convert the flow data to a stream of the same data type
             if (std::is_same_v<T, float>)
             {
-                pData = m_value.pFVal->To(ParameterType::Float);
+                pData = m_value.pFVal->ToPtr(ParameterType::Float);
             }
             else if (std::is_same_v<T, double>)
             {
-                pData = m_value.pFVal->To(ParameterType::Double);
+                pData = m_value.pFVal->ToPtr(ParameterType::Double);
             }
             else if (std::is_same_v<T, int64_t>)
             {
-                pData = m_value.pFVal->To(ParameterType::Int64);
+                pData = m_value.pFVal->ToPtr(ParameterType::Int64);
             }
             else if (std::is_same_v<T, bool>)
             {
-                pData = m_value.pFVal->To(ParameterType::Bool);
+                pData = m_value.pFVal->ToPtr(ParameterType::Bool);
             }
 
             if (pData)
