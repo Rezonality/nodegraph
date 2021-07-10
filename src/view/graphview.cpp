@@ -9,6 +9,7 @@
 
 #include <mutils/logger/logger.h>
 #include <mutils/math/math.h>
+#include <mutils/math/math_utils.h>
 #include <mutils/ui/colors.h>
 #include <mutils/ui/dpi.h>
 #include <mutils/ui/style.h>
@@ -36,6 +37,8 @@ float node_buttonPad = 2.0f;
 float node_pinPad = 4.0f;
 float node_gridScale = 125.0f;
 float node_labelPad = 6.0f;
+
+
 } // namespace
 
 namespace NodeGraph {
@@ -1064,7 +1067,7 @@ void GraphView::Show(const NVec4f& clearColor)
                 srcDist = NVec2f(0, 1);
                 break;
             }
-            
+
             NVec2f dstDist;
             switch (dstOrient)
             {
@@ -1097,7 +1100,87 @@ void GraphView::Show(const NVec4f& clearColor)
             {
                 col = theme.Get(color_flowData);
             }
-            m_spCanvas->DrawCubicBezier(srcRect.Center(), srcRect.Center() + srcDist, dstRect.Center() + dstDist, dstRect.Center(), col);
+
+            auto p1 = srcRect.Center();
+            auto p2 = srcRect.Center() + srcDist;
+            auto p3 = dstRect.Center() + dstDist;
+            auto p4 = dstRect.Center();
+
+            static std::vector<NVec2f> pointStorage;
+
+            auto pFlow = pPin->GetFlowData();
+            // Apply flow adjust
+            if (pFlow)
+            {
+                if (pFlow->GetParameterType() == ParameterType::Float)
+                {
+                    MUtils::ConsumerMemLock lk(pPin->GetDisplayFlowData());
+                    uint32_t samples = 0;
+                    if (!lk.Data().empty())
+                    {
+                        for (auto& idChannelPair : lk.Data())
+                        {
+                            auto& ch = idChannelPair.second;
+                            if (ch.empty())
+                            {
+                                continue;
+                            }
+
+                            auto pData = (float*)&ch[0];
+                            auto channelSize = uint32_t(ch.size() / 4);
+
+                            float fMax = 0.0f;
+                            for (uint32_t i = 0; i < channelSize; i++)
+                            {
+                                fMax = std::max(fMax, std::fabs(pData[i]));
+                            }
+
+                            pointStorage.clear();
+                            if (fMax != 0.0f)
+                            {
+                                fMax /= 10.0f;
+                                for (float t = 0.0f; t <= 1.0f; t += .01f)
+                                {
+                                    if (t < .05f || t > .95f)
+                                    { 
+                                        pointStorage.push_back(Bezier(t, p1, p2, p3, p4));
+                                    }
+                                    else
+                                    {
+                                        pointStorage.push_back(Bezier(t, p1, p2, p3, p4) + (BezierNormal(t, p1, p2, p3, p4) * (pData[uint32_t(float(channelSize) * t)] / fMax)));
+                                    }
+                                }
+                            }
+                            if (pointStorage.size() > 1)
+                            {
+                                m_spCanvas->BeginStroke(pointStorage[0], 2.0f, col);
+                                for (int i = 1; i < pointStorage.size(); i++)
+                                {
+                                    m_spCanvas->LineTo(pointStorage[i]);
+                                }
+                                m_spCanvas->EndStroke();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        pointStorage.clear();
+                        for (float t = 0.0f; t <= 1.0f; t += .01f)
+                        {
+                            pointStorage.push_back(Bezier(t, p1, p2, p3, p4));
+                        }
+                        if (pointStorage.size() > 1)
+                        {
+                            m_spCanvas->BeginStroke(pointStorage[0], 2.0f, col);
+                            for (int i = 1; i < pointStorage.size(); i++)
+                            {
+                                m_spCanvas->LineTo(pointStorage[i]);
+                            }
+                            m_spCanvas->EndStroke();
+                        }
+                    }
+                }
+            }
         }
     };
 
@@ -1198,7 +1281,13 @@ void GraphView::DrawNode(ViewNode& viewNode)
     auto drawIO = [=, &siteCount](Pin* pPin, int i, int maxPads, bool in, int side = 0) {
         auto& theme = ThemeManager::Instance();
         auto& style = StyleManager::Instance();
-        uint32_t type = pPin->GetFlowData()->GetFlowType();
+
+        auto pFlowData = pPin->GetFlowData();
+        if (!pFlowData)
+        {
+            return;
+        }
+        uint32_t type = pFlowData->GetFlowType();
 
         NVec2f center = nodeRect.Center();
         NVec2f otherCenter;
@@ -1270,7 +1359,7 @@ void GraphView::DrawNode(ViewNode& viewNode)
 
         NRectf rcPad;
         rcPad = NRectf(sitePos.x, sitePos.y, padSize, padSize);
-        
+
         if (input)
         {
             switch (orient)

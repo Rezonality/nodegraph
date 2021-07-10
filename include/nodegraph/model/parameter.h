@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 
+#include <nodegraph/model/memory.h>
 #include <nodegraph/view/layout_control.h>
 
 namespace NodeGraph
@@ -662,34 +663,50 @@ public:
     template <class T>
     T To() const
     {
+        // This is a reintepret cast of flow data to a scalar value
         if (m_value.type == ParameterType::FlowData)
         {
             void* pData = nullptr;
 
             // Convert the flow data to a stream of the same data type
+            // Then read the memory address: TODO: Optimize
             if (std::is_same_v<T, float>)
             {
                 pData = m_value.pFVal->ToPtr(ParameterType::Float);
+                if (!pData)
+                {
+                    return T(0.0f); 
+                }
             }
             else if (std::is_same_v<T, double>)
             {
                 pData = m_value.pFVal->ToPtr(ParameterType::Double);
+                if (!pData)
+                {
+                    return T(0.0); 
+                }
             }
             else if (std::is_same_v<T, int64_t>)
             {
                 pData = m_value.pFVal->ToPtr(ParameterType::Int64);
+                if (!pData)
+                {
+                    return T(0); 
+                }
             }
             else if (std::is_same_v<T, bool>)
             {
                 pData = m_value.pFVal->ToPtr(ParameterType::Bool);
+                if (!pData)
+                {
+                    return T(false); 
+                }
             }
 
             if (pData)
             {
                 return *((T*)pData);
             }
-
-            throw std::invalid_argument("Can't request flow data with GetValue");
         }
         return m_value.To<T>();
     }
@@ -709,7 +726,7 @@ public:
     }
 
     // Update the current value of the parameter
-    ParameterValue Update(uint64_t tick)
+    virtual ParameterValue Update(uint64_t tick)
     {
         m_currentTick = tick;
 
@@ -720,7 +737,13 @@ public:
 
         m_generation++;
 
-        if (m_value.type == ParameterType::String || m_value.type == ParameterType::FlowData)
+        if (m_value.type == ParameterType::FlowData)
+        {
+            m_endValue = m_value;
+            return m_value;
+        }
+
+        if (m_value.type == ParameterType::String)
         {
             m_endValue = m_value;
             return m_value;

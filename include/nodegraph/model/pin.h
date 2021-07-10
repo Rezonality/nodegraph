@@ -68,13 +68,44 @@ public:
 
     virtual IFlowData* GetFlowData() const override
     {
-        assert(m_value.type == ParameterType::FlowData);
         if (m_pSource == nullptr)
         {
             // might wind up null
+            assert(m_value.type == ParameterType::FlowData);
             return Parameter::GetFlowData();
         }
         return m_pSource->GetFlowData();
+    }
+    
+    virtual ParameterValue Update(uint64_t tick) override
+    {
+        if (!m_targets.empty() || m_pSource)
+        {
+            auto pData = GetFlowData();
+            if (pData)
+            {
+                // Never-lock-copy-if-can 
+                MUtils::ProducerMemLock lk(m_outputDataDisplay);
+                lk.Data().clear();
+                for (auto& chPair : pData->GetChannels())
+                {
+                    auto& data = lk.Data()[chPair.first];
+                    data = chPair.second.GetVector();
+
+                    #ifdef DEBUG
+                    if (pData->GetParameterType() == ParameterType::Float)
+                    {
+                        auto pFloat = (float*)&data[0];
+                        for (uint32_t i =0; i < data.size() / sizeof(float); i++)
+                        {
+                            assert(std::isfinite(pFloat[i]));
+                        }
+                    }
+                    #endif
+                }
+            }
+        }
+        return Parameter::Update(tick);
     }
 
     template <typename T>
@@ -180,6 +211,13 @@ public:
     double NormalizedOrigin() const;
     void SetFromNormalized(double val);
 
+    using flowDataMap_t = std::map<uint32_t, std::vector<uint8_t>>;
+    
+    MUtils::PNL_CL_Memory<flowDataMap_t, MUtils::audio_spin_mutex>& GetDisplayFlowData()
+    {
+        return m_outputDataDisplay;
+    };
+
 private:
     PinDir m_direction; // The direction of this pin
     std::string m_strName; // The name of this pin
@@ -193,6 +231,8 @@ private:
     MUtils::NRectf m_padRect;
     Side m_padOrientation;
     Side m_padLocation;
+    
+    MUtils::PNL_CL_Memory<flowDataMap_t, MUtils::audio_spin_mutex> m_outputDataDisplay;
 };
 
 } // namespace NodeGraph
