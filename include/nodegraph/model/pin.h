@@ -84,13 +84,36 @@ public:
             auto pData = GetFlowData();
             if (pData)
             {
+                // Note we are working in bytes here; this needs to be nicely aligned for all types
+                const uint32_t DisplayDataSize = 4096 * 4;
+
                 // Never-lock-copy-if-can 
                 MUtils::ProducerMemLock lk(m_outputDataDisplay);
-                lk.Data().clear();
+
+                // Remove channels that aren't being displayed
+                std::vector<uint32_t> victims;
+                for (auto& [ch, data] : lk.Data())
+                {
+                    if (!pData->HasChannelId(ch))
+                    {
+                        victims.push_back(ch);
+                    }
+                }
+                
+                for (auto& v : victims)
+                {
+                    lk.Data().erase(v);
+                }
+
                 for (auto& chPair : pData->GetChannels())
                 {
                     auto& data = lk.Data()[chPair.first];
-                    data = chPair.second.GetVector();
+                    data.resize(DisplayDataSize);
+
+                    // Copy the new data onto the end of our buffer, shuffling the existing along
+                    auto& vec = chPair.second.GetVector();
+                    memmove(&data[0], &data[vec.size()], (DisplayDataSize - vec.size()));
+                    memcpy(&data[DisplayDataSize - vec.size()], &vec[0], vec.size());
 
                     #ifdef DEBUG
                     if (pData->GetParameterType() == ParameterType::Float)
@@ -217,6 +240,7 @@ public:
     {
         return m_outputDataDisplay;
     };
+    uint32_t lastTriggerIndex = 0;
 
 private:
     PinDir m_direction; // The direction of this pin

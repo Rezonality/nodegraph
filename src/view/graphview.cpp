@@ -38,7 +38,6 @@ float node_pinPad = 4.0f;
 float node_gridScale = 125.0f;
 float node_labelPad = 6.0f;
 
-
 } // namespace
 
 namespace NodeGraph {
@@ -1030,20 +1029,19 @@ void GraphView::Show(const NVec4f& clearColor)
     }
 
     auto drawConnector = [=](Pin* pPin) {
+        static std::vector<NVec2f> pointStorage;
+
         if (pPin->GetTargets().empty())
         {
             return;
         }
 
-        /*if ((*pPin->GetTargets().begin())->GetOwnerNode().GetName() != "Add")
-        {
-            return; 
-        }
-        */
-
         auto& theme = ThemeManager::Instance();
         auto& style = StyleManager::Instance();
 
+        bool drawnConnector = false;
+
+        // For each target
         for (auto& pTarget : pPin->GetTargets())
         {
             auto srcRect = pPin->GetPadRect();
@@ -1106,71 +1104,69 @@ void GraphView::Show(const NVec4f& clearColor)
             auto p3 = dstRect.Center() + dstDist;
             auto p4 = dstRect.Center();
 
-            static std::vector<NVec2f> pointStorage;
-
+            bool foundLink = false;
             auto pFlow = pPin->GetFlowData();
             // Apply flow adjust
-            if (pFlow)
+            if (pFlow && (pFlow->GetParameterType() == ParameterType::Float))
             {
-                if (pFlow->GetParameterType() == ParameterType::Float)
+                MUtils::ConsumerMemLock lk(pPin->GetDisplayFlowData());
+                uint32_t samples = 0;
+                if (!lk.Data().empty())
                 {
-                    MUtils::ConsumerMemLock lk(pPin->GetDisplayFlowData());
-                    uint32_t samples = 0;
-                    if (!lk.Data().empty())
+                    for (auto& idChannelPair : lk.Data())
                     {
-                        for (auto& idChannelPair : lk.Data())
+                        auto& ch = idChannelPair.second;
+
+                        if (ch.empty())
                         {
-                            auto& ch = idChannelPair.second;
-                            if (ch.empty())
+                            continue;
+                        }
+
+                        uint32_t maxDrawSamples = 100 * 4;
+                        auto pData = (float*)&ch[0];
+                        auto channelSize = uint32_t(ch.size() / 4);
+
+                        auto& triggerIndex = pPin->lastTriggerIndex;
+                        triggerIndex = triggerIndex % channelSize;
+                        uint32_t startTrigger = 0;
+                        float triggerRange = .1f;
+                        float fMax = 0.0f;
+                        for (uint32_t i = 0; i < channelSize; i++)
+                        {
+                            fMax = std::max(fMax, std::fabs(pData[i]));
+                            if (startTrigger < 2)
                             {
-                                continue;
+                                if (startTrigger == 0 && pData[i] < -triggerRange)
+                                {
+                                    startTrigger = 1;
+                                }
+                                else if (startTrigger == 1 && pData[i] > triggerRange)
+                                {
+                                    triggerIndex = i;
+                                    startTrigger = 2;
+                                }
                             }
+                        }
 
-                            auto pData = (float*)&ch[0];
-                            auto channelSize = uint32_t(ch.size() / 4);
-
-                            float fMax = 0.0f;
-                            for (uint32_t i = 0; i < channelSize; i++)
-                            {
-                                fMax = std::max(fMax, std::fabs(pData[i]));
-                            }
-
+                        if (fMax != 0.0f)
+                        {
+                            fMax /= 10.0f;
+                            foundLink = true;
                             pointStorage.clear();
-                            if (fMax != 0.0f)
+
+                            float channelWindow = float(maxDrawSamples);
+
+                            for (float t = 0.0f; t <= 1.0f; t += .01f)
                             {
-                                fMax /= 10.0f;
-                                for (float t = 0.0f; t <= 1.0f; t += .01f)
+                                if (t < .05f || t > .95f)
                                 {
-                                    if (t < .05f || t > .95f)
-                                    { 
-                                        pointStorage.push_back(Bezier(t, p1, p2, p3, p4));
-                                    }
-                                    else
-                                    {
-                                        pointStorage.push_back(Bezier(t, p1, p2, p3, p4) + (BezierNormal(t, p1, p2, p3, p4) * (pData[uint32_t(float(channelSize) * t)] / fMax)));
-                                    }
+                                    pointStorage.push_back(Bezier(t, p1, p2, p3, p4));
+                                }
+                                else
+                                {
+                                    pointStorage.push_back(Bezier(t, p1, p2, p3, p4) + (BezierNormal(t, p1, p2, p3, p4) * (pData[(triggerIndex + uint32_t(channelWindow * t)) % channelSize] / fMax)));
                                 }
                             }
-                            if (pointStorage.size() > 1)
-                            {
-                                m_spCanvas->BeginStroke(pointStorage[0], 2.0f, col);
-                                for (int i = 1; i < pointStorage.size(); i++)
-                                {
-                                    m_spCanvas->LineTo(pointStorage[i]);
-                                }
-                                m_spCanvas->EndStroke();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        pointStorage.clear();
-                        for (float t = 0.0f; t <= 1.0f; t += .01f)
-                        {
-                            pointStorage.push_back(Bezier(t, p1, p2, p3, p4));
-                        }
-                        if (pointStorage.size() > 1)
-                        {
                             m_spCanvas->BeginStroke(pointStorage[0], 2.0f, col);
                             for (int i = 1; i < pointStorage.size(); i++)
                             {
@@ -1180,6 +1176,24 @@ void GraphView::Show(const NVec4f& clearColor)
                         }
                     }
                 }
+            }
+
+            if (!foundLink)
+            {
+                pointStorage.clear();
+                for (float t = 0.0f; t <= 1.0f; t += .01f)
+                {
+                    if (t < .05f || t > .95f)
+                    {
+                        pointStorage.push_back(Bezier(t, p1, p2, p3, p4));
+                    }
+                }
+                m_spCanvas->BeginStroke(pointStorage[0], 2.0f, col);
+                for (int i = 1; i < pointStorage.size(); i++)
+                {
+                    m_spCanvas->LineTo(pointStorage[i]);
+                }
+                m_spCanvas->EndStroke();
             }
         }
     };
