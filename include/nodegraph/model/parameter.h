@@ -428,10 +428,6 @@ inline void ParameterValue::SetFrom(const T& value)
     {
         value = (T)pFVal;
     }
-    else if (type == ParameterType::ControlData)
-    {
-        value = (T)pCVal;
-    }
     else
     {
         assert(!"no supported?");

@@ -230,7 +230,7 @@ public:
     */
 
     double Normalized();
-    double Pin::NormalizedStep() const;
+    double NormalizedStep() const;
     double NormalizedOrigin() const;
     void SetFromNormalized(double val);
 
