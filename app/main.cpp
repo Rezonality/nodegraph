@@ -362,14 +362,14 @@ public:
         auto fillGraph = [&](std::shared_ptr<GraphData> graphData, const std::string& name) {
             auto pGraph = graphData->spGraphView->GetGraph();
             pGraph->SetName(name);
-            // auto pTestNode = pGraph->CreateNode<TestNode>();
-            // auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
+            auto pTestNode = pGraph->CreateNode<TestNode>();
+            auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
             auto pNumberNode1 = pGraph->CreateNode<NumberNode>();
             auto pSinNode = pGraph->CreateNode<SinNode>();
             auto pSum = pGraph->CreateNode<SumNode>();
 
-            // pTestNode->SetPos(NVec2f(50.0f, 10.0f));
-            // pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
+            pTestNode->SetPos(NVec2f(50.0f, 10.0f));
+            pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
             pNumberNode1->SetPos(NVec2f(400.0f, 250.0f));
             pSinNode->SetPos(NVec2f(500.0f, 250.0f));
             pSum->SetPos(NVec2f(450.0f, 400.0f));
