@@ -5,6 +5,8 @@ project(unittests
     VERSION 0.5.0
 )
 
+find_package(catch2 CONFIG REQUIRED)
+
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
@@ -34,6 +36,8 @@ target_include_directories(unittests PRIVATE
 target_link_libraries(unittests
     PRIVATE
         NodeGraph::NodeGraph
+        Catch2::Catch2
+        Catch2::Catch2WithMain
         ${PLATFORM_LINKLIBS}
         ${CMAKE_THREAD_LIBS_INIT})
 

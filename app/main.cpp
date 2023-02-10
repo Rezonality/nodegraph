@@ -25,8 +25,7 @@
 using namespace MUtils;
 using namespace NodeGraph;
 
-namespace
-{
+namespace {
 bool singleView = true;
 }
 #undef ERROR
@@ -166,19 +165,19 @@ public:
 
         pValue5 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue5->GetAttributes().step = 0.25f;
-        //ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
+        // ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
         pValue6 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pValue6->GetAttributes().step = 0.25f;
-        //sliderAttrib.step = 0.25f;
-        //sliderAttrib.thumb = 0.25f;
-        //pValue2->SetAttributes(sliderAttrib);
+        // sliderAttrib.step = 0.25f;
+        // sliderAttrib.thumb = 0.25f;
+        // pValue2->SetAttributes(sliderAttrib);
 
         auto pLayout = new MUtils::HLayout();
         GetLayout().spContents->AddItem(pLayout);
 
         pLayout->AddItem(pSum, NVec2f(50.0f, 50.0f));
         pLayout->AddItem(pValue1, NVec2f(100.0f, 100.0f));
-        //pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
+        // pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
 
         auto pSliderLayout = new MUtils::VLayout();
         pSliderLayout->SetMargin(NVec4f(1.0f));
@@ -217,7 +216,7 @@ public:
 
         pNumber = AddInput("Number", 1.0f, ParameterAttributes(ParameterUI::Slider, -1.0f, 1.0f));
         pNumber->GetAttributes().step = 0.01f;
-        
+
         pOutput = AddOutputFlow("Output", new FlowData(FlowType_Data, ParameterType::Float));
 
         auto pLayout = new MUtils::HLayout();
@@ -249,10 +248,10 @@ public:
 
         pAmp = AddInput("Amp", 1.0f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
         pAmp->GetAttributes().step = 0.01f;
-        
+
         pFreq = AddInput("Freq", 1.0f, ParameterAttributes(ParameterUI::Slider, 1.0f, 10.0f));
         pFreq->GetAttributes().step = 0.1f;
-        
+
         pOutput = AddOutputFlow("Sin", new FlowData(FlowType_Data, ParameterType::Float));
 
         auto pLayout = new MUtils::VLayout();
@@ -290,7 +289,7 @@ public:
         auto pLayout = new MUtils::HLayout();
         GetLayout().spContents->AddItem(pLayout);
 
-        //pLayout->AddItem(pNumber, NVec2f(200.0f, 30.0f));
+        // pLayout->AddItem(pNumber, NVec2f(200.0f, 30.0f));
         GetLayout().spRoot->UpdateLayout();
     }
 
@@ -329,7 +328,7 @@ public:
 
     // Inherited via IAppStarterClient
     virtual fs::path GetRootPath() const override
-    { 
+    {
         return fs::path(NODEGRAPH_ROOT);
     }
 
@@ -363,21 +362,21 @@ public:
         auto fillGraph = [&](std::shared_ptr<GraphData> graphData, const std::string& name) {
             auto pGraph = graphData->spGraphView->GetGraph();
             pGraph->SetName(name);
-            //auto pTestNode = pGraph->CreateNode<TestNode>();
-            //auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
+            // auto pTestNode = pGraph->CreateNode<TestNode>();
+            // auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
             auto pNumberNode1 = pGraph->CreateNode<NumberNode>();
             auto pSinNode = pGraph->CreateNode<SinNode>();
             auto pSum = pGraph->CreateNode<SumNode>();
 
-            //pTestNode->SetPos(NVec2f(50.0f, 10.0f));
-            //pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
+            // pTestNode->SetPos(NVec2f(50.0f, 10.0f));
+            // pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
             pNumberNode1->SetPos(NVec2f(400.0f, 250.0f));
             pSinNode->SetPos(NVec2f(500.0f, 250.0f));
             pSum->SetPos(NVec2f(450.0f, 400.0f));
 
             pNumberNode1->ConnectTo(pSum, "Output", "Input");
             pSinNode->ConnectTo(pNumberNode1, "Sin", "Number");
-            //pNumberNode2->ConnectTo(pSum, "Number", "Input");
+            // pNumberNode2->ConnectTo(pSum, "Number", "Input");
             for (auto pNode : pGraph->GetNodes())
             {
                 appNodes.insert(pNode);
@@ -386,7 +385,7 @@ public:
         };
 
         fillGraph(spGraphA, "Graph A");
-        //fillGraph(spGraphB, "Graph B");
+        // fillGraph(spGraphB, "Graph B");
     }
 
     virtual void Update(float time, const NVec2i& displaySize) override
@@ -426,7 +425,7 @@ public:
 
         fbo_bind(graphData.fbo);
 
-        //fbo_clear(m_settings.clearColor);
+        // fbo_clear(m_settings.clearColor);
 #endif
 
         graphData.spGraphView->Show(m_settings.clearColor);
@@ -456,62 +455,15 @@ public:
 
         static const bool opt_fullscreen = true;
         static const bool opt_padding = false;
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-        if (!singleView)
-        {
-            // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-            // because it would be confusing to have two docking targets within each others.
-            ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-            if (opt_fullscreen)
-            {
-                ImGuiViewport* viewport = ImGui::GetMainViewport();
-                ImGui::SetNextWindowPos(viewport->WorkPos);
-                ImGui::SetNextWindowSize(viewport->WorkSize);
-                ImGui::SetNextWindowViewport(viewport->ID);
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-                window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-                window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-            }
-            else
-            {
-                dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-            }
-
-            // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-            // and handle the pass-thru hole, so we ask Begin() to not render a background.
-            if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-                window_flags |= ImGuiWindowFlags_NoBackground;
-
-            // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-            // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-            // all active windows docked into it will lose their parent and become undocked.
-            // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-            // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-            if (!opt_padding)
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-            ImGui::Begin("DockSpace Demo", &p_open, window_flags);
-            if (!opt_padding)
-                ImGui::PopStyleVar();
-
-            if (opt_fullscreen)
-                ImGui::PopStyleVar(2);
-
-            // DockSpace
-            ImGuiIO& io = ImGui::GetIO();
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        }
 
         bool captured = false;
         for (auto& spGraphData : m_graphs)
         {
             if (singleView)
             {
-                ImVec2 pos = ImGui::GetWindowViewport()->Pos;
-                NRectf region = NRectf(0.0f, 0.0f, ImGui::GetWindowViewport()->Size.x, ImGui::GetWindowViewport()->Size.y);
+                auto list = ImGui::GetBackgroundDrawList();
+                ImVec2 pos = ImGui::GetWindowPos();
+                NRectf region = NRectf(0.0f, 0.0f, list->GetClipRectMax().x - list->GetClipRectMin().x, list->GetClipRectMax().y - list->GetClipRectMin().y);
 
                 ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(region.topLeftPx.x, region.topLeftPx.y), ImVec2(region.bottomRightPx.x, region.bottomRightPx.y), ImColor(.6f, .2f, .2f, 1.0f));
 
@@ -561,11 +513,6 @@ public:
                 ImGui::PopStyleVar(1);
                 ImGui::End();
             }
-        }
-
-        if (!singleView)
-        {
-            ImGui::End(); // Dockspace
         }
     }
 

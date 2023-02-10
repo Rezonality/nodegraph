@@ -34,6 +34,7 @@ find_package(freetype CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue REQUIRED)
 find_package(tinyfiledialogs REQUIRED)
 find_package(nanovg REQUIRED)
+find_package(imgui REQUIRED)
 find_package(MUtils REQUIRED)
 
 include(${MUTILS_INCLUDE_DIR}/cmake/utils.cmake)

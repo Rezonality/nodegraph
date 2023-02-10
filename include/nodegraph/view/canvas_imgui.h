@@ -2,7 +2,7 @@
 #include <mutils/math/imgui_glm.h>
 #include <nodegraph/view/canvas.h>
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 using namespace MUtils;
 
