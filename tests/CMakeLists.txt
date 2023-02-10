@@ -5,7 +5,7 @@ project(unittests
     VERSION 0.5.0
 )
 
-find_package(catch2 CONFIG REQUIRED)
+find_package(Catch2 CONFIG REQUIRED)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
