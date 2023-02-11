@@ -10,6 +10,7 @@ set(NODEGRAPH_MODEL
     ${NODEGRAPH_ROOT}/src/model/graph.cpp
     ${NODEGRAPH_ROOT}/src/model/node.cpp
     ${NODEGRAPH_ROOT}/src/model/pin.cpp
+    ${NODEGRAPH_ROOT}/src/model/parameter.cpp
 
     ${NODEGRAPH_ROOT}/include/nodegraph/model/graph.h
     ${NODEGRAPH_ROOT}/include/nodegraph/model/node.h

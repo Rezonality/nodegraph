@@ -655,6 +655,11 @@ public:
         return m_attributes;
     }
 
+    float FlowToFloat() const;
+    double FlowToDouble() const;
+    int64_t FlowToInt64() const;
+    bool FlowToBool() const;
+
     // Get a value and convert from flow data 
     template <class T>
     T To() const
@@ -662,46 +667,23 @@ public:
         // This is a reintepret cast of flow data to a scalar value
         if (m_value.type == ParameterType::FlowData)
         {
-            void* pData = nullptr;
-
             // Convert the flow data to a stream of the same data type
             // Then read the memory address: TODO: Optimize
             if (std::is_same_v<T, float>)
             {
-                pData = m_value.pFVal->ToPtr(ParameterType::Float);
-                if (!pData)
-                {
-                    return T(0.0f); 
-                }
+                return (T)FlowToFloat();
             }
             else if (std::is_same_v<T, double>)
             {
-                pData = m_value.pFVal->ToPtr(ParameterType::Double);
-                if (!pData)
-                {
-                    return T(0.0); 
-                }
+                return (T)FlowToDouble();
             }
             else if (std::is_same_v<T, int64_t>)
             {
-                pData = m_value.pFVal->ToPtr(ParameterType::Int64);
-                if (!pData)
-                {
-                    return T(0); 
-                }
+                return (T)FlowToInt64();
             }
             else if (std::is_same_v<T, bool>)
             {
-                pData = m_value.pFVal->ToPtr(ParameterType::Bool);
-                if (!pData)
-                {
-                    return T(false); 
-                }
-            }
-
-            if (pData)
-            {
-                return *((T*)pData);
+                return (T)FlowToBool();
             }
         }
         return m_value.To<T>();
