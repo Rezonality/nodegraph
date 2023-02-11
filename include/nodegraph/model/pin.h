@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <unordered_set>
 #include <variant>
+#include <cstring>
 
 #include <mutils/math/math.h>
 
