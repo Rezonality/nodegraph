@@ -17,27 +17,19 @@ if (WIN32)
 set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
 endif()
 
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(NodeGraph
     LANGUAGES CXX C
     VERSION 0.5.0
 )
 
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_CURRENT_LIST_DIR}/../vcpkg/packages/mutils_${VCPKG_TARGET_TRIPLET}/lib/cmake/mutils)
+include(cmake/utils.cmake)
 
 find_package(SDL2 REQUIRED)
-find_package(gsl-lite REQUIRED)
 find_package(fmt REQUIRED)
-find_package(gl3w CONFIG REQUIRED)
 find_package(freetype CONFIG REQUIRED)
-find_package(unofficial-concurrentqueue REQUIRED)
-find_package(tinyfiledialogs REQUIRED)
-find_package(nanovg REQUIRED)
 find_package(imgui REQUIRED)
-find_package(MUtils REQUIRED)
-
-include(${MUTILS_INCLUDE_DIR}/cmake/utils.cmake)
 
 set(NODEGRAPH_ROOT ${CMAKE_CURRENT_LIST_DIR})
 set(M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)

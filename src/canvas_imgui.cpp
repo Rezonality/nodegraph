@@ -1,18 +1,16 @@
-#include "nodegraph/view/canvas_imgui.h"
-#include "mutils/logger/logger.h"
-#include "mutils/common.h"
-
-using namespace MUtils;
+#include <nodegraph/nodegraph.h>
+#include <nodegraph/canvas_imgui.h>
 
 namespace
 {
 const int CircleSegments = 40;
 const int ArcSegments = 40;
 }
+
 namespace NodeGraph
 {
 
-void CanvasImGui::Begin(const NVec4f& clearColor)
+void CanvasImGui::Begin(const glm::vec4& clearColor)
 {
     origin = ImGui::GetCursorScreenPos();
     auto size = ImGui::GetContentRegionAvail();
@@ -27,43 +25,43 @@ void CanvasImGui::End()
     ImGui::GetWindowDrawList()->PopClipRect();
 }
 
-void CanvasImGui::FilledCircle(const MUtils::NVec2f& center, float radius, const MUtils::NVec4f& color)
+void CanvasImGui::FilledCircle(const glm::vec2& center, float radius, const glm::vec4& color)
 {
     auto viewCenter = ViewToPixels(center);
     auto viewRadius = WorldSizeToViewSizeX(radius);
-    viewCenter += NVec2f(origin);
+    viewCenter += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(color), CircleSegments);
 }
 
-void CanvasImGui::FilledGradientCircle(const MUtils::NVec2f& center, float radius, const MUtils::NRectf& gradientRange, const MUtils::NVec4f& startColor, const NVec4f& endColor)
+void CanvasImGui::FilledGradientCircle(const glm::vec2& center, float radius, const NRectf& gradientRange, const glm::vec4& startColor, const glm::vec4& endColor)
 {
     auto viewCenter = ViewToPixels(center);
     auto viewRadius = WorldSizeToViewSizeX(radius);
     //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
     //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
-    viewCenter += NVec2f(origin);
+    viewCenter += glm::vec2(origin);
 
     // TODO: Should be gradient but can't do it on ImGui yet
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(startColor), CircleSegments);
 }
 
-void CanvasImGui::Stroke(const NVec2f& from, const NVec2f& to, float width, const NVec4f& color)
+void CanvasImGui::Stroke(const glm::vec2& from, const glm::vec2& to, float width, const glm::vec4& color)
 {
     auto viewFrom = ViewToPixels(from);
     auto viewTo = ViewToPixels(to);
     auto viewWidth = WorldSizeToViewSizeX(width);
     
-    viewFrom += NVec2f(origin);
-    viewTo += NVec2f(origin);
+    viewFrom += glm::vec2(origin);
+    viewTo += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->AddLine(viewFrom, viewTo, ToImColor(color), viewWidth);
 }
 
-void CanvasImGui::FillRoundedRect(const NRectf& rc, float radius, const NVec4f& color)
+void CanvasImGui::FillRoundedRect(const NRectf& rc, float radius, const glm::vec4& color)
 {
     auto viewRect = ViewToPixels(rc);
     auto viewSize = WorldSizeToViewSizeX(radius);
@@ -73,7 +71,7 @@ void CanvasImGui::FillRoundedRect(const NRectf& rc, float radius, const NVec4f& 
     pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(color), viewSize);
 }
 
-void CanvasImGui::FillGradientRoundedRect(const NRectf& rc, float radius, const NRectf& gradientRange, const NVec4f& startColor, const NVec4f& endColor)
+void CanvasImGui::FillGradientRoundedRect(const NRectf& rc, float radius, const NRectf& gradientRange, const glm::vec4& startColor, const glm::vec4& endColor)
 {
     auto viewRect = ViewToPixels(rc);
     auto viewSize = WorldSizeToViewSizeX(radius);
@@ -86,7 +84,7 @@ void CanvasImGui::FillGradientRoundedRect(const NRectf& rc, float radius, const 
     pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), viewSize);
 }
 
-void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const NVec4f& radius, const NRectf& gradientRange, const NVec4f& startColor, const NVec4f& endColor)
+void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const glm::vec4& radius, const NRectf& gradientRange, const glm::vec4& startColor, const glm::vec4& endColor)
 {
     auto viewRect = ViewToPixels(rc);
     float viewSize0 = 0.0f;
@@ -121,7 +119,7 @@ void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const NVec4f&
     pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), viewSize0, flags);
 }
 
-void CanvasImGui::FillRect(const NRectf& rc, const NVec4f& color)
+void CanvasImGui::FillRect(const NRectf& rc, const glm::vec4& color)
 {
     auto viewRect = ViewToPixels(rc);
     auto pDraw = ImGui::GetWindowDrawList();
@@ -130,7 +128,7 @@ void CanvasImGui::FillRect(const NRectf& rc, const NVec4f& color)
     pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(color));
 }
 
-MUtils::NRectf CanvasImGui::TextBounds(const MUtils::NVec2f& pos, float size, const char* pszText) const
+NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* pszText) const
 {
     // Return everything in World space, since we scale every draw call
     auto textSize = ImGui::CalcTextSize(pszText);
@@ -138,11 +136,11 @@ MUtils::NRectf CanvasImGui::TextBounds(const MUtils::NVec2f& pos, float size, co
     return NRectf(pos.x, pos.y, textSize.x * scale, textSize.y * scale);
 }
 
-void CanvasImGui::Text(const NVec2f& pos, float size, const NVec4f& color, const char* pszText, const char* pszFace, uint32_t align)
+void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color, const char* pszText, const char* pszFace, uint32_t align)
 {
     auto viewPos = ViewToPixels(pos);
 
-    viewPos += NVec2f(origin);
+    viewPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
 
@@ -165,13 +163,13 @@ void CanvasImGui::Text(const NVec2f& pos, float size, const NVec4f& color, const
     ImGui::PopFont();
 }
 
-void CanvasImGui::Arc(const NVec2f& pos, float radius, float width, const NVec4f& color, float startAngle, float endAngle)
+void CanvasImGui::Arc(const glm::vec2& pos, float radius, float width, const glm::vec4& color, float startAngle, float endAngle)
 {
     auto viewRadius = WorldSizeToViewSizeX(radius);
     auto viewPos = ViewToPixels(pos);
     auto viewWidth = WorldSizeToViewSizeX(width);
 
-    viewPos += NVec2f(origin);
+    viewPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
@@ -186,12 +184,12 @@ void CanvasImGui::SetAA(bool set)
     M_UNUSED(set);
 }
 
-void CanvasImGui::BeginStroke(const MUtils::NVec2f& from, float width, const MUtils::NVec4f& color)
+void CanvasImGui::BeginStroke(const glm::vec2& from, float width, const glm::vec4& color)
 {
     auto viewPos = ViewToPixels(from);
     auto size = WorldSizeToViewSizeX(width);
     
-    viewPos += NVec2f(origin);
+    viewPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
@@ -202,10 +200,10 @@ void CanvasImGui::BeginStroke(const MUtils::NVec2f& from, float width, const MUt
     m_closePath = false;
 }
 
-void CanvasImGui::BeginPath(const MUtils::NVec2f& from, const MUtils::NVec4f& color)
+void CanvasImGui::BeginPath(const glm::vec2& from, const glm::vec4& color)
 {
     auto viewPos = ViewToPixels(from);
-    viewPos += NVec2f(origin);
+    viewPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
@@ -214,19 +212,19 @@ void CanvasImGui::BeginPath(const MUtils::NVec2f& from, const MUtils::NVec4f& co
     m_closePath = false;
 }
 
-void CanvasImGui::LineTo(const MUtils::NVec2f& to)
+void CanvasImGui::LineTo(const glm::vec2& to)
 {
     auto viewPos = ViewToPixels(to);
-    viewPos += NVec2f(origin);
+    viewPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathLineTo(viewPos);
 }
 
-void CanvasImGui::MoveTo(const MUtils::NVec2f& to)
+void CanvasImGui::MoveTo(const glm::vec2& to)
 {
     auto viewPos = ViewToPixels(to);
-    viewPos += NVec2f(origin);
+    viewPos += glm::vec2(origin);
     
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();

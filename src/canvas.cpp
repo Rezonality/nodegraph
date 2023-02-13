@@ -1,12 +1,11 @@
+#include <algorithm>
 #include "nodegraph/view/canvas.h"
-#include "mutils/logger/logger.h"
-
-using namespace MUtils;
+//#include "mutils/logger/logger.h"
 
 namespace NodeGraph
 {
 
-const NVec2f Canvas::PixelToView(const NVec2f& pixel) const
+const glm::vec2 Canvas::PixelToView(const glm::vec2& pixel) const
 {
     return (m_viewOrigin + (pixel / m_viewScale));
 }
@@ -40,8 +39,8 @@ void Canvas::HandleMouse()
         }
         else if ((mouseInView && m_inputState.buttonClicked[1]) || ((m_inputState.captureState == CaptureState::MoveCanvas) && m_inputState.buttonDown[1]))
         {
-            auto viewOrigin = PixelToView(NVec2f(0.0f, 0.0f));
-            auto viewDelta = PixelToView(NVec2f(m_inputState.mouseDelta.x, m_inputState.mouseDelta.y));
+            auto viewOrigin = PixelToView(glm::vec2(0.0f, 0.0f));
+            auto viewDelta = PixelToView(glm::vec2(m_inputState.mouseDelta.x, m_inputState.mouseDelta.y));
             m_viewOrigin -= (viewDelta - viewOrigin);
             m_inputState.captureState = CaptureState::MoveCanvas;
         }
@@ -52,25 +51,25 @@ void Canvas::HandleMouse()
     }
 }
 
-void Canvas::SetPixelRect(const MUtils::NRectf& rc)
+void Canvas::SetPixelRect(const NRectf& rc)
 {
     m_pixelRect = rc;
 }
 
-NVec2f Canvas::ViewToPixels(const MUtils::NVec2f& pos) const
+glm::vec2 Canvas::ViewToPixels(const glm::vec2& pos) const
 {
     auto viewTopLeft = pos - m_viewOrigin;
     return viewTopLeft * m_viewScale;
 }
 
-NRectf Canvas::ViewToPixels(const MUtils::NRectf& rc) const
+NRectf Canvas::ViewToPixels(const NRectf& rc) const
 {
     auto viewTopLeft = (rc.topLeftPx - m_viewOrigin) * m_viewScale;
     auto viewBottomRight = (rc.bottomRightPx - m_viewOrigin) * m_viewScale;
     return NRectf(viewTopLeft, viewBottomRight);
 }
 
-MUtils::NVec2f Canvas::ViewSizeToPixelSize(const MUtils::NVec2f& size) const
+glm::vec2 Canvas::ViewSizeToPixelSize(const glm::vec2& size) const
 {
     return (size * m_viewScale);
 }
@@ -91,25 +90,25 @@ void Canvas::DrawGrid(float viewStep)
     startPos.x = std::floor(m_viewOrigin.x / viewStep) * viewStep;
     startPos.y = std::floor(m_viewOrigin.y / viewStep) * viewStep;
 
-    auto size = (NVec2f(1.0f) / m_viewScale);
+    auto size = (glm::vec2(1.0f) / m_viewScale);
 
     //auto pDraw = ImGui::GetWindowDrawList();
 
     while (startPos.x < PixelToView(m_pixelRect.Size()).x)
     {
-        Stroke(NVec2f(startPos.x, startPos.y), NVec2f(startPos.x, PixelToView(m_pixelRect.Size()).y), size.y, NVec4f(.9f, .9f, .9f, 0.05f));
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(startPos.x, PixelToView(m_pixelRect.Size()).y), size.y, glm::vec4(.9f, .9f, .9f, 0.05f));
         startPos.x += viewStep;
     }
 
     startPos.x = std::floor(m_viewOrigin.x / viewStep) * viewStep;
     while (startPos.y < PixelToView(m_pixelRect.Size()).y)
     {
-        Stroke(NVec2f(startPos.x, startPos.y), NVec2f(PixelToView(m_pixelRect.Size()).x, startPos.y), size.x, NVec4f(.9f, .9f, .9f, 0.05f));
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(PixelToView(m_pixelRect.Size()).x, startPos.y), size.x, glm::vec4(.9f, .9f, .9f, 0.05f));
         startPos.y += viewStep;
     }
 }
 
-void Canvas::CubicBezier(std::vector<NVec2f>& path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level)
+void Canvas::CubicBezier(std::vector<glm::vec2>& path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level)
 {
     float dx = x4 - x1;
     float dy = y4 - y1;
@@ -119,7 +118,7 @@ void Canvas::CubicBezier(std::vector<NVec2f>& path, float x1, float y1, float x2
     d3 = (d3 >= 0) ? d3 : -d3;
     if ((d2 + d3) * (d2 + d3) < tess_tol * (dx * dx + dy * dy))
     {
-        path.push_back(NVec2f(x4, y4));
+        path.push_back(glm::vec2(x4, y4));
     }
     else if (level < 10)
     {
@@ -134,7 +133,7 @@ void Canvas::CubicBezier(std::vector<NVec2f>& path, float x1, float y1, float x2
     }
 }
 
-void Canvas::DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2, const MUtils::NVec2f& p3, const MUtils::NVec2f& p4, const MUtils::NVec4f& color)
+void Canvas::DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, const glm::vec4& color)
 {
     pointStorage.clear();
     pointStorage.push_back(p1);
@@ -148,7 +147,7 @@ void Canvas::DrawCubicBezier(const MUtils::NVec2f& p1, const MUtils::NVec2f& p2,
     EndStroke();
 
     /*
-    BeginStroke(p1, 2.0f, NVec4f(1.0f));
+    BeginStroke(p1, 2.0f, glm::vec4(1.0f));
     LineTo(p4);
     EndStroke();
     */

@@ -3,43 +3,50 @@ project(NodeGraph
     VERSION 0.5.0
 )
 
-#set_target_properties(SDL2::SDL2 PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
-#set_target_properties(MUtils::MUtils PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
+find_package(glm CONFIG REQUIRED)
+
+set(NODEGRAPH_SOURCE
+    ${NODEGRAPH_ROOT}/src/canvas.cpp
+    ${NODEGRAPH_ROOT}/src/canvas_imgui.cpp
+
+    ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/imgui_glm.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/math_utils.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/style.h
+)
 
 set(NODEGRAPH_MODEL
-    ${NODEGRAPH_ROOT}/src/model/graph.cpp
-    ${NODEGRAPH_ROOT}/src/model/node.cpp
-    ${NODEGRAPH_ROOT}/src/model/pin.cpp
-    ${NODEGRAPH_ROOT}/src/model/parameter.cpp
+    #${NODEGRAPH_ROOT}/src/model/graph.cpp
+    #${NODEGRAPH_ROOT}/src/model/node.cpp
+    #${NODEGRAPH_ROOT}/src/model/pin.cpp
+    #${NODEGRAPH_ROOT}/src/model/parameter.cpp
 
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/graph.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/node.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/pin.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/parameter.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/model/graph.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/model/node.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/model/pin.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/model/parameter.h
 )
 
 set(NODEGRAPH_VIEW
-    ${NODEGRAPH_ROOT}/src/view/viewnode.cpp
-    ${NODEGRAPH_ROOT}/src/view/graphview.cpp
-    ${NODEGRAPH_ROOT}/src/view/node_layout.cpp
-    ${NODEGRAPH_ROOT}/src/view/canvas.cpp
-    ${NODEGRAPH_ROOT}/src/view/canvas_imgui.cpp
-    ${NODEGRAPH_ROOT}/src/view/canvas_vg.cpp
-    
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_imgui.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_vg.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/viewnode.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/graphview.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/layout.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/layout_control.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/node_layout.h
+    #${NODEGRAPH_ROOT}/src/view/viewnode.cpp
+    #${NODEGRAPH_ROOT}/src/view/graphview.cpp
+    #${NODEGRAPH_ROOT}/src/view/node_layout.cpp
+    #${NODEGRAPH_ROOT}/src/view/canvas_imgui.cpp
+    #${NODEGRAPH_ROOT}/src/view/canvas_vg.cpp
+
+    #${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_imgui.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_vg.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/view/viewnode.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/view/graphview.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/view/layout.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/view/layout_control.h
+    #${NODEGRAPH_ROOT}/include/nodegraph/view/node_layout.h
 )
 
 set(NODEGRAPH_SOURCE
+    ${NODEGRAPH_SOURCE}
     ${NODEGRAPH_ROOT}/CMakeLists.txt
-    ${NODEGRAPH_MODEL}
-    ${NODEGRAPH_VIEW}
 )
 
 list(APPEND TEST_SOURCES
@@ -49,14 +56,14 @@ list(APPEND TEST_SOURCES
 add_library(NodeGraph STATIC ${NODEGRAPH_SOURCE})
 add_library(NodeGraph::NodeGraph ALIAS NodeGraph)
 
-target_link_libraries(NodeGraph 
+target_link_libraries(NodeGraph
 PUBLIC
-    MUtils::MUtils
+    glm::glm
 )
 
 target_include_directories(NodeGraph
 PRIVATE
-PUBLIC 
+PUBLIC
     $<BUILD_INTERFACE:${NODEGRAPH_ROOT}/include>
     $<INSTALL_INTERFACE:include>
 )

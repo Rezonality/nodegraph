@@ -14,13 +14,14 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/demo_common.cmake)
 
 set(NODEGRAPH_APP_SOURCE
     ${APP_ROOT}/main.cpp
+    ${APP_ROOT}/demo.cpp
     ${APP_ROOT}/CMakeLists.txt
     )
 
 set(RESOURCE_FOLDER ${CMAKE_CURRENT_LIST_DIR}/res)
 add_project_meta(META_FILES_TO_INCLUDE)
 
-add_executable (${APP_NAME} 
+add_executable (${APP_NAME}
     ${OS_BUNDLE}
     ${NODEGRAPH_APP_SOURCE}
     ${META_FILES_TO_INCLUDE}
@@ -28,14 +29,14 @@ add_executable (${APP_NAME}
 
 target_include_directories(${APP_NAME}
     PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR} 
+    ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_BINARY_DIR}
     )
 
 target_link_libraries (${APP_NAME}
     PRIVATE
     NodeGraph::NodeGraph
-    nanovg::nanovg
+    imgui::imgui
     SDL2::SDL2main
     ${PLATFORM_LINKLIBS}
     )

@@ -1,5 +1,4 @@
 find_package(SDL2 REQUIRED)
-find_package(MUtils REQUIRED)
 
 macro(add_project_meta FILES_TO_INCLUDE)
 if (NOT RESOURCE_FOLDER)
@@ -9,9 +8,6 @@ endif()
 if (NOT ICON_NAME)
     set(ICON_NAME AppIcon)
 endif()
-
-set(RESOURCE_DEPLOY_FILES 
-    ${MUTILS_INCLUDE_DIR}/chibi/init-7.scm)
 
 if (APPLE)
     set(ICON_FILE ${RESOURCE_FOLDER}/${ICON_NAME}.icns)
