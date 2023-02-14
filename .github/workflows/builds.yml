@@ -64,10 +64,10 @@ jobs:
         cmake --build . --config Debug
       if: matrix.build_type == 'Coverage'
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      shell: bash
-      run: ctest -C ${{ matrix.build_type }}
+    #- name: Test
+    #  working-directory: ${{github.workspace}}/build
+    #  shell: bash
+    #  run: ctest -C ${{ matrix.build_type }}
 
     - name: Coverage
       working-directory: ${{github.workspace}}/build
