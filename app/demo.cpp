@@ -27,4 +27,6 @@ void demo_draw()
     spCanvas->DrawGrid(100.0f);
 
     spCanvas->End();
+        
+    spCanvas->HandleMouse();
 }
