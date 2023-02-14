@@ -10,9 +10,11 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::ve
 {
     auto& state = canvas.GetInputState();
 
-    auto mousePos = ImGui::GetIO().MousePos;
+    auto mousePos = (glm::vec2)ImGui::GetIO().MousePos;
+    auto windowPos = (glm::vec2)ImGui::GetWindowPos(); 
 
-    state.mousePos = glm::vec2(mousePos.x, mousePos.y);
+    state.mousePos = mousePos - windowPos;
+    //glm::vec2(mousePos.x, mousePos.y);
 
     for (uint32_t i = 0; i < MOUSE_MAX; i++)
     {
@@ -47,8 +49,8 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::ve
 class CanvasImGui : public Canvas
 {
 public:
-    CanvasImGui(ImFont* pFont = nullptr)
-        : Canvas()
+    CanvasImGui(float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f), ImFont* pFont = nullptr)
+        : Canvas(worldScale, scaleLimits)
         , m_pFont(pFont)
     {
         if (m_pFont == nullptr)

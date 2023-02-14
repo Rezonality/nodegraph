@@ -5,10 +5,9 @@
 
 #include <nodegraph/math_utils.h>
 
-//#include "nodegraph/model/graph.h"
+// #include "nodegraph/model/graph.h"
 
-namespace NodeGraph
-{
+namespace NodeGraph {
 
 enum MouseButtons
 {
@@ -34,24 +33,24 @@ enum TextAlign
 
 enum class CaptureState
 {
-    None,           // Mouse not captured
-    MoveCanvas,     // Moving Canvas
-    MoveNode,       // Moving a Node
-    Parameter       // Tweaking a parameter
+    None, // Mouse not captured
+    MoveCanvas, // Moving Canvas
+    MoveNode, // Moving a Node
+    Parameter // Tweaking a parameter
 };
 
 // Represents the current interaction state with the canvas; used for
 // tracking mouse manipulation
 struct CanvasInputState
 {
-    glm::vec2 mousePos;  // Mouse location, pixel coordinates
+    glm::vec2 mousePos; // Mouse location, pixel coordinates
     // Button states
     bool buttonDown[MouseButtons::MOUSE_MAX];
     bool buttonClicked[MouseButtons::MOUSE_MAX];
     bool buttonReleased[MouseButtons::MOUSE_MAX];
-    glm::vec2 dragDelta;    // Drag delta while mouse button down
-    glm::vec2 mouseDelta;   // Mouse move delta (without drag?)
-    bool slowDrag = false;  // Dragging slowly
+    glm::vec2 dragDelta; // Drag delta while mouse button down
+    glm::vec2 mouseDelta; // Mouse move delta (without drag?)
+    bool slowDrag = false; // Dragging slowly
     float wheelDelta;
     bool canCapture = false;
     CaptureState captureState = CaptureState::None;
@@ -60,21 +59,25 @@ struct CanvasInputState
 class Canvas
 {
 public:
-    Canvas()
+    Canvas(float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f))
+        : m_worldScale(worldScale)
+        , m_worldScaleLimits(scaleLimits)
     {
     }
 
-    // Conversions between pixel space and view space
-    const glm::vec2 PixelToView(const glm::vec2& pixel) const;
-    virtual glm::vec2 ViewToPixels(const glm::vec2& pos) const;
-    virtual NRectf ViewToPixels(const NRectf& rc) const;
-    virtual float WorldSizeToViewSizeX(float size) const;
-    virtual float WorldSizeToViewSizeY(float size) const;
-    virtual glm::vec2 ViewSizeToPixelSize(const glm::vec2& size) const;
-    virtual float GetViewScale() const;
+    // Conversions between pixel space and world space
+    const glm::vec2 PixelToWorld(const glm::vec2& pixel) const;
+
+    virtual glm::vec2 WorldToPixels(const glm::vec2& pos) const;
+    virtual NRectf WorldToPixels(const NRectf& rc) const;
+    virtual float WorldSizeToPixelSize(float size) const;
+    virtual glm::vec2 WorldSizeToPixelSize(const glm::vec2& size) const;
+
+    virtual float GetWorldScale() const;
+    virtual void SetWorldAtCenter(const glm::vec2& world);
 
     // Mouse state
-    virtual glm::vec2 GetViewMousePos() const;
+    virtual glm::vec2 GetWorldMousePos() const;
     virtual void HandleMouse();
     CanvasInputState& GetInputState();
 
@@ -83,13 +86,14 @@ public:
     glm::vec2 GetPixelRegionSize() const;
 
     // Base class rendering
-    virtual void DrawGrid(float viewStep);
-    virtual void DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, const glm::vec4& color);
+    virtual void DrawGrid(float worldStep);
+    virtual void DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, const glm::vec4& color, float width = 1.0f);
+    virtual void DrawLine(const glm::vec2& from, const glm::vec2& to, const glm::vec4& color, float width);
 
     // Does this implementation support varying gradients (imgui currently does not)
     virtual bool HasGradientVarying() const;
 
-    // Drawing functions; These are all in view space, not pixel space
+    // Drawing functions; These are all in world space, not pixel space
     void CubicBezier(std::vector<glm::vec2>& path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level);
     virtual void Begin(const glm::vec4& clearColor) = 0;
     virtual void End() = 0;
@@ -115,8 +119,9 @@ public:
 
 protected:
     glm::vec2 m_pixelSize; // Pixel size on screen of canvas
-    glm::vec2 m_viewOrigin = glm::vec2(0.0f); // Origin of the view at the top left pixel
-    float m_viewScale = 1.0f;
+    glm::vec2 m_worldOrigin = glm::vec2(0.0f); // Origin of the world at the top left pixel
+    float m_worldScale = 1.0f;
+    glm::vec2 m_worldScaleLimits = glm::vec2(0.1f, 10.0f);
     CanvasInputState m_inputState;
     std::vector<glm::vec2> pointStorage;
 };

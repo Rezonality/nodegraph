@@ -1,25 +1,24 @@
-#include <algorithm>
 #include "nodegraph/canvas.h"
-//#include "mutils/logger/logger.h"
+#include <algorithm>
+// #include "mutils/logger/logger.h"
 
 // Note:
-// View space is the virtual area on which everything is positioned.
+// World space is the virtual area on which everything is positioned.
 // Pixel space is the screen area.
-// The view area may be larger or smaller on screen depending on zoom, and its origin is not necessarily 0
+// The world area may be larger or smaller on screen depending on zoom, and its origin is not necessarily 0
 // due to panning.
 
-namespace NodeGraph
-{
+namespace NodeGraph {
 
-// Get the current mouse position in view space
-glm::vec2 Canvas::GetViewMousePos() const
+// Get the current mouse position in world space
+glm::vec2 Canvas::GetWorldMousePos() const
 {
-    return PixelToView(m_inputState.mousePos);
+    return PixelToWorld(m_inputState.mousePos);
 }
 
-float Canvas::GetViewScale() const
+float Canvas::GetWorldScale() const
 {
-    return m_viewScale;
+    return m_worldScale;
 }
 
 // This is the visible pixel rect, origin 0
@@ -33,38 +32,33 @@ glm::vec2 Canvas::GetPixelRegionSize() const
     return m_pixelSize;
 }
 
-glm::vec2 Canvas::ViewToPixels(const glm::vec2& pos) const
+glm::vec2 Canvas::WorldToPixels(const glm::vec2& pos) const
 {
-    auto viewTopLeft = pos - m_viewOrigin;
-    return viewTopLeft * m_viewScale;
+    auto worldTopLeft = pos - m_worldOrigin;
+    return worldTopLeft * m_worldScale;
 }
 
-NRectf Canvas::ViewToPixels(const NRectf& rc) const
+NRectf Canvas::WorldToPixels(const NRectf& rc) const
 {
-    auto viewTopLeft = (rc.topLeftPx - m_viewOrigin) * m_viewScale;
-    auto viewBottomRight = (rc.bottomRightPx - m_viewOrigin) * m_viewScale;
-    return NRectf(viewTopLeft, viewBottomRight);
+    auto worldTopLeft = (rc.topLeftPx - m_worldOrigin) * m_worldScale;
+    auto worldBottomRight = (rc.bottomRightPx - m_worldOrigin) * m_worldScale;
+    return NRectf(worldTopLeft, worldBottomRight);
 }
 
-// Get the view position from pixel space
-const glm::vec2 Canvas::PixelToView(const glm::vec2& pixel) const
+// Get the world position from pixel space
+const glm::vec2 Canvas::PixelToWorld(const glm::vec2& pixel) const
 {
-    return (m_viewOrigin + (pixel / m_viewScale));
+    return (m_worldOrigin + (pixel / m_worldScale));
 }
 
-glm::vec2 Canvas::ViewSizeToPixelSize(const glm::vec2& size) const
+glm::vec2 Canvas::WorldSizeToPixelSize(const glm::vec2& size) const
 {
-    return (size * m_viewScale);
+    return (size * m_worldScale);
 }
 
-float Canvas::WorldSizeToViewSizeX(float size) const
+float Canvas::WorldSizeToPixelSize(float size) const
 {
-    return (size * m_viewScale);
-}
-
-float Canvas::WorldSizeToViewSizeY(float size) const
-{
-    return (size * m_viewScale);
+    return (size * m_worldScale);
 }
 
 CanvasInputState& Canvas::GetInputState()
@@ -72,39 +66,44 @@ CanvasInputState& Canvas::GetInputState()
     return m_inputState;
 }
 
+void Canvas::SetWorldAtCenter(const glm::vec2& world)
+{
+    auto centerOffset = PixelToWorld(m_pixelSize / 2.0f);
+    m_worldOrigin = world - centerOffset;
+}
+
 // Handle the mouse wheel zoom and the right button panning, for manipulating the canvas
 void Canvas::HandleMouse()
 {
     // We only handle moving canvas here
-    if (m_inputState.captureState == CaptureState::Parameter ||
-        m_inputState.captureState == CaptureState::MoveNode)
+    if (m_inputState.captureState == CaptureState::Parameter || m_inputState.captureState == CaptureState::MoveNode)
     {
         return;
     }
 
     auto normalizedRegion = NRectf(0.0f, 0.0f, m_pixelSize.x, m_pixelSize.y);
 
-    bool mouseInView = normalizedRegion.Contains(m_inputState.mousePos);
+    bool mouseInWorld = normalizedRegion.Contains(m_inputState.mousePos);
 
     // Handle the mouse
     {
-        auto viewUnderMouse = GetViewMousePos();
+        auto worldUnderMouse = GetWorldMousePos();
 
         float wheel = m_inputState.wheelDelta;
-        if (wheel != 0.0f && mouseInView)
+        if (wheel != 0.0f && mouseInWorld)
         {
-            m_viewScale += wheel * (std::fabs(m_viewScale) * .1f);
-            m_viewScale = std::clamp(m_viewScale, 0.1f, 10.0f);
+            m_worldScale += wheel * (std::fabs(m_worldScale) * .1f);
+            m_worldScale = std::clamp(m_worldScale, m_worldScaleLimits.x, m_worldScaleLimits.y);
 
-            auto newView = GetViewMousePos();
-            auto diff = newView - viewUnderMouse;
-            m_viewOrigin -= diff;
+            auto newWorld = GetWorldMousePos();
+            auto diff = newWorld - worldUnderMouse;
+            m_worldOrigin -= diff;
         }
-        else if ((mouseInView && m_inputState.buttonClicked[1]) || ((m_inputState.captureState == CaptureState::MoveCanvas) && m_inputState.buttonDown[1]))
+        else if ((mouseInWorld && m_inputState.buttonClicked[1]) || ((m_inputState.captureState == CaptureState::MoveCanvas) && m_inputState.buttonDown[1]))
         {
-            auto viewOrigin = PixelToView(glm::vec2(0.0f, 0.0f));
-            auto viewDelta = PixelToView(glm::vec2(m_inputState.mouseDelta.x, m_inputState.mouseDelta.y));
-            m_viewOrigin -= (viewDelta - viewOrigin);
+            auto worldOrigin = PixelToWorld(glm::vec2(0.0f, 0.0f));
+            auto worldDelta = PixelToWorld(glm::vec2(m_inputState.mouseDelta.x, m_inputState.mouseDelta.y));
+            m_worldOrigin -= (worldDelta - worldOrigin);
             m_inputState.captureState = CaptureState::MoveCanvas;
         }
         else if (m_inputState.buttonDown[1] == 0)
@@ -114,29 +113,33 @@ void Canvas::HandleMouse()
     }
 }
 
-
-void Canvas::DrawGrid(float viewStep)
+void Canvas::DrawGrid(float worldStep)
 {
-    auto startPos = m_viewOrigin;
-    startPos.x = std::floor(m_viewOrigin.x / viewStep) * viewStep;
-    startPos.y = std::floor(m_viewOrigin.y / viewStep) * viewStep;
+    auto startPos = m_worldOrigin;
+    startPos.x = std::floor(m_worldOrigin.x / worldStep) * worldStep;
+    startPos.y = std::floor(m_worldOrigin.y / worldStep) * worldStep;
 
-    auto size = (glm::vec2(1.0f) / m_viewScale);
+    auto size = (glm::vec2(1.0f) / m_worldScale);
 
-    //auto pDraw = ImGui::GetWindowDrawList();
-
-    while (startPos.x < PixelToView(m_pixelSize).x)
+    while (startPos.x < PixelToWorld(m_pixelSize).x)
     {
-        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(startPos.x, PixelToView(m_pixelSize).y), size.y, glm::vec4(.9f, .9f, .9f, 0.05f));
-        startPos.x += viewStep;
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(startPos.x, PixelToWorld(m_pixelSize).y), size.y, glm::vec4(.9f, .9f, .9f, 0.05f));
+        startPos.x += worldStep;
     }
 
-    startPos.x = std::floor(m_viewOrigin.x / viewStep) * viewStep;
-    while (startPos.y < PixelToView(m_pixelSize).y)
+    startPos.x = std::floor(m_worldOrigin.x / worldStep) * worldStep;
+    while (startPos.y < PixelToWorld(m_pixelSize).y)
     {
-        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(PixelToView(m_pixelSize).x, startPos.y), size.x, glm::vec4(.9f, .9f, .9f, 0.05f));
-        startPos.y += viewStep;
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(PixelToWorld(m_pixelSize).x, startPos.y), size.x, glm::vec4(.9f, .9f, .9f, 0.05f));
+        startPos.y += worldStep;
     }
+}
+
+void Canvas::DrawLine(const glm::vec2& from, const glm::vec2& to, const glm::vec4& color, float width)
+{
+    BeginStroke(from, width, color);
+    LineTo(to);
+    EndStroke();
 }
 
 void Canvas::CubicBezier(std::vector<glm::vec2>& path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level)
@@ -164,13 +167,13 @@ void Canvas::CubicBezier(std::vector<glm::vec2>& path, float x1, float y1, float
     }
 }
 
-void Canvas::DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, const glm::vec4& color)
+void Canvas::DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, const glm::vec4& color, float width)
 {
     pointStorage.clear();
     pointStorage.push_back(p1);
-    CubicBezier(pointStorage, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, 1.f, 0);
+    CubicBezier(pointStorage, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, 0.5f, 0);
 
-    BeginStroke(pointStorage[0], 2.0f, color);
+    BeginStroke(pointStorage[0], width, color);
     for (int i = 1; i < pointStorage.size(); i++)
     {
         LineTo(pointStorage[i]);

@@ -27,105 +27,105 @@ void CanvasImGui::End()
 
 void CanvasImGui::FilledCircle(const glm::vec2& center, float radius, const glm::vec4& color)
 {
-    auto viewCenter = ViewToPixels(center);
-    auto viewRadius = WorldSizeToViewSizeX(radius);
-    viewCenter += glm::vec2(origin);
+    auto worldCenter = WorldToPixels(center);
+    auto worldRadius = WorldSizeToPixelSize(radius);
+    worldCenter += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(color), CircleSegments);
+    pDraw->AddCircleFilled(worldCenter, worldRadius, ToImColor(color), CircleSegments);
 }
 
 void CanvasImGui::FilledGradientCircle(const glm::vec2& center, float radius, const NRectf& gradientRange, const glm::vec4& startColor, const glm::vec4& endColor)
 {
-    auto viewCenter = ViewToPixels(center);
-    auto viewRadius = WorldSizeToViewSizeX(radius);
-    //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
-    //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
-    viewCenter += glm::vec2(origin);
+    auto worldCenter = WorldToPixels(center);
+    auto worldRadius = WorldSizeToPixelSize(radius);
+    //auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
+    //auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
+    worldCenter += glm::vec2(origin);
 
     // TODO: Should be gradient but can't do it on ImGui yet
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddCircleFilled(viewCenter, viewRadius, ToImColor(startColor), CircleSegments);
+    pDraw->AddCircleFilled(worldCenter, worldRadius, ToImColor(startColor), CircleSegments);
 }
 
 void CanvasImGui::Stroke(const glm::vec2& from, const glm::vec2& to, float width, const glm::vec4& color)
 {
-    auto viewFrom = ViewToPixels(from);
-    auto viewTo = ViewToPixels(to);
-    auto viewWidth = WorldSizeToViewSizeX(width);
+    auto worldFrom = WorldToPixels(from);
+    auto worldTo = WorldToPixels(to);
+    auto worldWidth = WorldSizeToPixelSize(width);
     
-    viewFrom += glm::vec2(origin);
-    viewTo += glm::vec2(origin);
+    worldFrom += glm::vec2(origin);
+    worldTo += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddLine(viewFrom, viewTo, ToImColor(color), viewWidth);
+    pDraw->AddLine(worldFrom, worldTo, ToImColor(color), worldWidth);
 }
 
 void CanvasImGui::FillRoundedRect(const NRectf& rc, float radius, const glm::vec4& color)
 {
-    auto viewRect = ViewToPixels(rc);
-    auto viewSize = WorldSizeToViewSizeX(radius);
-    viewRect.Adjust(origin.x, origin.y);
+    auto worldRect = WorldToPixels(rc);
+    auto worldSize = WorldSizeToPixelSize(radius);
+    worldRect.Adjust(origin.x, origin.y);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(color), viewSize);
+    pDraw->AddRectFilled(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(color), worldSize);
 }
 
 void CanvasImGui::FillGradientRoundedRect(const NRectf& rc, float radius, const NRectf& gradientRange, const glm::vec4& startColor, const glm::vec4& endColor)
 {
-    auto viewRect = ViewToPixels(rc);
-    auto viewSize = WorldSizeToViewSizeX(radius);
-    //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
-    //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
-    viewRect.Adjust(origin.x, origin.y);
+    auto worldRect = WorldToPixels(rc);
+    auto worldSize = WorldSizeToPixelSize(radius);
+    //auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
+    //auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
+    worldRect.Adjust(origin.x, origin.y);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    //pDraw->AddRectFilledMultiColor(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), ToImColor(startColor), ToImColor(startColor), ToImColor(endColor));
-    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), viewSize);
+    //pDraw->AddRectFilledMultiColor(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(startColor), ToImColor(startColor), ToImColor(startColor), ToImColor(endColor));
+    pDraw->AddRectFilled(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(startColor), worldSize);
 }
 
 void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const glm::vec4& radius, const NRectf& gradientRange, const glm::vec4& startColor, const glm::vec4& endColor)
 {
-    auto viewRect = ViewToPixels(rc);
-    float viewSize0 = 0.0f;
-    //auto viewGradientBegin = ViewToPixels(gradientRange.topLeftPx);
-    //auto viewGradientEnd = ViewToPixels(gradientRange.bottomRightPx);
+    auto worldRect = WorldToPixels(rc);
+    float worldSize0 = 0.0f;
+    //auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
+    //auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
 
     auto flags = 0;
     if (radius.x > 0.0f)
     {
         flags |= ImDrawCornerFlags_TopLeft;
-        viewSize0 = WorldSizeToViewSizeX(radius.x);
+        worldSize0 = WorldSizeToPixelSize(radius.x);
     }
     if (radius.y > 0.0f)
     {
         flags |= ImDrawCornerFlags_TopRight;
-        viewSize0 = WorldSizeToViewSizeX(radius.y);
+        worldSize0 = WorldSizeToPixelSize(radius.y);
     }
     if (radius.z > 0.0f)
     {
         flags |= ImDrawCornerFlags_BotRight;
-        viewSize0 = WorldSizeToViewSizeX(radius.z);
+        worldSize0 = WorldSizeToPixelSize(radius.z);
     }
     if (radius.w > 0.0f)
     {
         flags |= ImDrawCornerFlags_BotLeft;
-        viewSize0 = WorldSizeToViewSizeX(radius.w);
+        worldSize0 = WorldSizeToPixelSize(radius.w);
     }
 
-    viewRect.Adjust(origin.x, origin.y);
+    worldRect.Adjust(origin.x, origin.y);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(startColor), viewSize0, flags);
+    pDraw->AddRectFilled(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(startColor), worldSize0, flags);
 }
 
 void CanvasImGui::FillRect(const NRectf& rc, const glm::vec4& color)
 {
-    auto viewRect = ViewToPixels(rc);
+    auto worldRect = WorldToPixels(rc);
     auto pDraw = ImGui::GetWindowDrawList();
     
-    viewRect.Adjust(origin.x, origin.y);
-    pDraw->AddRectFilled(viewRect.topLeftPx, viewRect.bottomRightPx, ToImColor(color));
+    worldRect.Adjust(origin.x, origin.y);
+    pDraw->AddRectFilled(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(color));
 }
 
 NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* pszText) const
@@ -138,9 +138,9 @@ NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* psz
 
 void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color, const char* pszText, const char* pszFace, uint32_t align)
 {
-    auto viewPos = ViewToPixels(pos);
+    auto worldPos = WorldToPixels(pos);
 
-    viewPos += glm::vec2(origin);
+    worldPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
 
@@ -148,33 +148,33 @@ void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color,
     float scale = size / ImGui::GetFontSize();
 
     auto fontSize = ImGui::CalcTextSize(pszText);
-    fontSize.x = WorldSizeToViewSizeX(fontSize.x * scale);
-    fontSize.y = WorldSizeToViewSizeY(fontSize.y * scale);
+    fontSize.x = WorldSizeToPixelSize(fontSize.x * scale);
+    fontSize.y = WorldSizeToPixelSize(fontSize.y * scale);
     if (align & TEXT_ALIGN_CENTER)
     {
-        viewPos.x -= fontSize.x / 2.0f;
+        worldPos.x -= fontSize.x / 2.0f;
     }
     if (align & TEXT_ALIGN_MIDDLE)
     {
-        viewPos.y -= fontSize.y / 2.0f;
+        worldPos.y -= fontSize.y / 2.0f;
     }
 
-    pDraw->AddText(m_pFont, fontSize.y, viewPos, ToImColor(color), pszText);
+    pDraw->AddText(m_pFont, fontSize.y, worldPos, ToImColor(color), pszText);
     ImGui::PopFont();
 }
 
 void CanvasImGui::Arc(const glm::vec2& pos, float radius, float width, const glm::vec4& color, float startAngle, float endAngle)
 {
-    auto viewRadius = WorldSizeToViewSizeX(radius);
-    auto viewPos = ViewToPixels(pos);
-    auto viewWidth = WorldSizeToViewSizeX(width);
+    auto worldRadius = WorldSizeToPixelSize(radius);
+    auto worldPos = WorldToPixels(pos);
+    auto worldWidth = WorldSizeToPixelSize(width);
 
-    viewPos += glm::vec2(origin);
+    worldPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
-    pDraw->PathArcTo(viewPos, viewRadius, degToRad(startAngle), degToRad(endAngle), ArcSegments);
-    pDraw->PathStroke(ToImColor(color), false, viewWidth);
+    pDraw->PathArcTo(worldPos, worldRadius, degToRad(startAngle), degToRad(endAngle), ArcSegments);
+    pDraw->PathStroke(ToImColor(color), false, worldWidth);
 }
 
 
@@ -186,14 +186,14 @@ void CanvasImGui::SetAA(bool set)
 
 void CanvasImGui::BeginStroke(const glm::vec2& from, float width, const glm::vec4& color)
 {
-    auto viewPos = ViewToPixels(from);
-    auto size = WorldSizeToViewSizeX(width);
+    auto worldPos = WorldToPixels(from);
+    auto size = WorldSizeToPixelSize(width);
     
-    viewPos += glm::vec2(origin);
+    worldPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
-    pDraw->PathLineTo(viewPos);
+    pDraw->PathLineTo(worldPos);
     
     m_pathWidth = size;
     m_pathColor = ToImColor(color);
@@ -202,33 +202,33 @@ void CanvasImGui::BeginStroke(const glm::vec2& from, float width, const glm::vec
 
 void CanvasImGui::BeginPath(const glm::vec2& from, const glm::vec4& color)
 {
-    auto viewPos = ViewToPixels(from);
-    viewPos += glm::vec2(origin);
+    auto worldPos = WorldToPixels(from);
+    worldPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
-    pDraw->PathLineTo(viewPos);
+    pDraw->PathLineTo(worldPos);
     m_pathColor = ToImColor(color);
     m_closePath = false;
 }
 
 void CanvasImGui::LineTo(const glm::vec2& to)
 {
-    auto viewPos = ViewToPixels(to);
-    viewPos += glm::vec2(origin);
+    auto worldPos = WorldToPixels(to);
+    worldPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    pDraw->PathLineTo(viewPos);
+    pDraw->PathLineTo(worldPos);
 }
 
 void CanvasImGui::MoveTo(const glm::vec2& to)
 {
-    auto viewPos = ViewToPixels(to);
-    viewPos += glm::vec2(origin);
+    auto worldPos = WorldToPixels(to);
+    worldPos += glm::vec2(origin);
     
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
-    pDraw->PathLineTo(viewPos);
+    pDraw->PathLineTo(worldPos);
 }
 
 void CanvasImGui::EndStroke()

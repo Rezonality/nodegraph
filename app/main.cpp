@@ -1,5 +1,5 @@
 #pragma warning(disable: 4005)
-#include <imgui.h>
+#include <nodegraph/imgui_glm.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_vulkan.h>
 #pragma warning(default: 4005)
@@ -461,15 +461,13 @@ int main(int, char**)
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
-    demo_init();
-    demo_resize(glm::vec2(w, h));
-
     // Our state
     bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
     bool done = false;
+    bool demo_init = true;
     while (!done)
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -499,7 +497,6 @@ int main(int, char**)
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
-            demo_resize(glm::vec2(width, height));
         }
 
         // Start the Dear ImGui frame
@@ -512,6 +509,8 @@ int main(int, char**)
             ImGui::ShowDemoWindow(&show_demo_window);
 
         ImGui::Begin("Canvas");
+        auto winSize = (glm::vec2)ImGui::GetContentRegionAvail();
+        demo_resize(winSize);
         demo_draw();
         ImGui::End();
 
