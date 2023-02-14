@@ -150,11 +150,11 @@ void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color,
     auto fontSize = ImGui::CalcTextSize(pszText);
     fontSize.x = WorldSizeToViewSizeX(fontSize.x * scale);
     fontSize.y = WorldSizeToViewSizeY(fontSize.y * scale);
-    if (align & Canvas::TEXT_ALIGN_CENTER)
+    if (align & TEXT_ALIGN_CENTER)
     {
         viewPos.x -= fontSize.x / 2.0f;
     }
-    if (align & Canvas::TEXT_ALIGN_MIDDLE)
+    if (align & TEXT_ALIGN_MIDDLE)
     {
         viewPos.y -= fontSize.y / 2.0f;
     }

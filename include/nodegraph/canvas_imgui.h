@@ -6,13 +6,13 @@
 namespace NodeGraph
 {
 
-inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const NRectf& region, bool forceCanCapture = false)
+inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::vec2& pixelRegionSize, bool forceCanCapture = false)
 {
     auto& state = canvas.GetInputState();
 
     auto mousePos = ImGui::GetIO().MousePos;
 
-    state.mousePos = glm::vec2(mousePos.x - region.Left(), mousePos.y - region.Top());
+    state.mousePos = glm::vec2(mousePos.x, mousePos.y);
 
     for (uint32_t i = 0; i < MOUSE_MAX; i++)
     {
@@ -22,8 +22,14 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const NRectf&
     }
     state.canCapture = ImGui::GetIO().WantCaptureMouse || forceCanCapture;
     state.mouseDelta = ImGui::GetIO().MouseDelta;
-    state.dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-    state.dragDeltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+    if (state.buttonDown[0] == 1)
+    {
+        state.dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+    }
+    else
+    {
+        state.dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+    }
     state.wheelDelta = ImGui::GetIO().MouseWheel;
 
     if (ImGui::GetIO().KeyCtrl && state.buttonClicked[0] == 1)
