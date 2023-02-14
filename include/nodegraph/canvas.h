@@ -64,7 +64,7 @@ public:
     {
     }
 
-    // Conversions between pixel space and view space; since we might pan or zoom the canvas
+    // Conversions between pixel space and view space
     const glm::vec2 PixelToView(const glm::vec2& pixel) const;
     virtual glm::vec2 ViewToPixels(const glm::vec2& pos) const;
     virtual NRectf ViewToPixels(const NRectf& rc) const;
@@ -72,21 +72,25 @@ public:
     virtual float WorldSizeToViewSizeY(float size) const;
     virtual glm::vec2 ViewSizeToPixelSize(const glm::vec2& size) const;
     virtual float GetViewScale() const;
-    virtual glm::vec2 GetViewMousePos() const;
 
+    // Mouse state
+    virtual glm::vec2 GetViewMousePos() const;
+    virtual void HandleMouse();
+    CanvasInputState& GetInputState();
+
+    // Pixel region
     void SetPixelRegionSize(const glm::vec2& sz);
     glm::vec2 GetPixelRegionSize() const;
 
+    // Base class rendering
     virtual void DrawGrid(float viewStep);
     virtual void DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, const glm::vec4& color);
 
+    // Does this implementation support varying gradients (imgui currently does not)
     virtual bool HasGradientVarying() const;
 
-    virtual void HandleMouse();
-    CanvasInputState& GetInputState();
+    // Drawing functions; These are all in view space, not pixel space
     void CubicBezier(std::vector<glm::vec2>& path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level);
-
-    // Drawing functions; These are all in view space, not canvas space
     virtual void Begin(const glm::vec4& clearColor) = 0;
     virtual void End() = 0;
     virtual void FilledCircle(const glm::vec2& center, float radius, const glm::vec4& color) = 0;
