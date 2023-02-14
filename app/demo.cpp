@@ -15,12 +15,12 @@ void demo_init()
 
 void demo_resize(const glm::vec2& size)
 {
-    spCanvas->SetPixelRect(NRectf(0, 0, size.x, size.y));
+    spCanvas->SetPixelRegionSize(size);
 }
 
 void demo_draw()
 {
-    canvas_imgui_update_state(*spCanvas, spCanvas->GetPixelRect(), true);
+    canvas_imgui_update_state(*spCanvas, spCanvas->GetPixelRegionSize(), true);
 
     spCanvas->Begin(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
 

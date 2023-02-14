@@ -1,15 +1,78 @@
 #include <algorithm>
-#include "nodegraph/view/canvas.h"
+#include "nodegraph/canvas.h"
 //#include "mutils/logger/logger.h"
+
+// Note:
+// View space is the virtual area on which everything is positioned.
+// Pixel space is the screen area.
+// The view area may be larger or smaller on screen depending on zoom, and its origin is not necessarily 0
+// due to panning.
 
 namespace NodeGraph
 {
 
+// Get the current mouse position in view space
+glm::vec2 Canvas::GetViewMousePos() const
+{
+    return PixelToView(m_inputState.mousePos);
+}
+
+float Canvas::GetViewScale() const
+{
+    return m_viewScale;
+}
+
+// This is the visible pixel rect, origin 0
+void Canvas::SetPixelRegionSize(const glm::vec2& sz)
+{
+    m_pixelSize = sz;
+}
+
+glm::vec2 Canvas::GetPixelRegionSize() const
+{
+    return m_pixelSize;
+}
+
+glm::vec2 Canvas::ViewToPixels(const glm::vec2& pos) const
+{
+    auto viewTopLeft = pos - m_viewOrigin;
+    return viewTopLeft * m_viewScale;
+}
+
+NRectf Canvas::ViewToPixels(const NRectf& rc) const
+{
+    auto viewTopLeft = (rc.topLeftPx - m_viewOrigin) * m_viewScale;
+    auto viewBottomRight = (rc.bottomRightPx - m_viewOrigin) * m_viewScale;
+    return NRectf(viewTopLeft, viewBottomRight);
+}
+
+// Get the view position from pixel space
 const glm::vec2 Canvas::PixelToView(const glm::vec2& pixel) const
 {
     return (m_viewOrigin + (pixel / m_viewScale));
 }
 
+glm::vec2 Canvas::ViewSizeToPixelSize(const glm::vec2& size) const
+{
+    return (size * m_viewScale);
+}
+
+float Canvas::WorldSizeToViewSizeX(float size) const
+{
+    return (size * m_viewScale);
+}
+
+float Canvas::WorldSizeToViewSizeY(float size) const
+{
+    return (size * m_viewScale);
+}
+
+CanvasInputState& Canvas::GetInputState()
+{
+    return m_inputState;
+}
+
+// Handle the mouse wheel zoom and the right button panning, for manipulating the canvas
 void Canvas::HandleMouse()
 {
     // We only handle moving canvas here
@@ -19,7 +82,7 @@ void Canvas::HandleMouse()
         return;
     }
 
-    auto normalizedRegion = m_pixelRect;
+    auto normalizedRegion = NRectf(0.0f, 0.0f, m_pixelSize.x, m_pixelSize.y);
 
     bool mouseInView = normalizedRegion.Contains(m_inputState.mousePos);
 
@@ -51,38 +114,6 @@ void Canvas::HandleMouse()
     }
 }
 
-void Canvas::SetPixelRect(const NRectf& rc)
-{
-    m_pixelRect = rc;
-}
-
-glm::vec2 Canvas::ViewToPixels(const glm::vec2& pos) const
-{
-    auto viewTopLeft = pos - m_viewOrigin;
-    return viewTopLeft * m_viewScale;
-}
-
-NRectf Canvas::ViewToPixels(const NRectf& rc) const
-{
-    auto viewTopLeft = (rc.topLeftPx - m_viewOrigin) * m_viewScale;
-    auto viewBottomRight = (rc.bottomRightPx - m_viewOrigin) * m_viewScale;
-    return NRectf(viewTopLeft, viewBottomRight);
-}
-
-glm::vec2 Canvas::ViewSizeToPixelSize(const glm::vec2& size) const
-{
-    return (size * m_viewScale);
-}
-
-float Canvas::WorldSizeToViewSizeX(float size) const
-{
-    return (size * m_viewScale);
-}
-
-float Canvas::WorldSizeToViewSizeY(float size) const
-{
-    return (size * m_viewScale);
-}
 
 void Canvas::DrawGrid(float viewStep)
 {
@@ -94,16 +125,16 @@ void Canvas::DrawGrid(float viewStep)
 
     //auto pDraw = ImGui::GetWindowDrawList();
 
-    while (startPos.x < PixelToView(m_pixelRect.Size()).x)
+    while (startPos.x < PixelToView(m_pixelSize).x)
     {
-        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(startPos.x, PixelToView(m_pixelRect.Size()).y), size.y, glm::vec4(.9f, .9f, .9f, 0.05f));
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(startPos.x, PixelToView(m_pixelSize).y), size.y, glm::vec4(.9f, .9f, .9f, 0.05f));
         startPos.x += viewStep;
     }
 
     startPos.x = std::floor(m_viewOrigin.x / viewStep) * viewStep;
-    while (startPos.y < PixelToView(m_pixelRect.Size()).y)
+    while (startPos.y < PixelToView(m_pixelSize).y)
     {
-        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(PixelToView(m_pixelRect.Size()).x, startPos.y), size.x, glm::vec4(.9f, .9f, .9f, 0.05f));
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(PixelToView(m_pixelSize).x, startPos.y), size.x, glm::vec4(.9f, .9f, .9f, 0.05f));
         startPos.y += viewStep;
     }
 }
@@ -151,6 +182,11 @@ void Canvas::DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm
     LineTo(p4);
     EndStroke();
     */
+}
+
+bool Canvas::HasGradientVarying() const
+{
+    return true;
 }
 
 } // namespace NodeGraph
