@@ -1,4 +1,5 @@
 #include "nodegraph/canvas.h"
+#include "nodegraph/fonts.h"
 #include <algorithm>
 
 // #include "mutils/logger/logger.h"
@@ -15,10 +16,14 @@ Canvas::Canvas(float worldScale, const glm::vec2& scaleLimits)
     : m_worldScale(worldScale)
     , m_worldScaleLimits(scaleLimits)
 {
+    spFontContext = std::make_shared<FontContext>();
+    fonts_init(*spFontContext);
 }
 
 Canvas::~Canvas()
 {
+    fonts_destroy(*spFontContext);
+    spFontContext.reset();
 }
 
 // Get the current mouse position in world space

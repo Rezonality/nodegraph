@@ -1,48 +1,29 @@
-#include <cstdint>
 #include <malloc.h>
 #include <stdio.h>
-#define FONTSTASH_IMPLEMENTATION
-#include <nodegraph/fontstash.h>
 #include <algorithm>
 
-#define NVG_INIT_FONTIMAGE_SIZE 512
-#define NVG_MAX_FONTIMAGE_SIZE 2048
-#define NVG_MAX_FONTIMAGES 4
+#include <nodegraph/fonts.h>
+#define FONTSTASH_IMPLEMENTATION
+#include <nodegraph/fontstash.h>
 
-namespace NodeGraph {
- 
-struct FontContext
+namespace NodeGraph 
 {
-    struct FONScontext* fs;
-    int fontImages[NVG_MAX_FONTIMAGES];
-    int fontImageIdx = 0;
-    float fontSize;
-    float letterSpacing;
-    float lineHeight;
-    float fontBlur;
-    int textAlign;
-    int fontId;
-	float xform[6]; //?
-    float devicePxRatio = 1.0f;
-};
 
-struct NVGglyphPosition
+namespace 
 {
-    const char* str; // Position of the glyph in the input string.
-    float x; // The x-coordinate of the logical glyph position.
-    float minx, maxx; // The bounds of the glyph shape.
-};
-typedef struct NVGglyphPosition NVGglyphPosition;
+// Texture handling bits using the imgui API
+static int fonts_imgui_update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data)
+{
+}
 
-struct NVGtextRow
+static int fonts_imgui_create_texture(void* uptr, int w, int h, const unsigned char* data)
 {
-    const char* start; // Pointer to the input text where the row starts.
-    const char* end; // Pointer to the input text where the row ends (one past the last character).
-    const char* next; // Pointer to the beginning of the next row.
-    float width; // Logical width of the row.
-    float minx, maxx; // Actual bounds of the row. Logical with and bounds can differ because of kerning and some parts over extending.
-};
-typedef struct NVGtextRow NVGtextRow;
+}
+
+static void fonts_imgui_image_size(FontContext& ctx, int image, int* w, int* h)
+{
+}
+}
 
 void fonts_init(FontContext& ctx)
 {
@@ -153,8 +134,7 @@ static float get_font_scale(FontContext& ctx)
     return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 4.0f);
 }
 
-/*
-static void nvg__flushTextTexture(FontContext& ctx)
+static void fonts_flush_texture(FontContext& ctx)
 {
     int dirty[4];
 
@@ -170,36 +150,47 @@ static void nvg__flushTextTexture(FontContext& ctx)
             int y = dirty[1];
             int w = dirty[2] - dirty[0];
             int h = dirty[3] - dirty[1];
-            ctx.params.renderUpdateTexture(ctx.params.userPtr, fontImage, x, y, w, h, data);
+            fonts_imgui_update_texture(ctx.userPtr, fontImage, x, y, w, h, data);
         }
     }
 }
 
-static int nvg__allocTextAtlas(FontContext& ctx)
+static int fonts_alloc_atlas(FontContext& ctx)
 {
     int iw, ih;
-    nvg__flushTextTexture(ctx);
+    fonts_flush_texture(ctx);
     if (ctx.fontImageIdx >= NVG_MAX_FONTIMAGES - 1)
+    {
         return 0;
+    }
     // if next fontImage already have a texture
     if (ctx.fontImages[ctx.fontImageIdx + 1] != 0)
-        nvgImageSize(ctx, ctx.fontImages[ctx.fontImageIdx + 1], &iw, &ih);
+    {
+        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx + 1], &iw, &ih);
+    }
     else
     { // calculate the new font image size and create it.
-        nvgImageSize(ctx, ctx.fontImages[ctx.fontImageIdx], &iw, &ih);
+        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx], &iw, &ih);
         if (iw > ih)
+        {
             ih *= 2;
+        }
         else
+        {
             iw *= 2;
+        }
         if (iw > NVG_MAX_FONTIMAGE_SIZE || ih > NVG_MAX_FONTIMAGE_SIZE)
+        {
             iw = ih = NVG_MAX_FONTIMAGE_SIZE;
-        ctx.fontImages[ctx.fontImageIdx + 1] = ctx.params.renderCreateTexture(ctx.params.userPtr, NVG_TEXTURE_ALPHA, iw, ih, 0, NULL);
+        }
+        ctx.fontImages[ctx.fontImageIdx + 1] = fonts_imgui_create_texture(ctx.userPtr, iw, ih, nullptr);
     }
     ++ctx.fontImageIdx;
     fonsResetAtlas(ctx.fs, iw, ih);
     return 1;
 }
 
+/*
 static void nvg__renderText(FontContext& ctx, NVGvertex* verts, int nverts)
 {
     NVGpaint paint = ctx.fill;
@@ -216,12 +207,14 @@ static void nvg__renderText(FontContext& ctx, NVGvertex* verts, int nverts)
     ctx.drawCallCount++;
     ctx.textTriCount += nverts / 3;
 }
+*/
 
-static int nvg__isTransformFlipped(const float* xform)
+static int is_transform_flipped(const float* xform)
 {
     float det = xform[0] * xform[3] - xform[2] * xform[1];
     return (det < 0);
 }
+/*
 
 float nvgText(FontContext& ctx, float x, float y, const char* string, const char* end)
 {
@@ -728,11 +721,11 @@ void nvgTextBoxBounds(FontContext& ctx, float x, float y, float breakRowWidth, c
         bounds[3] = maxy;
     }
 }
+*/
 
-void nvgTextMetrics(FontContext& ctx, float* ascender, float* descender, float* lineh)
+void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh)
 {
-    NVGstate* state = nvg__getState(ctx);
-    float scale = nvg__getFontScale(state) * ctx.devicePxRatio;
+    float scale = get_font_scale(ctx) * ctx.devicePxRatio;
     float invscale = 1.0f / scale;
 
     if (ctx.fontId == FONS_INVALID)
@@ -752,6 +745,5 @@ void nvgTextMetrics(FontContext& ctx, float* ascender, float* descender, float* 
     if (lineh != NULL)
         *lineh *= invscale;
 }
-*/
 
 } // Nodegraph

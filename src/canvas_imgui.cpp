@@ -1,5 +1,11 @@
+#include <filesystem>
 #include <nodegraph/nodegraph.h>
 #include <nodegraph/canvas_imgui.h>
+#include <nodegraph/fonts.h>
+
+#include "config_app.h"
+
+namespace fs = std::filesystem;
 
 namespace
 {
@@ -9,6 +15,19 @@ const int ArcSegments = 40;
 
 namespace NodeGraph
 {
+
+CanvasImGui::CanvasImGui(float worldScale, const glm::vec2& scaleLimits, ImFont* pFont)
+    : Canvas(worldScale, scaleLimits)
+    , m_pFont(pFont)
+{
+    if (m_pFont == nullptr)
+    {
+        m_pFont = ImGui::GetFont();
+    }
+        
+	auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
+    fonts_create(*spFontContext, "sans", fontPath.string().c_str());
+}
 
 void CanvasImGui::Begin(const glm::vec4& clearColor)
 {

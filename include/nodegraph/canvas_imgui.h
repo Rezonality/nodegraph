@@ -49,15 +49,7 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::ve
 class CanvasImGui : public Canvas
 {
 public:
-    CanvasImGui(float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f), ImFont* pFont = nullptr)
-        : Canvas(worldScale, scaleLimits)
-        , m_pFont(pFont)
-    {
-        if (m_pFont == nullptr)
-        {
-            m_pFont = ImGui::GetFont();
-        }
-    }
+    CanvasImGui(float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f), ImFont* pFont = nullptr);
 
     uint32_t ToImColor(const glm::vec4& val)
     {

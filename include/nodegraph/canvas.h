@@ -9,6 +9,8 @@
 
 namespace NodeGraph {
 
+struct FontContext;
+
 enum MouseButtons
 {
     MOUSE_LEFT,
@@ -121,6 +123,7 @@ protected:
     glm::vec2 m_worldScaleLimits = glm::vec2(0.1f, 10.0f);
     CanvasInputState m_inputState;
     std::vector<glm::vec2> pointStorage;
+    std::shared_ptr<FontContext> spFontContext;
 };
 
 } // namespace NodeGraph

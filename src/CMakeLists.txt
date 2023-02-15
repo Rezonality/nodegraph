@@ -64,6 +64,7 @@ PUBLIC
 
 target_include_directories(NodeGraph
 PRIVATE
+    ${CMAKE_BINARY_DIR}
 PUBLIC
     $<BUILD_INTERFACE:${NODEGRAPH_ROOT}/include>
     $<INSTALL_INTERFACE:include>

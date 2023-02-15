@@ -1,7 +1,9 @@
+#include <filesystem>
 #include <nodegraph/canvas.h>
 #include <nodegraph/canvas_imgui.h>
 
 using namespace NodeGraph; 
+namespace fs = std::filesystem;
 
 namespace 
 {
@@ -36,9 +38,9 @@ void demo_draw()
     spCanvas->FillRoundedRect(NRectf(-200.0f, -200.0f, 100.0f, 100.0f), 1.0f, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
     spCanvas->FilledCircle(glm::vec2(150.0f, 150.0f), 50.0f, glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
 
-    spCanvas->SetAA(true);
     spCanvas->DrawCubicBezier(glm::vec2(-200.0f, 150.0f), glm::vec2(-150.0f, 120.0f), glm::vec2(-100.0f, 150.0f), glm::vec2(-50.0f, 120.0f), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), 1.0f);
-    spCanvas->SetAA(false);
+    
+    spCanvas->Text(glm::vec2(200.0f, -200.0f), 30.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "Text");
 
     spCanvas->End();
         
