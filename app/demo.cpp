@@ -1,4 +1,6 @@
 #include <filesystem>
+#include <memory>
+
 #include <nodegraph/canvas.h>
 #include <nodegraph/canvas_imgui.h>
 
@@ -10,7 +12,6 @@ namespace
 std::unique_ptr<CanvasImGui> spCanvas;
 const glm::vec2 worldCenter = glm::vec2(0.0f);
 }
-
 
 void demo_resize(const glm::vec2& size)
 {
