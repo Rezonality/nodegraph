@@ -7,6 +7,7 @@ find_package(glm CONFIG REQUIRED)
 
 set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/canvas.cpp
+    ${NODEGRAPH_ROOT}/src/fonts.cpp
     ${NODEGRAPH_ROOT}/src/canvas_imgui.cpp
 
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h

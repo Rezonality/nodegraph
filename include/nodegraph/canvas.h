@@ -59,11 +59,8 @@ struct CanvasInputState
 class Canvas
 {
 public:
-    Canvas(float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f))
-        : m_worldScale(worldScale)
-        , m_worldScaleLimits(scaleLimits)
-    {
-    }
+    Canvas(float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f));
+    virtual ~Canvas();
 
     // Conversions between pixel space and world space
     const glm::vec2 PixelToWorld(const glm::vec2& pixel) const;

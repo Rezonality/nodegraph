@@ -1,5 +1,6 @@
 #include "nodegraph/canvas.h"
 #include <algorithm>
+
 // #include "mutils/logger/logger.h"
 
 // Note:
@@ -9,6 +10,16 @@
 // due to panning.
 
 namespace NodeGraph {
+
+Canvas::Canvas(float worldScale, const glm::vec2& scaleLimits)
+    : m_worldScale(worldScale)
+    , m_worldScaleLimits(scaleLimits)
+{
+}
+
+Canvas::~Canvas()
+{
+}
 
 // Get the current mouse position in world space
 glm::vec2 Canvas::GetWorldMousePos() const
