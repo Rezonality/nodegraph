@@ -1,20 +1,18 @@
 #include <filesystem>
-#include <nodegraph/nodegraph.h>
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/fonts.h>
+#include <nodegraph/nodegraph.h>
 
 #include "config_app.h"
 
 namespace fs = std::filesystem;
 
-namespace
-{
+namespace {
 const int CircleSegments = 40;
 const int ArcSegments = 40;
 }
 
-namespace NodeGraph
-{
+namespace NodeGraph {
 
 CanvasImGui::CanvasImGui(float worldScale, const glm::vec2& scaleLimits, ImFont* pFont)
     : Canvas(worldScale, scaleLimits)
@@ -24,8 +22,8 @@ CanvasImGui::CanvasImGui(float worldScale, const glm::vec2& scaleLimits, ImFont*
     {
         m_pFont = ImGui::GetFont();
     }
-        
-	auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
+
+    auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
     fonts_create(*spFontContext, "sans", fontPath.string().c_str());
 }
 
@@ -58,8 +56,8 @@ void CanvasImGui::FilledGradientCircle(const glm::vec2& center, float radius, co
 {
     auto worldCenter = WorldToPixels(center);
     auto worldRadius = WorldSizeToPixelSize(radius);
-    //auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
-    //auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
+    // auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
+    // auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
     worldCenter += glm::vec2(origin);
 
     // TODO: Should be gradient but can't do it on ImGui yet
@@ -72,7 +70,7 @@ void CanvasImGui::Stroke(const glm::vec2& from, const glm::vec2& to, float width
     auto worldFrom = WorldToPixels(from);
     auto worldTo = WorldToPixels(to);
     auto worldWidth = WorldSizeToPixelSize(width);
-    
+
     worldFrom += glm::vec2(origin);
     worldTo += glm::vec2(origin);
 
@@ -94,12 +92,12 @@ void CanvasImGui::FillGradientRoundedRect(const NRectf& rc, float radius, const 
 {
     auto worldRect = WorldToPixels(rc);
     auto worldSize = WorldSizeToPixelSize(radius);
-    //auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
-    //auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
+    // auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
+    // auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
     worldRect.Adjust(origin.x, origin.y);
 
     auto pDraw = ImGui::GetWindowDrawList();
-    //pDraw->AddRectFilledMultiColor(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(startColor), ToImColor(startColor), ToImColor(startColor), ToImColor(endColor));
+    // pDraw->AddRectFilledMultiColor(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(startColor), ToImColor(startColor), ToImColor(startColor), ToImColor(endColor));
     pDraw->AddRectFilled(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(startColor), worldSize);
 }
 
@@ -107,8 +105,8 @@ void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const glm::ve
 {
     auto worldRect = WorldToPixels(rc);
     float worldSize0 = 0.0f;
-    //auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
-    //auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
+    // auto worldGradientBegin = WorldToPixels(gradientRange.topLeftPx);
+    // auto worldGradientEnd = WorldToPixels(gradientRange.bottomRightPx);
 
     auto flags = 0;
     if (radius.x > 0.0f)
@@ -142,7 +140,7 @@ void CanvasImGui::FillRect(const NRectf& rc, const glm::vec4& color)
 {
     auto worldRect = WorldToPixels(rc);
     auto pDraw = ImGui::GetWindowDrawList();
-    
+
     worldRect.Adjust(origin.x, origin.y);
     pDraw->AddRectFilled(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(color));
 }
@@ -196,7 +194,6 @@ void CanvasImGui::Arc(const glm::vec2& pos, float radius, float width, const glm
     pDraw->PathStroke(ToImColor(color), false, worldWidth);
 }
 
-
 void CanvasImGui::SetAA(bool set)
 {
     /* Nothing currently */
@@ -207,13 +204,13 @@ void CanvasImGui::BeginStroke(const glm::vec2& from, float width, const glm::vec
 {
     auto worldPos = WorldToPixels(from);
     auto size = WorldSizeToPixelSize(width);
-    
+
     worldPos += glm::vec2(origin);
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
     pDraw->PathLineTo(worldPos);
-    
+
     m_pathWidth = size;
     m_pathColor = ToImColor(color);
     m_closePath = false;
@@ -244,7 +241,7 @@ void CanvasImGui::MoveTo(const glm::vec2& to)
 {
     auto worldPos = WorldToPixels(to);
     worldPos += glm::vec2(origin);
-    
+
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
     pDraw->PathLineTo(worldPos);
