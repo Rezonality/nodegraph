@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <vector>
 #include <nodegraph/fontstash.h>
 
 namespace NodeGraph {
@@ -55,5 +56,6 @@ void fonts_reset_fallback(FontContext& ctx, const char* baseFont);
 void fonts_set_face(FontContext& ctx, const char* font);
 int fonts_find(FontContext& ctx, const char* name);
 void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh);
+float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end);
 
 } // Nodegraph

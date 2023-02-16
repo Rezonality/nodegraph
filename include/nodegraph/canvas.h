@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <vector>
+#include <memory>
 
 #include <nodegraph/math_utils.h>
 

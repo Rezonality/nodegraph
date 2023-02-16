@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+#include <imgui.h>
 
 #include <nodegraph/fonts.h>
 #define FONTSTASH_IMPLEMENTATION
@@ -10,6 +11,13 @@ namespace NodeGraph {
 
 namespace {
 
+struct NVGvertex
+{
+    float x, y, u, v;
+};
+typedef struct NVGvertex NVGvertex;
+std::vector<NVGvertex> vertices;
+
 struct NVGscissor
 {
     float xform[6];
@@ -17,26 +25,6 @@ struct NVGscissor
 };
 typedef struct NVGscissor NVGscissor;
 
-struct NVGvertex
-{
-    float x, y, u, v;
-};
-typedef struct NVGvertex NVGvertex;
-
-struct NVGpath
-{
-    int first;
-    int count;
-    unsigned char closed;
-    int nbevel;
-    NVGvertex* fill;
-    int nfill;
-    NVGvertex* stroke;
-    int nstroke;
-    int winding;
-    int convex;
-};
-typedef struct NVGpath NVGpath;
 
 float quantize(float a, float d)
 {
@@ -55,7 +43,47 @@ float get_font_scale(FontContext& ctx)
     return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 4.0f);
 }
 
-void fonts_flush_texture(FontContext& ctx)
+
+int is_transform_flipped(const float* xform)
+{
+    float det = xform[0] * xform[3] - xform[2] * xform[1];
+    return (det < 0);
+}
+
+NVGvertex* alloc_temp_verts(FontContext& ctx, size_t size)
+{
+    vertices.resize(size);
+    return &vertices[0];
+}
+
+// Texture handling bits using the imgui API
+int update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data)
+{
+    return 0;
+}
+
+int create_texture(void* uptr, int w, int h, const unsigned char* data)
+{
+    return 0;
+}
+
+void get_texture_size(FontContext& ctx, int image, int* w, int* h)
+{
+}
+
+void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
+{
+    // Render triangles.
+    //image = ctx.fontImages[ctx.fontImageIdx];
+
+    // Apply global alpha
+    //innerColor.a *= ctx.alpha;
+    //outerColor.a *= ctx.alpha;
+
+    //render_triangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
+}
+
+void flush_texture(FontContext& ctx)
 {
     int dirty[4];
 
@@ -71,15 +99,15 @@ void fonts_flush_texture(FontContext& ctx)
             int y = dirty[1];
             int w = dirty[2] - dirty[0];
             int h = dirty[3] - dirty[1];
-            fonts_imgui_update_texture(ctx.userPtr, fontImage, x, y, w, h, data);
+            update_texture(ctx.userPtr, fontImage, x, y, w, h, data);
         }
     }
 }
 
-int fonts_alloc_atlas(FontContext& ctx)
+int alloc_text_atlas(FontContext& ctx)
 {
     int iw, ih;
-    fonts_flush_texture(ctx);
+    flush_texture(ctx);
     if (ctx.fontImageIdx >= NVG_MAX_FONTIMAGES - 1)
     {
         return 0;
@@ -87,11 +115,11 @@ int fonts_alloc_atlas(FontContext& ctx)
     // if next fontImage already have a texture
     if (ctx.fontImages[ctx.fontImageIdx + 1] != 0)
     {
-        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx + 1], &iw, &ih);
+        get_texture_size(ctx, ctx.fontImages[ctx.fontImageIdx + 1], &iw, &ih);
     }
     else
     { // calculate the new font image size and create it.
-        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx], &iw, &ih);
+        get_texture_size(ctx, ctx.fontImages[ctx.fontImageIdx], &iw, &ih);
         if (iw > ih)
         {
             ih *= 2;
@@ -104,50 +132,13 @@ int fonts_alloc_atlas(FontContext& ctx)
         {
             iw = ih = NVG_MAX_FONTIMAGE_SIZE;
         }
-        ctx.fontImages[ctx.fontImageIdx + 1] = fonts_imgui_create_texture(ctx.userPtr, iw, ih, nullptr);
+        ctx.fontImages[ctx.fontImageIdx + 1] = create_texture(ctx.userPtr, iw, ih, nullptr);
     }
     ++ctx.fontImageIdx;
     fonsResetAtlas(ctx.fs, iw, ih);
     return 1;
 }
 
-void fonts_render_text(FontContext& ctx, NVGvertex* verts, int nverts)
-{
-    //NVGpaint paint = ctx.fill;
-
-    // Render triangles.
-    //paint.image = ctx.fontImages[ctx.fontImageIdx];
-
-    // Apply global alpha
-    //paint.innerColor.a *= ctx.alpha;
-    //paint.outerColor.a *= ctx.alpha;
-
-    //ctx.params.renderTriangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
-}
-
-int is_transform_flipped(const float* xform)
-{
-    float det = xform[0] * xform[3] - xform[2] * xform[1];
-    return (det < 0);
-}
-
-// Texture handling bits using the imgui API
-int fonts_imgui_update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data)
-{
-}
-
-int fonts_imgui_create_texture(void* uptr, int w, int h, const unsigned char* data)
-{
-}
-
-void fonts_imgui_image_size(FontContext& ctx, int image, int* w, int* h)
-{
-}
-
-void fonts_render_triangles(void* uptr, struct NVGpaint* paint, struct NVGscissor* scissor, const struct NVGvertex* verts, int nverts)
-{
-
-}
 
 }
 
@@ -243,18 +234,16 @@ void fonts_set_face(FontContext& ctx, const char* font)
     ctx.fontId = fonsGetFontByName(ctx.fs, font);
 }
 
-/*
-
-float nvgText(FontContext& ctx, float x, float y, const char* string, const char* end)
+float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end)
 {
     FONStextIter iter, prevIter;
     FONSquad q;
     NVGvertex* verts;
-    float scale = nvg__getFontScale(state) * ctx.devicePxRatio;
+    float scale = get_font_scale(ctx) * ctx.devicePxRatio;
     float invscale = 1.0f / scale;
     int cverts = 0;
     int nverts = 0;
-    int isFlipped = nvg__isTransformFlipped(ctx.xform);
+    int isFlipped = is_transform_flipped(ctx.xform);
 
     if (end == NULL)
         end = string + strlen(string);
@@ -268,24 +257,25 @@ float nvgText(FontContext& ctx, float x, float y, const char* string, const char
     fonsSetAlign(ctx.fs, ctx.textAlign);
     fonsSetFont(ctx.fs, ctx.fontId);
 
-    cverts = nvg__maxi(2, (int)(end - string)) * 6; // conservative estimate.
-    verts = nvg__allocTempVerts(ctx, cverts);
+    cverts = std::max(2, (int)(end - string)) * 6; // conservative estimate.
+    verts = alloc_temp_verts(ctx, cverts);
     if (verts == NULL)
         return x;
 
     fonsTextIterInit(ctx.fs, &iter, x * scale, y * scale, string, end, FONS_GLYPH_BITMAP_REQUIRED);
+
     prevIter = iter;
     while (fonsTextIterNext(ctx.fs, &iter, &q))
     {
-        float c[4 * 2];
+        //float c[4 * 2];
         if (iter.prevGlyphIndex == -1)
         { // can not retrieve glyph?
             if (nverts != 0)
             {
-                nvg__renderText(ctx, verts, nverts);
+                render_text(ctx, verts, nverts);
                 nverts = 0;
             }
-            if (!nvg__allocTextAtlas(ctx))
+            if (!alloc_text_atlas(ctx))
                 break; // no memory :(
             iter = prevIter;
             fonsTextIterNext(ctx.fs, &iter, &q); // try again
@@ -304,11 +294,13 @@ float nvgText(FontContext& ctx, float x, float y, const char* string, const char
             q.t0 = q.t1;
             q.t1 = tmp;
         }
+
         // Transform corners.
-        nvgTransformPoint(&c[0], &c[1], ctx.xform, q.x0 * invscale, q.y0 * invscale);
+        /*nvgTransformPoint(&c[0], &c[1], ctx.xform, q.x0 * invscale, q.y0 * invscale);
         nvgTransformPoint(&c[2], &c[3], ctx.xform, q.x1 * invscale, q.y0 * invscale);
         nvgTransformPoint(&c[4], &c[5], ctx.xform, q.x1 * invscale, q.y1 * invscale);
         nvgTransformPoint(&c[6], &c[7], ctx.xform, q.x0 * invscale, q.y1 * invscale);
+
         // Create triangles
         if (nverts + 6 <= cverts)
         {
@@ -325,16 +317,41 @@ float nvgText(FontContext& ctx, float x, float y, const char* string, const char
             nvg__vset(&verts[nverts], c[4], c[5], q.s1, q.t1);
             nverts++;
         }
+        */
     }
 
     // TODO: add back-end bit to do this just once per frame.
-    nvg__flushTextTexture(ctx);
+    flush_texture(ctx);
 
-    nvg__renderText(ctx, verts, nverts);
+    render_text(ctx, verts, nverts);
 
     return iter.nextx / scale;
 }
 
+void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh)
+{
+    float scale = get_font_scale(ctx) * ctx.devicePxRatio;
+    float invscale = 1.0f / scale;
+
+    if (ctx.fontId == FONS_INVALID)
+        return;
+
+    fonsSetSize(ctx.fs, ctx.fontSize * scale);
+    fonsSetSpacing(ctx.fs, ctx.letterSpacing * scale);
+    fonsSetBlur(ctx.fs, ctx.fontBlur * scale);
+    fonsSetAlign(ctx.fs, ctx.textAlign);
+    fonsSetFont(ctx.fs, ctx.fontId);
+
+    fonsVertMetrics(ctx.fs, ascender, descender, lineh);
+    if (ascender != NULL)
+        *ascender *= invscale;
+    if (descender != NULL)
+        *descender *= invscale;
+    if (lineh != NULL)
+        *lineh *= invscale;
+}
+
+/*
 void nvgTextBox(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end)
 {
     NVGtextRow rows[2];
@@ -414,17 +431,6 @@ int nvgTextGlyphPositions(FontContext& ctx, float x, float y, const char* string
 
     return npos;
 }
-*/
-
-enum NVGcodepointType
-{
-    NVG_SPACE,
-    NVG_NEWLINE,
-    NVG_CHAR,
-    NVG_CJK_CHAR,
-};
-
-/*
 int nvgTextBreakLines(FontContext& ctx, const char* string, const char* end, float breakRowWidth, NVGtextRow* rows, int maxRows)
 {
     float scale = get_font_scale(ctx) * ctx.devicePxRatio;
@@ -645,9 +651,6 @@ int nvgTextBreakLines(FontContext& ctx, const char* string, const char* end, flo
 
     return nrows;
 }
-*/
-
-/*
 
 float nvgTextBounds(FontContext& ctx, float x, float y, const char* string, const char* end, float* bounds)
 {
@@ -752,27 +755,5 @@ void nvgTextBoxBounds(FontContext& ctx, float x, float y, float breakRowWidth, c
 }
 */
 
-void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh)
-{
-    float scale = get_font_scale(ctx) * ctx.devicePxRatio;
-    float invscale = 1.0f / scale;
-
-    if (ctx.fontId == FONS_INVALID)
-        return;
-
-    fonsSetSize(ctx.fs, ctx.fontSize * scale);
-    fonsSetSpacing(ctx.fs, ctx.letterSpacing * scale);
-    fonsSetBlur(ctx.fs, ctx.fontBlur * scale);
-    fonsSetAlign(ctx.fs, ctx.textAlign);
-    fonsSetFont(ctx.fs, ctx.fontId);
-
-    fonsVertMetrics(ctx.fs, ascender, descender, lineh);
-    if (ascender != NULL)
-        *ascender *= invscale;
-    if (descender != NULL)
-        *descender *= invscale;
-    if (lineh != NULL)
-        *lineh *= invscale;
-}
 
 } // Nodegraph

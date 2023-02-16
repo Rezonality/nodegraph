@@ -156,9 +156,14 @@ NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* psz
 void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color, const char* pszText, const char* pszFace, uint32_t align)
 {
     auto worldPos = WorldToPixels(pos);
-
     worldPos += glm::vec2(origin);
 
+    if (pszFace != nullptr)
+    {
+        fonts_set_face(*spFontContext, pszFace);
+    }
+    fonts_draw_text(*spFontContext, worldPos.x, worldPos.y, pszText, nullptr);
+    /*
     auto pDraw = ImGui::GetWindowDrawList();
 
     ImGui::PushFont(m_pFont);
@@ -178,6 +183,7 @@ void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color,
 
     pDraw->AddText(m_pFont, fontSize.y, worldPos, ToImColor(color), pszText);
     ImGui::PopFont();
+    */
 }
 
 void CanvasImGui::Arc(const glm::vec2& pos, float radius, float width, const glm::vec4& color, float startAngle, float endAngle)
