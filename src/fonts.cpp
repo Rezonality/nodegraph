@@ -25,7 +25,6 @@ struct NVGscissor
 };
 typedef struct NVGscissor NVGscissor;
 
-
 float quantize(float a, float d)
 {
     return ((int)(a / d + 0.5f)) * d;
@@ -42,7 +41,6 @@ float get_font_scale(FontContext& ctx)
 {
     return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 4.0f);
 }
-
 
 int is_transform_flipped(const float* xform)
 {
@@ -81,6 +79,8 @@ void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
     //outerColor.a *= ctx.alpha;
 
     //render_triangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
+    //auto pDraw = ImGui::GetWindowDrawList();
+    //pDraw->AddTr
 }
 
 void flush_texture(FontContext& ctx)
@@ -139,8 +139,7 @@ int alloc_text_atlas(FontContext& ctx)
     return 1;
 }
 
-
-}
+} // namespace
 
 void fonts_init(FontContext& ctx)
 {
@@ -179,27 +178,31 @@ void fonts_destroy(FontContext& ctx)
     }
 }
 
-// Add fonts
+// Add a font file to the cache of fonts we can use
 int fonts_create(FontContext& ctx, const char* name, const char* filename)
 {
     return fonsAddFont(ctx.fs, name, filename, 0);
 }
 
+// Add a font file and store it in a given index
 int fonts_create(FontContext& ctx, const char* name, const char* filename, const int fontIndex)
 {
     return fonsAddFont(ctx.fs, name, filename, fontIndex);
 }
 
+// Add a font stored in memory
 int fonts_create_mem(FontContext& ctx, const char* name, unsigned char* data, int ndata, int freeData)
 {
     return fonsAddFontMem(ctx.fs, name, data, ndata, freeData, 0);
 }
 
+// Add a font stored in memory at the given index
 int fonts_create_mem(FontContext& ctx, const char* name, unsigned char* data, int ndata, int freeData, const int fontIndex)
 {
     return fonsAddFontMem(ctx.fs, name, data, ndata, freeData, fontIndex);
 }
 
+// Find a font id by name
 int fonts_find(FontContext& ctx, const char* name)
 {
     if (name == NULL)
@@ -207,6 +210,7 @@ int fonts_find(FontContext& ctx, const char* name)
     return fonsGetFontByName(ctx.fs, name);
 }
 
+// I think this is in case the current font isn't found, or the glyph?
 int fonts_add_fallback(FontContext& ctx, int baseFont, int fallbackFont)
 {
     if (baseFont == -1 || fallbackFont == -1)
@@ -229,9 +233,33 @@ void fonts_reset_fallback(FontContext& ctx, const char* baseFont)
     fonts_reset_fallback(ctx, fonts_find(ctx, baseFont));
 }
 
+// Set the current font by name
 void fonts_set_face(FontContext& ctx, const char* font)
 {
     ctx.fontId = fonsGetFontByName(ctx.fs, font);
+}
+
+void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh)
+{
+    float scale = get_font_scale(ctx) * ctx.devicePxRatio;
+    float invscale = 1.0f / scale;
+
+    if (ctx.fontId == FONS_INVALID)
+        return;
+
+    fonsSetSize(ctx.fs, ctx.fontSize * scale);
+    fonsSetSpacing(ctx.fs, ctx.letterSpacing * scale);
+    fonsSetBlur(ctx.fs, ctx.fontBlur * scale);
+    fonsSetAlign(ctx.fs, ctx.textAlign);
+    fonsSetFont(ctx.fs, ctx.fontId);
+
+    fonsVertMetrics(ctx.fs, ascender, descender, lineh);
+    if (ascender != NULL)
+        *ascender *= invscale;
+    if (descender != NULL)
+        *descender *= invscale;
+    if (lineh != NULL)
+        *lineh *= invscale;
 }
 
 float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end)
@@ -328,29 +356,6 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
     return iter.nextx / scale;
 }
 
-void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh)
-{
-    float scale = get_font_scale(ctx) * ctx.devicePxRatio;
-    float invscale = 1.0f / scale;
-
-    if (ctx.fontId == FONS_INVALID)
-        return;
-
-    fonsSetSize(ctx.fs, ctx.fontSize * scale);
-    fonsSetSpacing(ctx.fs, ctx.letterSpacing * scale);
-    fonsSetBlur(ctx.fs, ctx.fontBlur * scale);
-    fonsSetAlign(ctx.fs, ctx.textAlign);
-    fonsSetFont(ctx.fs, ctx.fontId);
-
-    fonsVertMetrics(ctx.fs, ascender, descender, lineh);
-    if (ascender != NULL)
-        *ascender *= invscale;
-    if (descender != NULL)
-        *descender *= invscale;
-    if (lineh != NULL)
-        *lineh *= invscale;
-}
-
 /*
 void nvgTextBox(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end)
 {
@@ -431,6 +436,7 @@ int nvgTextGlyphPositions(FontContext& ctx, float x, float y, const char* string
 
     return npos;
 }
+
 int nvgTextBreakLines(FontContext& ctx, const char* string, const char* end, float breakRowWidth, NVGtextRow* rows, int maxRows)
 {
     float scale = get_font_scale(ctx) * ctx.devicePxRatio;
@@ -754,6 +760,5 @@ void nvgTextBoxBounds(FontContext& ctx, float x, float y, float breakRowWidth, c
     }
 }
 */
-
 
 } // Nodegraph
