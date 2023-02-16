@@ -1,28 +1,154 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <algorithm>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <nodegraph/fonts.h>
 #define FONTSTASH_IMPLEMENTATION
 #include <nodegraph/fontstash.h>
 
-namespace NodeGraph 
-{
+namespace NodeGraph {
 
-namespace 
+namespace {
+
+struct NVGscissor
 {
+    float xform[6];
+    float extent[2];
+};
+typedef struct NVGscissor NVGscissor;
+
+struct NVGvertex
+{
+    float x, y, u, v;
+};
+typedef struct NVGvertex NVGvertex;
+
+struct NVGpath
+{
+    int first;
+    int count;
+    unsigned char closed;
+    int nbevel;
+    NVGvertex* fill;
+    int nfill;
+    NVGvertex* stroke;
+    int nstroke;
+    int winding;
+    int convex;
+};
+typedef struct NVGpath NVGpath;
+
+float quantize(float a, float d)
+{
+    return ((int)(a / d + 0.5f)) * d;
+}
+
+float get_average_scale(float* t)
+{
+    float sx = sqrtf(t[0] * t[0] + t[2] * t[2]);
+    float sy = sqrtf(t[1] * t[1] + t[3] * t[3]);
+    return (sx + sy) * 0.5f;
+}
+
+float get_font_scale(FontContext& ctx)
+{
+    return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 4.0f);
+}
+
+void fonts_flush_texture(FontContext& ctx)
+{
+    int dirty[4];
+
+    if (fonsValidateTexture(ctx.fs, dirty))
+    {
+        int fontImage = ctx.fontImages[ctx.fontImageIdx];
+        // Update texture
+        if (fontImage != 0)
+        {
+            int iw, ih;
+            const unsigned char* data = fonsGetTextureData(ctx.fs, &iw, &ih);
+            int x = dirty[0];
+            int y = dirty[1];
+            int w = dirty[2] - dirty[0];
+            int h = dirty[3] - dirty[1];
+            fonts_imgui_update_texture(ctx.userPtr, fontImage, x, y, w, h, data);
+        }
+    }
+}
+
+int fonts_alloc_atlas(FontContext& ctx)
+{
+    int iw, ih;
+    fonts_flush_texture(ctx);
+    if (ctx.fontImageIdx >= NVG_MAX_FONTIMAGES - 1)
+    {
+        return 0;
+    }
+    // if next fontImage already have a texture
+    if (ctx.fontImages[ctx.fontImageIdx + 1] != 0)
+    {
+        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx + 1], &iw, &ih);
+    }
+    else
+    { // calculate the new font image size and create it.
+        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx], &iw, &ih);
+        if (iw > ih)
+        {
+            ih *= 2;
+        }
+        else
+        {
+            iw *= 2;
+        }
+        if (iw > NVG_MAX_FONTIMAGE_SIZE || ih > NVG_MAX_FONTIMAGE_SIZE)
+        {
+            iw = ih = NVG_MAX_FONTIMAGE_SIZE;
+        }
+        ctx.fontImages[ctx.fontImageIdx + 1] = fonts_imgui_create_texture(ctx.userPtr, iw, ih, nullptr);
+    }
+    ++ctx.fontImageIdx;
+    fonsResetAtlas(ctx.fs, iw, ih);
+    return 1;
+}
+
+void fonts_render_text(FontContext& ctx, NVGvertex* verts, int nverts)
+{
+    //NVGpaint paint = ctx.fill;
+
+    // Render triangles.
+    //paint.image = ctx.fontImages[ctx.fontImageIdx];
+
+    // Apply global alpha
+    //paint.innerColor.a *= ctx.alpha;
+    //paint.outerColor.a *= ctx.alpha;
+
+    //ctx.params.renderTriangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
+}
+
+int is_transform_flipped(const float* xform)
+{
+    float det = xform[0] * xform[3] - xform[2] * xform[1];
+    return (det < 0);
+}
+
 // Texture handling bits using the imgui API
-static int fonts_imgui_update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data)
+int fonts_imgui_update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data)
 {
 }
 
-static int fonts_imgui_create_texture(void* uptr, int w, int h, const unsigned char* data)
+int fonts_imgui_create_texture(void* uptr, int w, int h, const unsigned char* data)
 {
 }
 
-static void fonts_imgui_image_size(FontContext& ctx, int image, int* w, int* h)
+void fonts_imgui_image_size(FontContext& ctx, int image, int* w, int* h)
 {
 }
+
+void fonts_render_triangles(void* uptr, struct NVGpaint* paint, struct NVGscissor* scissor, const struct NVGvertex* verts, int nverts)
+{
+
+}
+
 }
 
 void fonts_init(FontContext& ctx)
@@ -112,108 +238,11 @@ void fonts_reset_fallback(FontContext& ctx, const char* baseFont)
     fonts_reset_fallback(ctx, fonts_find(ctx, baseFont));
 }
 
-void nvgFontFace(FontContext& ctx, const char* font)
+void fonts_set_face(FontContext& ctx, const char* font)
 {
     ctx.fontId = fonsGetFontByName(ctx.fs, font);
 }
 
-static float quantize(float a, float d)
-{
-    return ((int)(a / d + 0.5f)) * d;
-}
-
-static float get_average_scale(float *t)
-{
-	float sx = sqrtf(t[0]*t[0] + t[2]*t[2]);
-	float sy = sqrtf(t[1]*t[1] + t[3]*t[3]);
-	return (sx + sy) * 0.5f;
-}
-
-static float get_font_scale(FontContext& ctx)
-{
-    return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 4.0f);
-}
-
-static void fonts_flush_texture(FontContext& ctx)
-{
-    int dirty[4];
-
-    if (fonsValidateTexture(ctx.fs, dirty))
-    {
-        int fontImage = ctx.fontImages[ctx.fontImageIdx];
-        // Update texture
-        if (fontImage != 0)
-        {
-            int iw, ih;
-            const unsigned char* data = fonsGetTextureData(ctx.fs, &iw, &ih);
-            int x = dirty[0];
-            int y = dirty[1];
-            int w = dirty[2] - dirty[0];
-            int h = dirty[3] - dirty[1];
-            fonts_imgui_update_texture(ctx.userPtr, fontImage, x, y, w, h, data);
-        }
-    }
-}
-
-static int fonts_alloc_atlas(FontContext& ctx)
-{
-    int iw, ih;
-    fonts_flush_texture(ctx);
-    if (ctx.fontImageIdx >= NVG_MAX_FONTIMAGES - 1)
-    {
-        return 0;
-    }
-    // if next fontImage already have a texture
-    if (ctx.fontImages[ctx.fontImageIdx + 1] != 0)
-    {
-        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx + 1], &iw, &ih);
-    }
-    else
-    { // calculate the new font image size and create it.
-        fonts_imgui_image_size(ctx, ctx.fontImages[ctx.fontImageIdx], &iw, &ih);
-        if (iw > ih)
-        {
-            ih *= 2;
-        }
-        else
-        {
-            iw *= 2;
-        }
-        if (iw > NVG_MAX_FONTIMAGE_SIZE || ih > NVG_MAX_FONTIMAGE_SIZE)
-        {
-            iw = ih = NVG_MAX_FONTIMAGE_SIZE;
-        }
-        ctx.fontImages[ctx.fontImageIdx + 1] = fonts_imgui_create_texture(ctx.userPtr, iw, ih, nullptr);
-    }
-    ++ctx.fontImageIdx;
-    fonsResetAtlas(ctx.fs, iw, ih);
-    return 1;
-}
-
-/*
-static void nvg__renderText(FontContext& ctx, NVGvertex* verts, int nverts)
-{
-    NVGpaint paint = ctx.fill;
-
-    // Render triangles.
-    paint.image = ctx.fontImages[ctx.fontImageIdx];
-
-    // Apply global alpha
-    paint.innerColor.a *= ctx.alpha;
-    paint.outerColor.a *= ctx.alpha;
-
-    ctx.params.renderTriangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
-
-    ctx.drawCallCount++;
-    ctx.textTriCount += nverts / 3;
-}
-*/
-
-static int is_transform_flipped(const float* xform)
-{
-    float det = xform[0] * xform[3] - xform[2] * xform[1];
-    return (det < 0);
-}
 /*
 
 float nvgText(FontContext& ctx, float x, float y, const char* string, const char* end)

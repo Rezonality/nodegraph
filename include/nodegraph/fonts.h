@@ -21,6 +21,7 @@ struct FontContext
 	float xform[6]; //?
     float devicePxRatio = 1.0f;
 	void* userPtr = nullptr;
+    float alpha = 1.0f;
 };
 
 struct NVGglyphPosition
@@ -45,14 +46,14 @@ void fonts_init(FontContext& ctx);
 void fonts_destroy(FontContext& ctx);
 int fonts_create(FontContext& ctx, const char* name, const char* filename);
 int fonts_create(FontContext& ctx, const char* name, const char* filename, const int fontIndex);
-//int fonts_create_mem(FontContext& ctx, const char* name, unsigned char* data, int ndata, int freeData);
-//int fonts_create_mem(FontContext& ctx, const char* name, unsigned char* data, int ndata, int freeData, const int fontIndex);
-//int fonts_find(FontContext& ctx, const char* name);
-//int fonts_add_fallback(FontContext& ctx, int baseFont, int fallbackFont);
-//int fonts_add_fallback(FontContext& ctx, const char* baseFont, const char* fallbackFont);
-//void fonts_reset_fallback(FontContext& ctx, int baseFont);
-//void fonts_reset_fallback(FontContext& ctx, const char* baseFont);
-//void nvgFontFace(FontContext& ctx, const char* font);
+int fonts_create_mem(FontContext& ctx, const char* name, unsigned char* data, int ndata, int freeData);
+int fonts_create_mem(FontContext& ctx, const char* name, unsigned char* data, int ndata, int freeData, const int fontIndex);
+int fonts_add_fallback(FontContext& ctx, int baseFont, int fallbackFont);
+int fonts_add_fallback(FontContext& ctx, const char* baseFont, const char* fallbackFont);
+void fonts_reset_fallback(FontContext& ctx, int baseFont);
+void fonts_reset_fallback(FontContext& ctx, const char* baseFont);
+void fonts_set_face(FontContext& ctx, const char* font);
+int fonts_find(FontContext& ctx, const char* name);
 void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh);
 
 } // Nodegraph
