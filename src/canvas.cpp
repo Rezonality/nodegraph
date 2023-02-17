@@ -187,7 +187,7 @@ void Canvas::DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm
 {
     pointStorage.clear();
     pointStorage.push_back(p1);
-    CubicBezier(pointStorage, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, 0.5f, 0);
+    CubicBezier(pointStorage, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, 0.1f, 0);
 
     BeginStroke(pointStorage[0], width, color);
     for (int i = 1; i < pointStorage.size(); i++)

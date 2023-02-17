@@ -1,12 +1,25 @@
 #include <cstdint>
-#include <vector>
 #include <nodegraph/fontstash.h>
+#include <vector>
 
 namespace NodeGraph {
- 
+
 #define NVG_INIT_FONTIMAGE_SIZE 512
 #define NVG_MAX_FONTIMAGE_SIZE 2048
 #define NVG_MAX_FONTIMAGES 4
+
+enum NVGalign
+{
+    // Horizontal align
+    NVG_ALIGN_LEFT = 1 << 0, // Default, align text horizontally to left.
+    NVG_ALIGN_CENTER = 1 << 1, // Align text horizontally to center.
+    NVG_ALIGN_RIGHT = 1 << 2, // Align text horizontally to right.
+    // Vertical align
+    NVG_ALIGN_TOP = 1 << 3, // Align text vertically to top.
+    NVG_ALIGN_MIDDLE = 1 << 4, // Align text vertically to middle.
+    NVG_ALIGN_BOTTOM = 1 << 5, // Align text vertically to bottom.
+    NVG_ALIGN_BASELINE = 1 << 6, // Default, align text vertically to baseline.
+};
 
 struct FontContext
 {
@@ -17,11 +30,11 @@ struct FontContext
     float letterSpacing;
     float lineHeight;
     float fontBlur;
-    int textAlign;
-    int fontId;
-	float xform[6]; //?
+    int textAlign;  // NVGalign flags
+    int fontId;     // Current font
+    float xform[6]; //?
     float devicePxRatio = 1.0f;
-	void* userPtr = nullptr;
+    void* userPtr = nullptr;
     float alpha = 1.0f;
 };
 
