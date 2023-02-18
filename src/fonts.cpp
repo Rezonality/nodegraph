@@ -1,7 +1,7 @@
 #include <algorithm>
+#include <imgui.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <imgui.h>
 
 #include <nodegraph/fonts.h>
 #define FONTSTASH_IMPLEMENTATION
@@ -72,15 +72,15 @@ void get_texture_size(FontContext& ctx, int image, int* w, int* h)
 void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
 {
     // Render triangles.
-    //image = ctx.fontImages[ctx.fontImageIdx];
+    // image = ctx.fontImages[ctx.fontImageIdx];
 
     // Apply global alpha
-    //innerColor.a *= ctx.alpha;
-    //outerColor.a *= ctx.alpha;
+    // innerColor.a *= ctx.alpha;
+    // outerColor.a *= ctx.alpha;
 
-    //render_triangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
-    //auto pDraw = ImGui::GetWindowDrawList();
-    //pDraw->AddTr
+    // render_triangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
+    // auto pDraw = ImGui::GetWindowDrawList();
+    // pDraw->AddTr
 }
 
 void flush_texture(FontContext& ctx)
@@ -160,6 +160,10 @@ void fonts_init(FontContext& ctx)
     fontParams.renderDelete = NULL;
     fontParams.userPtr = NULL;
     ctx.fs = fonsCreateInternal(&fontParams);
+
+    // Create font texture
+    ctx.fontImages[0] = create_texture(ctx.userPtr, fontParams.width, fontParams.height, nullptr);
+    ctx.fontImageIdx = 0;
 }
 
 void fonts_destroy(FontContext& ctx)
@@ -295,7 +299,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
     prevIter = iter;
     while (fonsTextIterNext(ctx.fs, &iter, &q))
     {
-        //float c[4 * 2];
+        // float c[4 * 2];
         if (iter.prevGlyphIndex == -1)
         { // can not retrieve glyph?
             if (nverts != 0)
