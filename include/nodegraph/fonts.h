@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 #include <nodegraph/fontstash.h>
 #include <vector>

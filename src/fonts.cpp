@@ -7,6 +7,8 @@
 #define FONTSTASH_IMPLEMENTATION
 #include <nodegraph/fontstash.h>
 
+#include <nodegraph/vulkan/vulkan_imgui_texture.h>
+
 namespace NodeGraph {
 
 namespace {
@@ -57,16 +59,17 @@ NVGvertex* alloc_temp_verts(FontContext& ctx, size_t size)
 // Texture handling bits using the imgui API
 int update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data)
 {
-    return 0;
+    return vulkan_imgui_update_texture(uptr, image, x, y, w, h, data);
 }
 
 int create_texture(void* uptr, int w, int h, const unsigned char* data)
 {
-    return 0;
+    return vulkan_imgui_create_texture(uptr, w, h, data);
 }
 
 void get_texture_size(FontContext& ctx, int image, int* w, int* h)
 {
+    vulkan_imgui_get_texture_size(ctx, image, w, h);
 }
 
 void render_text(FontContext& ctx, NVGvertex* verts, int nverts)

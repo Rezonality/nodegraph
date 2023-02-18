@@ -4,12 +4,17 @@ project(NodeGraph
 )
 
 find_package(glm CONFIG REQUIRED)
+find_package(Vulkan REQUIRED)
+
+set(NODEGRAPH_VULKAN_SOURCE
+    ${NODEGRAPH_ROOT}/src/vulkan/vulkan_imgui_texture.cpp
+    ${NODEGRAPH_ROOT}/include/nodegraph/vulkan/vulkan_imgui_texture.h
+)
 
 set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/canvas.cpp
     ${NODEGRAPH_ROOT}/src/fonts.cpp
     ${NODEGRAPH_ROOT}/src/canvas_imgui.cpp
-
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
     ${NODEGRAPH_ROOT}/include/nodegraph/imgui_glm.h
@@ -17,36 +22,9 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/include/nodegraph/style.h
 )
 
-set(NODEGRAPH_MODEL
-    #${NODEGRAPH_ROOT}/src/model/graph.cpp
-    #${NODEGRAPH_ROOT}/src/model/node.cpp
-    #${NODEGRAPH_ROOT}/src/model/pin.cpp
-    #${NODEGRAPH_ROOT}/src/model/parameter.cpp
-
-    #${NODEGRAPH_ROOT}/include/nodegraph/model/graph.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/model/node.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/model/pin.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/model/parameter.h
-)
-
-set(NODEGRAPH_VIEW
-    #${NODEGRAPH_ROOT}/src/view/viewnode.cpp
-    #${NODEGRAPH_ROOT}/src/view/graphview.cpp
-    #${NODEGRAPH_ROOT}/src/view/node_layout.cpp
-    #${NODEGRAPH_ROOT}/src/view/canvas_imgui.cpp
-    #${NODEGRAPH_ROOT}/src/view/canvas_vg.cpp
-
-    #${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_imgui.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_vg.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/view/viewnode.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/view/graphview.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/view/layout.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/view/layout_control.h
-    #${NODEGRAPH_ROOT}/include/nodegraph/view/node_layout.h
-)
-
 set(NODEGRAPH_SOURCE
     ${NODEGRAPH_SOURCE}
+    ${NODEGRAPH_VULKAN_SOURCE}
     ${NODEGRAPH_ROOT}/CMakeLists.txt
 )
 
@@ -60,6 +38,7 @@ add_library(NodeGraph::NodeGraph ALIAS NodeGraph)
 target_link_libraries(NodeGraph
 PUBLIC
     glm::glm
+    Vulkan::Vulkan
 )
 
 target_include_directories(NodeGraph
@@ -91,6 +70,6 @@ install(DIRECTORY ${NODEGRAPH_ROOT}/include/nodegraph
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-source_group ("model" FILES ${NODEGRAPH_MODEL})
-source_group ("view" FILES ${NODEGRAPH_VIEW})
+source_group ("nodegraph" FILES ${NODEGRAPH_SOURCE})
+source_group ("vulkan" FILES ${NODEGRAPH_VULKAN_SOURCE})
 
