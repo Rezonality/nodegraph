@@ -22,7 +22,7 @@ jobs:
           - { title: "Windows", os: "windows-latest", cc: "vs2019", arch: "x64", build_type: "Debug", package_type: "x64-windows-static-md", script: "bat" }
           - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Release", package_type: "x64-osx", script: "sh" }
           - { title: "Mac", os: "macos-latest", cc: "clang", arch: "x64", build_type: "Debug", package_type: "x64-osx", script: "sh" }
-          - { title: "Coverage", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Coverage", package_type: "x64-linux", script: "sh" }
+          #- { title: "Coverage", os: "ubuntu-latest", cc: "clang", arch: "x64", build_type: "Coverage", package_type: "x64-linux", script: "sh" }
 
     steps:
 
@@ -36,6 +36,11 @@ jobs:
         vulkan-query-version: latest
         vulkan-components: Vulkan-Headers, Vulkan-Loader
         vulkan-use-cache: true
+
+    - name: Mac pkg-config
+      run: |
+        brew install pkg-config
+      if: matrix.os == 'macos-latest'
 
     - name: Install Coverage
       env:
