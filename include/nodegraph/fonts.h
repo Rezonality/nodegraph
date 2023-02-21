@@ -22,16 +22,25 @@ enum NVGalign
     NVG_ALIGN_BASELINE = 1 << 6, // Default, align text vertically to baseline.
 };
 
+struct IFontTexture
+{
+    virtual int UpdateTexture(int image, int x, int y, int w, int h, const unsigned char* data) = 0;
+    virtual int CreateTexture(int w, int h, const unsigned char* data) = 0;
+    virtual void DeleteTexture(int image) = 0;
+    virtual void GetTextureSize(int image, int* w, int* h) = 0;
+};
+
 struct FontContext
 {
     struct FONScontext* fs;
+    IFontTexture* pFontTexture = nullptr;
     int fontImages[NVG_MAX_FONTIMAGES];
     int fontImageIdx = 0;
-    float fontSize;
-    float letterSpacing;
-    float lineHeight;
-    float fontBlur;
-    int textAlign;  // NVGalign flags
+    float fontSize = 50.0f;
+    float letterSpacing = 0.0f;
+    float lineHeight = 1.0f;
+    float fontBlur = 0.0f;
+    int textAlign = NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER;  // NVGalign flags
     int fontId;     // Current font
     float xform[6]; //?
     float devicePxRatio = 1.0f;
@@ -57,7 +66,8 @@ struct NVGtextRow
 };
 typedef struct NVGtextRow NVGtextRow;
 
-void fonts_init(FontContext& ctx);
+
+void fonts_init(FontContext& ctx, IFontTexture* pFontTexture);
 void fonts_destroy(FontContext& ctx);
 int fonts_create(FontContext& ctx, const char* name, const char* filename);
 int fonts_create(FontContext& ctx, const char* name, const char* filename, const int fontIndex);
@@ -71,5 +81,6 @@ void fonts_set_face(FontContext& ctx, const char* font);
 int fonts_find(FontContext& ctx, const char* name);
 void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh);
 float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end);
+void fonts_end_frame(FontContext& ctx);
 
 } // Nodegraph

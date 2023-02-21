@@ -1,15 +1,48 @@
+#include <map>
+#include <memory>
 #include <nodegraph/fonts.h>
+#include <vulkan/vulkan.h>
 
 namespace NodeGraph {
 
-struct VulkanTextureState
+class VulkanImGuiTexture : public IFontTexture
 {
+public:
+    VulkanImGuiTexture(VkPhysicalDevice physicalDevice, VkDevice device, VkQueue queue, VkDescriptorPool pool);
 
+    // Texture handling bits using the imgui API
+    virtual int UpdateTexture(int image, int x, int y, int w, int h, const unsigned char* data) override;
+    virtual int CreateTexture(int w, int h, const unsigned char* data) override;
+    virtual void DeleteTexture(int image) override;
+    virtual void GetTextureSize(int image, int* w, int* h) override;
+
+    std::vector<void*> GetTextures();
+
+private:
+    struct FontInfo
+    {
+        VkImage image = nullptr;
+        VkImageView imageView = nullptr;
+        VkDeviceMemory memory = nullptr;
+        VkDescriptorSet descriptorSet = nullptr;
+        VkSampler sampler = nullptr;
+        VkBuffer uploadBuffer = nullptr;
+        VkDeviceMemory uploadMemory = nullptr;
+        VkDeviceSize memoryAlignment = 4;
+        VkCommandPool commandPool = nullptr;
+        VkCommandBuffer commandBuffer = nullptr;
+        int width = 0;
+        int height = 0;
+        int textureId = 0;
+    };
+
+    int m_currentTextureId = 1;
+    std::map<int, std::shared_ptr<FontInfo>> m_mapFonts;
+
+    VkPhysicalDevice m_physicalDevice;
+    VkDevice m_device;
+    VkQueue m_queue;
+    VkDescriptorPool m_pool;
 };
-
-// Texture handling bits using the imgui API
-int vulkan_imgui_update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data);
-int vulkan_imgui_create_texture(void* uptr, int w, int h, const unsigned char* data);
-void vulkan_imgui_get_texture_size(FontContext& ctx, int image, int* w, int* h);
 
 } // Nodegraph

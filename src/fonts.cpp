@@ -39,6 +39,16 @@ float get_average_scale(float* t)
     return (sx + sy) * 0.5f;
 }
 
+static void set_transform_identity(float* t)
+{
+    t[0] = 1.0f;
+    t[1] = 0.0f;
+    t[2] = 0.0f;
+    t[3] = 1.0f;
+    t[4] = 0.0f;
+    t[5] = 0.0f;
+}
+
 float get_font_scale(FontContext& ctx)
 {
     return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 4.0f);
@@ -57,27 +67,32 @@ NVGvertex* alloc_temp_verts(FontContext& ctx, size_t size)
 }
 
 // Texture handling bits using the imgui API
-int update_texture(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data)
+int update_texture(FontContext& ctx, int image, int x, int y, int w, int h, const unsigned char* data)
 {
-    return vulkan_imgui_update_texture(uptr, image, x, y, w, h, data);
+    return ctx.pFontTexture->UpdateTexture(image, x, y, w, h, data);
 }
 
-int create_texture(void* uptr, int w, int h, const unsigned char* data)
+int create_texture(FontContext& ctx, int w, int h, const unsigned char* data)
 {
-    return vulkan_imgui_create_texture(uptr, w, h, data);
+    return ctx.pFontTexture->CreateTexture(w, h, data);
+}
+
+void delete_texture(FontContext& ctx, int image)
+{
+    ctx.pFontTexture->DeleteTexture(image);
 }
 
 void get_texture_size(FontContext& ctx, int image, int* w, int* h)
 {
-    vulkan_imgui_get_texture_size(ctx, image, w, h);
+    ctx.pFontTexture->GetTextureSize(image, w, h);
 }
 
 void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
 {
     auto pDraw = ImGui::GetWindowDrawList();
-    //pDraw->AddRectFilled()
-    // Render triangles.
-    // image = ctx.fontImages[ctx.fontImageIdx];
+    // pDraw->AddRectFilled()
+    //  Render triangles.
+    //  image = ctx.fontImages[ctx.fontImageIdx];
 
     // Apply global alpha
     // innerColor.a *= ctx.alpha;
@@ -105,7 +120,7 @@ void flush_texture(FontContext& ctx)
             int y = dirty[1];
             int w = dirty[2] - dirty[0];
             int h = dirty[3] - dirty[1];
-            update_texture(ctx.userPtr, fontImage, x, y, w, h, data);
+            update_texture(ctx, fontImage, x, y, w, h, data);
         }
     }
 }
@@ -138,7 +153,7 @@ int alloc_text_atlas(FontContext& ctx)
         {
             iw = ih = NVG_MAX_FONTIMAGE_SIZE;
         }
-        ctx.fontImages[ctx.fontImageIdx + 1] = create_texture(ctx.userPtr, iw, ih, nullptr);
+        ctx.fontImages[ctx.fontImageIdx + 1] = create_texture(ctx, iw, ih, nullptr);
     }
     ++ctx.fontImageIdx;
     fonsResetAtlas(ctx.fs, iw, ih);
@@ -147,13 +162,16 @@ int alloc_text_atlas(FontContext& ctx)
 
 } // namespace
 
-void fonts_init(FontContext& ctx)
+void fonts_init(FontContext& ctx, IFontTexture* pFontTexture)
 {
     FONSparams fontParams;
     for (uint32_t i = 0; i < NVG_MAX_FONTIMAGES; i++)
     {
         ctx.fontImages[i] = 0;
     }
+
+    ctx.pFontTexture = pFontTexture;
+    set_transform_identity(ctx.xform);
 
     // Init font rendering
     memset(&fontParams, 0, sizeof(fontParams));
@@ -168,7 +186,7 @@ void fonts_init(FontContext& ctx)
     ctx.fs = fonsCreateInternal(&fontParams);
 
     // Create font texture
-    ctx.fontImages[0] = create_texture(ctx.userPtr, fontParams.width, fontParams.height, nullptr);
+    ctx.fontImages[0] = create_texture(ctx, fontParams.width, fontParams.height, nullptr);
     ctx.fontImageIdx = 0;
 }
 
@@ -182,7 +200,7 @@ void fonts_destroy(FontContext& ctx)
     {
         if (ctx.fontImages[i] != 0)
         {
-            // nvgDeleteImage(ctx, ctx.fontImages[i]);
+            delete_texture(ctx, ctx.fontImages[i]);
             ctx.fontImages[i] = 0;
         }
     }
@@ -772,6 +790,43 @@ void nvgTextBoxBounds(FontContext& ctx, float x, float y, float breakRowWidth, c
         bounds[1] = miny;
         bounds[2] = maxx;
         bounds[3] = maxy;
+    }
+}
+
+void fonts_end_frame(FontContext& ctx)
+{
+    if (ctx.fontImageIdx != 0)
+    {
+        int fontImage = ctx.fontImages[ctx.fontImageIdx];
+        ctx.fontImages[ctx.fontImageIdx] = 0;
+        int i, j, iw, ih;
+        // delete images that smaller than current one
+        if (fontImage == 0)
+            return;
+        get_texture_size(ctx, fontImage, &iw, &ih);
+        for (i = j = 0; i < ctx.fontImageIdx; i++)
+        {
+            if (ctx.fontImages[i] != 0)
+            {
+                int nw, nh;
+                int image = ctx.fontImages[i];
+                ctx.fontImages[i] = 0;
+                get_texture_size(ctx, image, &nw, &nh);
+                if (nw < iw || nh < ih)
+                {
+                    //delete_texture(ctx, image);
+                    //nvgDeleteImage(ctx, image);
+                }
+                else
+                {
+                    ctx.fontImages[j++] = image;
+                }
+            }
+        }
+        // make current font image to first
+        ctx.fontImages[j] = ctx.fontImages[0];
+        ctx.fontImages[0] = fontImage;
+        ctx.fontImageIdx = 0;
     }
 }
 

@@ -14,8 +14,8 @@ const int ArcSegments = 40;
 
 namespace NodeGraph {
 
-CanvasImGui::CanvasImGui(float worldScale, const glm::vec2& scaleLimits, ImFont* pFont)
-    : Canvas(worldScale, scaleLimits)
+CanvasImGui::CanvasImGui(IFontTexture* pFontTexture, float worldScale, const glm::vec2& scaleLimits, ImFont* pFont)
+    : Canvas(pFontTexture, worldScale, scaleLimits)
     , m_pFont(pFont)
 {
     if (m_pFont == nullptr)
@@ -23,7 +23,8 @@ CanvasImGui::CanvasImGui(float worldScale, const glm::vec2& scaleLimits, ImFont*
         m_pFont = ImGui::GetFont();
     }
 
-    auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
+   // auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
+    auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Roboto-Regular.ttf";
     fonts_create(*spFontContext, "sans", fontPath.string().c_str());
 }
 
@@ -40,6 +41,8 @@ void CanvasImGui::Begin(const glm::vec4& clearColor)
 void CanvasImGui::End()
 {
     ImGui::GetWindowDrawList()->PopClipRect();
+
+    //fonts_end_frame(*spFontContext);
 }
 
 void CanvasImGui::FilledCircle(const glm::vec2& center, float radius, const glm::vec4& color)

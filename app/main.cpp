@@ -11,8 +11,12 @@
 
 #include <filesystem>
 #include "config_app.h"
+#include <fmt/format.h>
 
 #include "demo.h"
+
+#include <nodegraph/vulkan/vulkan_imgui_texture.h>
+
 namespace fs = std::filesystem;
 
 //#define IMGUI_UNLIMITED_FRAME_RATE
@@ -33,6 +37,8 @@ static VkDescriptorPool         g_DescriptorPool = VK_NULL_HANDLE;
 static ImGui_ImplVulkanH_Window g_MainWindowData;
 static uint32_t                 g_MinImageCount = 2;
 static bool                     g_SwapChainRebuild = false;
+
+std::shared_ptr<NodeGraph::VulkanImGuiTexture> g_pFontTexture;
 
 static void check_vk_result(VkResult err)
 {
@@ -461,6 +467,8 @@ int main(int, char**)
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
+    g_pFontTexture = std::make_shared<NodeGraph::VulkanImGuiTexture>(g_PhysicalDevice, g_Device, g_Queue, g_DescriptorPool);
+
     // Our state
     bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -508,9 +516,18 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
+        auto textures = g_pFontTexture->GetTextures();
+        for (auto i = 0; i < textures.size(); i++)
+        {
+            auto name = fmt::format("FontMap: {}", i);
+            ImGui::Begin(name.c_str());
+            auto pDraw = ImGui::GetWindowDrawList();
+            ImGui::GetWindowDrawList()->AddImage((ImTextureID)textures[i], pDraw->GetClipRectMin(), pDraw->GetClipRectMax());
+            ImGui::End();
+        }
         ImGui::Begin("Canvas");
         auto winSize = (glm::vec2)ImGui::GetContentRegionAvail();
-        demo_resize(winSize);
+        demo_resize(winSize, g_pFontTexture.get());
         demo_draw();
         ImGui::End();
 

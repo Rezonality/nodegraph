@@ -2,5 +2,9 @@
 
 #include <glm/glm.hpp>
 
-void demo_resize(const glm::vec2& size);
+namespace NodeGraph 
+{
+struct IFontTexture;
+}
+void demo_resize(const glm::vec2& size, NodeGraph::IFontTexture* pFontTexture);
 void demo_draw();

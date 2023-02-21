@@ -12,12 +12,12 @@
 
 namespace NodeGraph {
 
-Canvas::Canvas(float worldScale, const glm::vec2& scaleLimits)
+Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& scaleLimits)
     : m_worldScale(worldScale)
     , m_worldScaleLimits(scaleLimits)
 {
     spFontContext = std::make_shared<FontContext>();
-    fonts_init(*spFontContext);
+    fonts_init(*spFontContext, pFontTexture);
 }
 
 Canvas::~Canvas()

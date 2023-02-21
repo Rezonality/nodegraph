@@ -11,6 +11,7 @@
 namespace NodeGraph {
 
 struct FontContext;
+struct IFontTexture;
 
 enum MouseButtons
 {
@@ -62,7 +63,7 @@ struct CanvasInputState
 class Canvas
 {
 public:
-    Canvas(float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f));
+    Canvas(IFontTexture* pFontTexture, float worldScale = 1.0f, const glm::vec2& scaleLimits = glm::vec2(0.1f, 10.0f));
     virtual ~Canvas();
 
     // Conversions between pixel space and world space

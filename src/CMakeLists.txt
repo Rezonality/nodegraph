@@ -5,6 +5,7 @@ project(NodeGraph
 
 find_package(glm CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 
 set(NODEGRAPH_VULKAN_SOURCE
     ${NODEGRAPH_ROOT}/src/vulkan/vulkan_imgui_texture.cpp
@@ -37,6 +38,7 @@ add_library(NodeGraph::NodeGraph ALIAS NodeGraph)
 
 target_link_libraries(NodeGraph
 PUBLIC
+    fmt::fmt-header-only
     glm::glm
     Vulkan::Vulkan
 )
