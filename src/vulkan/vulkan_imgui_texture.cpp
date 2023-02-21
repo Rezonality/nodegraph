@@ -235,15 +235,14 @@ int VulkanImGuiTexture::CreateTexture(int width, int height, const unsigned char
     {
         uint32_t count;
         vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &count, NULL);
-        VkQueueFamilyProperties* queues = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * count);
-        vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &count, queues);
+        std::vector<VkQueueFamilyProperties> queues(count);
+        vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &count, &queues[0]);
         for (uint32_t i = 0; i < count; i++)
             if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
                 queueFamily = i;
                 break;
             }
-        free(queues);
     }
 
     {
