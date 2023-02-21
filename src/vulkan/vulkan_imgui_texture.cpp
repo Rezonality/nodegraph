@@ -47,7 +47,7 @@ int VulkanImGuiTexture::UpdateTexture(int image, int x, int y, int updateWidth, 
     {
         for (uint32_t xx = x; xx < uint32_t(x + updateWidth); xx++)
         {
-            auto val = uint32_t(data[(yy - y)* updateWidth + (xx - x)]);
+            auto val = uint32_t(data[(yy - y)* textureInfo.width + (xx - x)]);
             val |= (val << 24);
             /* if (val == 0)
             {
@@ -135,6 +135,38 @@ void VulkanImGuiTexture::DeleteTexture(int image)
         assert(!"Texture not found?");
         return;
     }
+
+    auto& fontInfo = *itr->second;
+    if (fontInfo.imageView)
+    {
+        vkDestroyImageView(m_device, fontInfo.imageView, nullptr);
+    }
+    if (fontInfo.image)
+    {
+        vkDestroyImage(m_device, fontInfo.image, nullptr);
+    }
+    if (fontInfo.memory)
+    {
+        vkFreeMemory(m_device, fontInfo.memory, nullptr);
+    }
+    if (fontInfo.sampler)
+    {
+        vkDestroySampler(m_device, fontInfo.sampler, nullptr);
+    }
+    if (fontInfo.uploadBuffer)
+    {
+        vkDestroyBuffer(m_device, fontInfo.uploadBuffer, nullptr);
+    }
+    if (fontInfo.uploadMemory)
+    {
+        vkFreeMemory(m_device, fontInfo.uploadMemory, nullptr);
+    }
+    // TODO: Use shared or engine command buffer
+    if (fontInfo.commandBuffer)
+    {
+        vkDestroyCommandPool(m_device, fontInfo.commandPool, nullptr);
+    }
+
     m_mapFonts.erase(image);
 }
 
@@ -238,11 +270,13 @@ int VulkanImGuiTexture::CreateTexture(int width, int height, const unsigned char
         std::vector<VkQueueFamilyProperties> queues(count);
         vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &count, &queues[0]);
         for (uint32_t i = 0; i < count; i++)
+        {
             if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
                 queueFamily = i;
                 break;
             }
+        }
     }
 
     {

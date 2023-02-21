@@ -547,9 +547,13 @@ int main(int, char**)
             FramePresent(wd);
     }
 
+
     // Cleanup
     err = vkDeviceWaitIdle(g_Device);
     check_vk_result(err);
+
+    demo_cleanup();
+
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();

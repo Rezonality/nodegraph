@@ -105,6 +105,22 @@ void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
 
 void flush_texture(FontContext& ctx)
 {
+//    #define ALWAYS_SEND_TEX
+#ifdef ALWAYS_SEND_TEX
+{
+    // Force
+    int fontImage = ctx.fontImages[ctx.fontImageIdx];
+    if (fontImage != 0)
+    {
+        int iw, ih;
+        const unsigned char* data = fonsGetTextureData(ctx.fs, &iw, &ih);
+        update_texture(ctx, fontImage, 0, 0, iw, ih, data);
+    }
+    return;
+}
+#endif
+
+
     int dirty[4];
 
     // Figure out the dirty are of the texture and update it
@@ -814,8 +830,7 @@ void fonts_end_frame(FontContext& ctx)
                 get_texture_size(ctx, image, &nw, &nh);
                 if (nw < iw || nh < ih)
                 {
-                    //delete_texture(ctx, image);
-                    //nvgDeleteImage(ctx, image);
+                    delete_texture(ctx, image);
                 }
                 else
                 {

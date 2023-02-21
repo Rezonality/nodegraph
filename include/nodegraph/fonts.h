@@ -36,7 +36,7 @@ struct FontContext
     IFontTexture* pFontTexture = nullptr;
     int fontImages[NVG_MAX_FONTIMAGES];
     int fontImageIdx = 0;
-    float fontSize = 50.0f;
+    float fontSize = 150.0f;
     float letterSpacing = 0.0f;
     float lineHeight = 1.0f;
     float fontBlur = 0.0f;

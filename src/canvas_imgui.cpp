@@ -42,7 +42,7 @@ void CanvasImGui::End()
 {
     ImGui::GetWindowDrawList()->PopClipRect();
 
-    //fonts_end_frame(*spFontContext);
+    fonts_end_frame(*spFontContext);
 }
 
 void CanvasImGui::FilledCircle(const glm::vec2& center, float radius, const glm::vec4& color)
