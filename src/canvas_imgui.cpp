@@ -161,10 +161,12 @@ void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color,
     auto worldPos = WorldToPixels(pos);
     worldPos += glm::vec2(origin);
 
+    auto textSize = WorldSizeToPixelSize(size);
     if (pszFace != nullptr)
     {
         fonts_set_face(*spFontContext, pszFace);
     }
+    fonts_set_size(*spFontContext, textSize);
     fonts_draw_text(*spFontContext, worldPos.x, worldPos.y, pszText, nullptr);
     /*
     auto pDraw = ImGui::GetWindowDrawList();

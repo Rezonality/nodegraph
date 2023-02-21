@@ -28,6 +28,7 @@ struct IFontTexture
     virtual int CreateTexture(int w, int h, const unsigned char* data) = 0;
     virtual void DeleteTexture(int image) = 0;
     virtual void GetTextureSize(int image, int* w, int* h) = 0;
+    virtual void* GetTexture(int image) = 0;
 };
 
 struct FontContext
@@ -78,6 +79,7 @@ int fonts_add_fallback(FontContext& ctx, const char* baseFont, const char* fallb
 void fonts_reset_fallback(FontContext& ctx, int baseFont);
 void fonts_reset_fallback(FontContext& ctx, const char* baseFont);
 void fonts_set_face(FontContext& ctx, const char* font);
+void fonts_set_size(FontContext& ctx, float size);
 int fonts_find(FontContext& ctx, const char* name);
 void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh);
 float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end);

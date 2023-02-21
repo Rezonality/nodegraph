@@ -90,36 +90,46 @@ void get_texture_size(FontContext& ctx, int image, int* w, int* h)
 void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
 {
     auto pDraw = ImGui::GetWindowDrawList();
-    // pDraw->AddRectFilled()
-    //  Render triangles.
-    //  image = ctx.fontImages[ctx.fontImageIdx];
+    auto image = ctx.fontImages[ctx.fontImageIdx];
+    if (image == 0)
+    {
+        return;
+    }
 
-    // Apply global alpha
-    // innerColor.a *= ctx.alpha;
-    // outerColor.a *= ctx.alpha;
+    auto id = ctx.pFontTexture->GetTexture(image);
+    if (id == 0)
+    {
+        return;
+    }
 
-    // render_triangles(ctx.params.userPtr, &paint, ctx.compositeOperation, &ctx.scissor, verts, nverts, ctx.fringeWidth);
-    // auto pDraw = ImGui::GetWindowDrawList();
-    // pDraw->AddTr
+    pDraw->PushTextureID((ImTextureID)id);
+
+    pDraw->PrimReserve(nverts * 3, nverts * 2);
+
+    for (int i = 0; i < nverts; i += 2)
+    {
+        pDraw->PrimRectUV(ImVec2(verts[i].x, verts[i].y), ImVec2(verts[i + 1].x, verts[i + 1].y), ImVec2(verts[i].u, verts[i].v), ImVec2(verts[i + 1].u, verts[i + 1].v), 0xFFFFFFFF);
+    }
+
+    pDraw->PopTextureID();
 }
 
 void flush_texture(FontContext& ctx)
 {
 //    #define ALWAYS_SEND_TEX
 #ifdef ALWAYS_SEND_TEX
-{
-    // Force
-    int fontImage = ctx.fontImages[ctx.fontImageIdx];
-    if (fontImage != 0)
     {
-        int iw, ih;
-        const unsigned char* data = fonsGetTextureData(ctx.fs, &iw, &ih);
-        update_texture(ctx, fontImage, 0, 0, iw, ih, data);
+        // Force
+        int fontImage = ctx.fontImages[ctx.fontImageIdx];
+        if (fontImage != 0)
+        {
+            int iw, ih;
+            const unsigned char* data = fonsGetTextureData(ctx.fs, &iw, &ih);
+            update_texture(ctx, fontImage, 0, 0, iw, ih, data);
+        }
+        return;
     }
-    return;
-}
 #endif
-
 
     int dirty[4];
 
@@ -306,6 +316,11 @@ void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, flo
         *lineh *= invscale;
 }
 
+void fonts_set_size(FontContext& ctx, float sz)
+{
+    ctx.fontSize = sz;
+}
+
 float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end)
 {
     FONStextIter iter, prevIter;
@@ -329,7 +344,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
     fonsSetAlign(ctx.fs, ctx.textAlign);
     fonsSetFont(ctx.fs, ctx.fontId);
 
-    cverts = std::max(2, (int)(end - string)) * 6; // conservative estimate.
+    cverts = std::max(2, (int)(end - string)) * 4; // conservative estimate.
     verts = alloc_temp_verts(ctx, cverts);
     if (verts == NULL)
         return x;
@@ -339,7 +354,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
     prevIter = iter;
     while (fonsTextIterNext(ctx.fs, &iter, &q))
     {
-        // float c[4 * 2];
+        float c[4 * 2];
         if (iter.prevGlyphIndex == -1)
         { // can not retrieve glyph?
             if (nverts != 0)
@@ -367,29 +382,30 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
             q.t1 = tmp;
         }
 
+        auto transformPoint = [](float* dx, float* dy, const float* t, float sx, float sy) {
+            *dx = sx * t[0] + sy * t[2] + t[4];
+            *dy = sx * t[1] + sy * t[3] + t[5];
+        };
+
         // Transform corners.
-        /*nvgTransformPoint(&c[0], &c[1], ctx.xform, q.x0 * invscale, q.y0 * invscale);
-        nvgTransformPoint(&c[2], &c[3], ctx.xform, q.x1 * invscale, q.y0 * invscale);
-        nvgTransformPoint(&c[4], &c[5], ctx.xform, q.x1 * invscale, q.y1 * invscale);
-        nvgTransformPoint(&c[6], &c[7], ctx.xform, q.x0 * invscale, q.y1 * invscale);
+        transformPoint(&c[0], &c[1], ctx.xform, q.x0 * invscale, q.y0 * invscale);
+        transformPoint(&c[2], &c[3], ctx.xform, q.x1 * invscale, q.y1 * invscale);
+
+        auto vset = [](NVGvertex* vtx, float x, float y, float u, float v) {
+            vtx->x = x;
+            vtx->y = y;
+            vtx->u = u;
+            vtx->v = v;
+        };
 
         // Create triangles
-        if (nverts + 6 <= cverts)
+        if (nverts + 2 <= cverts)
         {
-            nvg__vset(&verts[nverts], c[0], c[1], q.s0, q.t0);
+            vset(&verts[nverts], c[0], c[1], q.s0, q.t0);
             nverts++;
-            nvg__vset(&verts[nverts], c[4], c[5], q.s1, q.t1);
-            nverts++;
-            nvg__vset(&verts[nverts], c[2], c[3], q.s1, q.t0);
-            nverts++;
-            nvg__vset(&verts[nverts], c[0], c[1], q.s0, q.t0);
-            nverts++;
-            nvg__vset(&verts[nverts], c[6], c[7], q.s0, q.t1);
-            nverts++;
-            nvg__vset(&verts[nverts], c[4], c[5], q.s1, q.t1);
+            vset(&verts[nverts], c[2], c[3], q.s1, q.t1);
             nverts++;
         }
-        */
     }
 
     // TODO: add back-end bit to do this just once per frame.
@@ -830,7 +846,7 @@ void fonts_end_frame(FontContext& ctx)
                 get_texture_size(ctx, image, &nw, &nh);
                 if (nw < iw || nh < ih)
                 {
-                    delete_texture(ctx, image);
+                    //delete_texture(ctx, image);
                 }
                 else
                 {

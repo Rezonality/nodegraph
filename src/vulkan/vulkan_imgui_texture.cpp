@@ -38,6 +38,15 @@ int VulkanImGuiTexture::UpdateTexture(int image, int x, int y, int updateWidth, 
     auto& textureInfo = *itr->second;
     size_t upload_size = textureInfo.width * textureInfo.height * sizeof(uint32_t);
 
+    if (true)//!textureInfo.init)
+    {
+        textureInfo.init = true; 
+        x = 0;
+        y = 0;
+        updateWidth = textureInfo.width;
+        updateHeight = textureInfo.height;
+    }
+
     // Upload to Buffer:
     uint32_t* map = NULL;
     auto err = vkMapMemory(m_device, textureInfo.uploadMemory, 0, upload_size, 0, (void**)(&map));
@@ -335,6 +344,16 @@ std::vector<void*> VulkanImGuiTexture::GetTextures()
         vals.push_back((void*)t->descriptorSet);
     }
     return vals;
+}
+    
+void* VulkanImGuiTexture::GetTexture(int image)
+{
+    auto itr = m_mapFonts.find(image);
+    if (itr == m_mapFonts.end())
+    {
+        return nullptr;
+    }
+    return (void*)itr->second->descriptorSet;
 }
 
 } // Nodegraph

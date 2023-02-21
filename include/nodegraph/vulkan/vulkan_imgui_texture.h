@@ -15,6 +15,7 @@ public:
     virtual int CreateTexture(int w, int h, const unsigned char* data) override;
     virtual void DeleteTexture(int image) override;
     virtual void GetTextureSize(int image, int* w, int* h) override;
+    virtual void* GetTexture(int image) override;
 
     std::vector<void*> GetTextures();
 
@@ -34,6 +35,7 @@ private:
         int width = 0;
         int height = 0;
         int textureId = 0;
+        bool init = false;
     };
 
     int m_currentTextureId = 1;

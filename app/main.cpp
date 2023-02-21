@@ -516,15 +516,21 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
+        ImGui::Begin("Font Maps");
         auto textures = g_pFontTexture->GetTextures();
+        auto pDraw = ImGui::GetWindowDrawList();
+        auto min = pDraw->GetClipRectMin();
+        auto max = pDraw->GetClipRectMax();
+        auto step = (max.y - min.y) / float(textures.size());
+        auto current = min;
         for (auto i = 0; i < textures.size(); i++)
         {
             auto name = fmt::format("FontMap: {}", i);
-            ImGui::Begin(name.c_str());
-            auto pDraw = ImGui::GetWindowDrawList();
-            ImGui::GetWindowDrawList()->AddImage((ImTextureID)textures[i], pDraw->GetClipRectMin(), pDraw->GetClipRectMax());
-            ImGui::End();
+            ImGui::GetWindowDrawList()->AddImage((ImTextureID)textures[i], current, ImVec2(max.x, current.y + step));
+            current.y += step;
         }
+        ImGui::End();
+
         ImGui::Begin("Canvas");
         auto winSize = (glm::vec2)ImGui::GetContentRegionAvail();
         demo_resize(winSize, g_pFontTexture.get());
