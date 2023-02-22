@@ -38,7 +38,7 @@ int VulkanImGuiTexture::UpdateTexture(int image, int x, int y, int updateWidth, 
     auto& textureInfo = *itr->second;
     size_t upload_size = textureInfo.width * textureInfo.height * sizeof(uint32_t);
 
-    if (true)//!textureInfo.init)
+     if (true) //! textureInfo.init)
     {
         textureInfo.init = true; 
         x = 0;
@@ -56,15 +56,8 @@ int VulkanImGuiTexture::UpdateTexture(int image, int x, int y, int updateWidth, 
     {
         for (uint32_t xx = x; xx < uint32_t(x + updateWidth); xx++)
         {
-            auto val = uint32_t(data[(yy - y)* textureInfo.width + (xx - x)]);
-            val |= (val << 24);
-            /* if (val == 0)
-            {
-                val |= (0xFF << 8);
-            }*/
-            map[(yy * (textureInfo.width)) + xx] = val; // | (int(((yy - y) * 255.0f) / (float)updateHeight) << 16) | (int(((xx - x) * 255) / (float)updateWidth) << 8);
-            //val;
-            //data++;
+            auto val = uint32_t(data[(yy - y) * textureInfo.width + (xx - x)]);
+            map[(yy * (textureInfo.width)) + xx] = (val | val << 24 | val << 16 | val << 8);
         }
     }
 
@@ -145,38 +138,60 @@ void VulkanImGuiTexture::DeleteTexture(int image)
         return;
     }
 
-    auto& fontInfo = *itr->second;
-    if (fontInfo.imageView)
-    {
-        vkDestroyImageView(m_device, fontInfo.imageView, nullptr);
-    }
-    if (fontInfo.image)
-    {
-        vkDestroyImage(m_device, fontInfo.image, nullptr);
-    }
-    if (fontInfo.memory)
-    {
-        vkFreeMemory(m_device, fontInfo.memory, nullptr);
-    }
-    if (fontInfo.sampler)
-    {
-        vkDestroySampler(m_device, fontInfo.sampler, nullptr);
-    }
-    if (fontInfo.uploadBuffer)
-    {
-        vkDestroyBuffer(m_device, fontInfo.uploadBuffer, nullptr);
-    }
-    if (fontInfo.uploadMemory)
-    {
-        vkFreeMemory(m_device, fontInfo.uploadMemory, nullptr);
-    }
-    // TODO: Use shared or engine command buffer
-    if (fontInfo.commandBuffer)
-    {
-        vkDestroyCommandPool(m_device, fontInfo.commandPool, nullptr);
-    }
+    m_mapOldFonts[m_frameIndex].push_back(itr->second);
+    m_mapFonts.erase(itr);
+}
 
-    m_mapFonts.erase(image);
+void VulkanImGuiTexture::Flush()
+{
+    std::vector<uint64_t> victims;
+    for (auto& [frameIndex, fonts] : m_mapOldFonts)
+    {
+        if ((frameIndex + 3) >= m_frameIndex)
+        {
+            continue;
+        }
+
+        victims.push_back(frameIndex);
+
+        for (auto& spInfo : fonts)
+        {
+            auto& fontInfo = *spInfo;
+            if (fontInfo.imageView)
+            {
+                vkDestroyImageView(m_device, fontInfo.imageView, nullptr);
+            }
+            if (fontInfo.image)
+            {
+                vkDestroyImage(m_device, fontInfo.image, nullptr);
+            }
+            if (fontInfo.memory)
+            {
+                vkFreeMemory(m_device, fontInfo.memory, nullptr);
+            }
+            if (fontInfo.sampler)
+            {
+                vkDestroySampler(m_device, fontInfo.sampler, nullptr);
+            }
+            if (fontInfo.uploadBuffer)
+            {
+                vkDestroyBuffer(m_device, fontInfo.uploadBuffer, nullptr);
+            }
+            if (fontInfo.uploadMemory)
+            {
+                vkFreeMemory(m_device, fontInfo.uploadMemory, nullptr);
+            }
+            // TODO: Use shared or engine command buffer
+            if (fontInfo.commandBuffer)
+            {
+                vkDestroyCommandPool(m_device, fontInfo.commandPool, nullptr);
+            }
+        }
+    }
+    for (auto& victim : victims)
+    {
+        m_mapOldFonts.erase(victim);
+    }
 }
 
 int VulkanImGuiTexture::CreateTexture(int width, int height, const unsigned char* data)
@@ -354,6 +369,16 @@ void* VulkanImGuiTexture::GetTexture(int image)
         return nullptr;
     }
     return (void*)itr->second->descriptorSet;
+}
+
+void VulkanImGuiTexture::BeginFrame()
+{
+    Flush();
+}
+
+void VulkanImGuiTexture::EndFrame()
+{
+    m_frameIndex++;
 }
 
 } // Nodegraph

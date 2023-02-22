@@ -825,6 +825,11 @@ void nvgTextBoxBounds(FontContext& ctx, float x, float y, float breakRowWidth, c
     }
 }
 
+void fonts_begin_frame(FontContext& ctx)
+{
+    ctx.pFontTexture->BeginFrame();
+}
+
 void fonts_end_frame(FontContext& ctx)
 {
     if (ctx.fontImageIdx != 0)
@@ -846,7 +851,7 @@ void fonts_end_frame(FontContext& ctx)
                 get_texture_size(ctx, image, &nw, &nh);
                 if (nw < iw || nh < ih)
                 {
-                    //delete_texture(ctx, image);
+                    delete_texture(ctx, image);
                 }
                 else
                 {
@@ -859,6 +864,8 @@ void fonts_end_frame(FontContext& ctx)
         ctx.fontImages[0] = fontImage;
         ctx.fontImageIdx = 0;
     }
+
+    ctx.pFontTexture->EndFrame();
 }
 
 } // Nodegraph

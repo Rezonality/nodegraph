@@ -30,12 +30,15 @@ CanvasImGui::CanvasImGui(IFontTexture* pFontTexture, float worldScale, const glm
 
 void CanvasImGui::Begin(const glm::vec4& clearColor)
 {
+    fonts_begin_frame(*spFontContext);
+
     origin = ImGui::GetCursorScreenPos();
     auto size = ImGui::GetContentRegionAvail();
 
     auto bottomRight = ImVec2(origin.x + size.x, origin.y + size.y);
     ImGui::GetWindowDrawList()->PushClipRect(origin, bottomRight);
     ImGui::GetWindowDrawList()->AddRectFilled(origin, bottomRight, ToImColor(clearColor));
+
 }
 
 void CanvasImGui::End()

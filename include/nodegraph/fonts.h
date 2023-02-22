@@ -29,6 +29,8 @@ struct IFontTexture
     virtual void DeleteTexture(int image) = 0;
     virtual void GetTextureSize(int image, int* w, int* h) = 0;
     virtual void* GetTexture(int image) = 0;
+    virtual void BeginFrame() = 0;
+    virtual void EndFrame() = 0;
 };
 
 struct FontContext
@@ -84,5 +86,6 @@ int fonts_find(FontContext& ctx, const char* name);
 void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh);
 float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end);
 void fonts_end_frame(FontContext& ctx);
+void fonts_begin_frame(FontContext& ctx);
 
 } // Nodegraph
