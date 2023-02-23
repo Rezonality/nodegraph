@@ -41,9 +41,9 @@ void demo_draw()
 
     spCanvas->DrawCubicBezier(glm::vec2(-200.0f, 150.0f), glm::vec2(-150.0f, 120.0f), glm::vec2(-100.0f, 150.0f), glm::vec2(-50.0f, 120.0f), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), 1.0f);
     
-    spCanvas->Text(glm::vec2(200.0f, -200.0f), 30.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "Text ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789!£$%^&*()-=+'@~#;:>.><,/?`¬");
-    //Text ABCDEFGHIJKLMNOPQRSTUVWXYZ ");
-    //spCanvas->Text(glm::vec2(200.0f, -200.0f), 30.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "!£$%£$1234567890");
+    spCanvas->Text(glm::vec2(-150.0f, -150.0f), 30.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "Text");
+
+    spCanvas->TextBox(glm::vec2(150.0f, -150.0f), 30.0f, 200.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "This is text that has been split and aligned into a box, so that it sits within it.");
 
     spCanvas->End();
         

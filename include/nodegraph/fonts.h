@@ -80,11 +80,19 @@ int fonts_add_fallback(FontContext& ctx, int baseFont, int fallbackFont);
 int fonts_add_fallback(FontContext& ctx, const char* baseFont, const char* fallbackFont);
 void fonts_reset_fallback(FontContext& ctx, int baseFont);
 void fonts_reset_fallback(FontContext& ctx, const char* baseFont);
+
 void fonts_set_face(FontContext& ctx, const char* font);
+void fonts_set_scale(FontContext& ctx, float scale);
+void fonts_set_align(FontContext& ctx, int align);
 void fonts_set_size(FontContext& ctx, float size);
+
 int fonts_find(FontContext& ctx, const char* name);
 void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh);
 float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end);
+void fonts_text_box(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end);
+float fonts_text_bounds(FontContext& ctx, float x, float y, const char* string, const char* end, float* bounds);
+void fonts_text_box_bounds(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end, float* bounds);
+
 void fonts_end_frame(FontContext& ctx);
 void fonts_begin_frame(FontContext& ctx);
 

@@ -151,12 +151,25 @@ void CanvasImGui::FillRect(const NRectf& rc, const glm::vec4& color)
     pDraw->AddRectFilled(worldRect.topLeftPx, worldRect.bottomRightPx, ToImColor(color));
 }
 
-NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* pszText) const
+NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* pszText, const char* pszFace, uint32_t align) const
 {
+    auto worldPos = WorldToPixels(pos);
+    worldPos += glm::vec2(origin);
+    
+    if (pszFace != nullptr)
+    {
+        fonts_set_face(*spFontContext, pszFace);
+    }
+
+    fonts_set_size(*spFontContext, size);
+    fonts_set_align(*spFontContext, align);
+    fonts_set_scale(*spFontContext, m_worldScale);
+    auto width = fonts_text_bounds(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, pszText, nullptr, nullptr);
+
+    auto worldWidth = WorldSizeToPixelSize(size);
+
     // Return everything in World space, since we scale every draw call
-    auto textSize = ImGui::CalcTextSize(pszText);
-    float scale = size / ImGui::GetFontSize();
-    return NRectf(pos.x, pos.y, textSize.x * scale, textSize.y * scale);
+    return NRectf(pos.x, pos.y, pos.x + width, pos.y + worldWidth);
 }
 
 void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color, const char* pszText, const char* pszFace, uint32_t align)
@@ -164,34 +177,31 @@ void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color,
     auto worldPos = WorldToPixels(pos);
     worldPos += glm::vec2(origin);
 
-    auto textSize = WorldSizeToPixelSize(size);
     if (pszFace != nullptr)
     {
         fonts_set_face(*spFontContext, pszFace);
     }
-    fonts_set_size(*spFontContext, textSize);
-    fonts_draw_text(*spFontContext, worldPos.x, worldPos.y, pszText, nullptr);
-    /*
-    auto pDraw = ImGui::GetWindowDrawList();
 
-    ImGui::PushFont(m_pFont);
-    float scale = size / ImGui::GetFontSize();
+    fonts_set_size(*spFontContext, size);
+    fonts_set_align(*spFontContext, align);
+    fonts_set_scale(*spFontContext, m_worldScale);
+    fonts_draw_text(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, pszText, nullptr);
+}
 
-    auto fontSize = ImGui::CalcTextSize(pszText);
-    fontSize.x = WorldSizeToPixelSize(fontSize.x * scale);
-    fontSize.y = WorldSizeToPixelSize(fontSize.y * scale);
-    if (align & TEXT_ALIGN_CENTER)
+void CanvasImGui::TextBox(const glm::vec2& pos, float size, float breakWidth, const glm::vec4& color, const char* pszText, const char* pszFace, uint32_t align)
+{
+    auto worldPos = WorldToPixels(pos);
+    worldPos += glm::vec2(origin);
+
+    if (pszFace != nullptr)
     {
-        worldPos.x -= fontSize.x / 2.0f;
-    }
-    if (align & TEXT_ALIGN_MIDDLE)
-    {
-        worldPos.y -= fontSize.y / 2.0f;
+        fonts_set_face(*spFontContext, pszFace);
     }
 
-    pDraw->AddText(m_pFont, fontSize.y, worldPos, ToImColor(color), pszText);
-    ImGui::PopFont();
-    */
+    fonts_set_size(*spFontContext, size);
+    fonts_set_align(*spFontContext, align);
+    fonts_set_scale(*spFontContext, m_worldScale);
+    fonts_text_box(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, breakWidth, pszText, nullptr);
 }
 
 void CanvasImGui::Arc(const glm::vec2& pos, float radius, float width, const glm::vec4& color, float startAngle, float endAngle)

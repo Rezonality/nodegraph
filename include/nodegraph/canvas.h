@@ -27,12 +27,18 @@ enum class LineCap
     BUTT
 };
 
+// Note: Matches NVG_ALIGN for convenience
 enum TextAlign
 {
-    TEXT_ALIGN_MIDDLE = 1,
-    TEXT_ALIGN_CENTER = 2,
-    TEXT_ALIGN_TOP = 4,
-    TEXT_ALIGN_LEFT = 8,
+    // Horizontal align
+    TEXT_ALIGN_LEFT = 1 << 0, // Default, align text horizontally to left.
+    TEXT_ALIGN_CENTER = 1 << 1, // Align text horizontally to center.
+    TEXT_ALIGN_RIGHT = 1 << 2, // Align text horizontally to right.
+    // Vertical align
+    TEXT_ALIGN_TOP = 1 << 3, // Align text vertically to top.
+    TEXT_ALIGN_MIDDLE = 1 << 4, // Align text vertically to middle.
+    TEXT_ALIGN_BOTTOM = 1 << 5, // Align text vertically to bottom.
+    TEXT_ALIGN_BASELINE = 1 << 6, // Default, align text vertically to baseline.
 };
 
 enum class CaptureState
@@ -116,7 +122,8 @@ public:
     virtual void EndPath() = 0;
     virtual void EndStroke() = 0;
     virtual void Text(const glm::vec2& pos, float size, const glm::vec4& color, const char* pszText, const char* pszFace = nullptr, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) = 0;
-    virtual NRectf TextBounds(const glm::vec2& pos, float size, const char* pszText) const = 0;
+    virtual NRectf TextBounds(const glm::vec2& pos, float size, const char* pszText, const char* pszFace, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) const = 0;
+    virtual void TextBox(const glm::vec2& pos, float size, float breakWidth, const glm::vec4& color, const char* pszText, const char* pszFace = nullptr, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) = 0;
 
 protected:
     glm::vec2 m_pixelSize; // Pixel size on screen of canvas

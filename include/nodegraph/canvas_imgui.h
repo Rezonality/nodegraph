@@ -75,7 +75,8 @@ public:
     virtual void EndStroke() override;
 
     virtual void Text(const glm::vec2& pos, float size, const glm::vec4& color, const char* pszText, const char* pszFace = nullptr, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) override;
-    virtual NRectf TextBounds(const glm::vec2& pos, float size, const char* pszText) const override;
+    virtual NRectf TextBounds(const glm::vec2& pos, float size, const char* pszText, const char* pszFace, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) const override;
+    virtual void TextBox(const glm::vec2& pos, float size, float breakWidth, const glm::vec4& color, const char* pszText, const char* pszFace = nullptr, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) override;
 
     virtual void Stroke(const glm::vec2& from, const glm::vec2& to, float width, const glm::vec4& color) override;
 

@@ -51,7 +51,7 @@ static void set_transform_identity(float* t)
 
 float get_font_scale(FontContext& ctx)
 {
-    return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 4.0f);
+    return std::min(quantize(get_average_scale(ctx.xform), 0.01f), 6.0f);
 }
 
 int is_transform_flipped(const float* xform)
@@ -293,6 +293,16 @@ void fonts_set_face(FontContext& ctx, const char* font)
     ctx.fontId = fonsGetFontByName(ctx.fs, font);
 }
 
+void fonts_set_align(FontContext& ctx, int align)
+{
+    ctx.textAlign = align;
+}
+
+void fonts_set_size(FontContext& ctx, float size)
+{
+    ctx.fontSize = size;
+}
+
 void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, float* lineh)
 {
     float scale = get_font_scale(ctx) * ctx.devicePxRatio;
@@ -316,9 +326,15 @@ void fonts_text_metrics(FontContext& ctx, float* ascender, float* descender, flo
         *lineh *= invscale;
 }
 
-void fonts_set_size(FontContext& ctx, float sz)
+void fonts_set_scale(FontContext& ctx, float scale)
 {
-    ctx.fontSize = sz;
+    set_transform_identity(ctx.xform);
+    ctx.xform[0] = scale;
+    ctx.xform[1] = 0.0f;
+    ctx.xform[2] = 0.0f;
+    ctx.xform[3] = scale;
+    ctx.xform[4] = 0.0f;
+    ctx.xform[5] = 0.0f;
 }
 
 float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end)
@@ -424,7 +440,7 @@ enum NVGcodepointType
     NVG_CJK_CHAR,
 };
 
-int nvgTextBreakLines(FontContext& ctx, const char* string, const char* end, float breakRowWidth, NVGtextRow* rows, int maxRows)
+int fonts_break_lines(FontContext& ctx, const char* string, const char* end, float breakRowWidth, NVGtextRow* rows, int maxRows)
 {
     float scale = get_font_scale(ctx) * ctx.devicePxRatio;
     float invscale = 1.0f / scale;
@@ -645,7 +661,7 @@ int nvgTextBreakLines(FontContext& ctx, const char* string, const char* end, flo
     return nrows;
 }
 
-void nvgTextBox(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end)
+void fonts_text_box(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end)
 {
     NVGtextRow rows[2];
     int nrows = 0, i;
@@ -661,7 +677,7 @@ void nvgTextBox(FontContext& ctx, float x, float y, float breakRowWidth, const c
 
     ctx.textAlign = NVG_ALIGN_LEFT | valign;
 
-    while ((nrows = nvgTextBreakLines(ctx, string, end, breakRowWidth, rows, 2)))
+    while ((nrows = fonts_break_lines(ctx, string, end, breakRowWidth, rows, 2)))
     {
         for (i = 0; i < nrows; i++)
         {
@@ -680,7 +696,7 @@ void nvgTextBox(FontContext& ctx, float x, float y, float breakRowWidth, const c
     ctx.textAlign = oldAlign;
 }
 
-int nvgTextGlyphPositions(FontContext& ctx, float x, float y, const char* string, const char* end, NVGglyphPosition* positions, int maxPositions)
+int text_glyph_positions(FontContext& ctx, float x, float y, const char* string, const char* end, NVGglyphPosition* positions, int maxPositions)
 {
     float scale = get_font_scale(ctx) * ctx.devicePxRatio;
     float invscale = 1.0f / scale;
@@ -725,7 +741,7 @@ int nvgTextGlyphPositions(FontContext& ctx, float x, float y, const char* string
     return npos;
 }
 
-float nvgTextBounds(FontContext& ctx, float x, float y, const char* string, const char* end, float* bounds)
+float fonts_text_bounds(FontContext& ctx, float x, float y, const char* string, const char* end, float* bounds)
 {
     float scale = get_font_scale(ctx) * ctx.devicePxRatio;
     float invscale = 1.0f / scale;
@@ -753,7 +769,7 @@ float nvgTextBounds(FontContext& ctx, float x, float y, const char* string, cons
     return width * invscale;
 }
 
-void nvgTextBoxBounds(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end, float* bounds)
+void fonts_text_box_bounds(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end, float* bounds)
 {
     NVGtextRow rows[2];
     float scale = get_font_scale(ctx) * ctx.devicePxRatio;
@@ -788,7 +804,7 @@ void nvgTextBoxBounds(FontContext& ctx, float x, float y, float breakRowWidth, c
     rminy *= invscale;
     rmaxy *= invscale;
 
-    while ((nrows = nvgTextBreakLines(ctx, string, end, breakRowWidth, rows, 2)))
+    while ((nrows = fonts_break_lines(ctx, string, end, breakRowWidth, rows, 2)))
     {
         for (i = 0; i < nrows; i++)
         {
