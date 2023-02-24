@@ -20,7 +20,11 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
     ${NODEGRAPH_ROOT}/include/nodegraph/imgui_glm.h
     ${NODEGRAPH_ROOT}/include/nodegraph/math_utils.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/style.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/theme.h
+    
+    ${NODEGRAPH_ROOT}/src/string/string_utils.cpp
+    ${NODEGRAPH_ROOT}/include/nodegraph/string/string_utils.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/string/murmur_hash.h
 )
 
 set(NODEGRAPH_SOURCE

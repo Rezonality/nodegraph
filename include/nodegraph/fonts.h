@@ -22,6 +22,7 @@ enum NVGalign
     NVG_ALIGN_BASELINE = 1 << 6, // Default, align text vertically to baseline.
 };
 
+// Need your engine to implement these; simple texture management 
 struct IFontTexture
 {
     virtual int UpdateTexture(int image, int x, int y, int w, int h, const unsigned char* data) = 0;

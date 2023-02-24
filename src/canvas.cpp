@@ -1,5 +1,8 @@
-#include "nodegraph/canvas.h"
-#include "nodegraph/fonts.h"
+#include <nodegraph/canvas.h>
+#include <nodegraph/fonts.h>
+
+#define DECLARE_THEMES
+#include <nodegraph/theme.h>
 #include <algorithm>
 
 // #include "mutils/logger/logger.h"
@@ -18,6 +21,28 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
 {
     spFontContext = std::make_shared<FontContext>();
     fonts_init(*spFontContext, pFontTexture);
+
+    auto& theme = NodeGraph::Theme::ThemeManager::Instance();
+
+    // For connectors around side
+    theme.Set(s_nodeOuter, 20.0f);
+
+    float margin = 2.0f;
+
+    // Title and padding
+    theme.Set(s_nodeTitleHeight, 30.0f);
+    theme.Set(s_nodePadSize, 24.0f);
+    theme.Set(s_nodeTitleFontSize, 26.0f);
+    theme.Set(s_nodeLayoutMargin, glm::vec4(margin));
+    theme.Set(s_nodeBorderRadius, 4.0f);
+    theme.Set(s_nodeShadowSize, 4.0f);
+
+    theme.Set(s_controlTextMargin, 2.0f);
+    theme.Set(s_controlShadowSize, 2.0f);
+    
+    theme.Set(c_gridLines, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+    theme.Set(s_gridLineSize, 2.0f);
+
 }
 
 Canvas::~Canvas()
@@ -131,22 +156,25 @@ void Canvas::HandleMouse()
 
 void Canvas::DrawGrid(float worldStep)
 {
+    auto& theme = Theme::ThemeManager::Instance();
+
     auto startPos = m_worldOrigin;
     startPos.x = std::floor(m_worldOrigin.x / worldStep) * worldStep;
     startPos.y = std::floor(m_worldOrigin.y / worldStep) * worldStep;
 
-    auto size = (glm::vec2(1.0f) / m_worldScale);
+    auto size = (theme.GetVec2f(s_gridLineSize) / m_worldScale);
+    auto lineColor = theme.GetVec4f(c_gridLines);
 
     while (startPos.x < PixelToWorld(m_pixelSize).x)
     {
-        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(startPos.x, PixelToWorld(m_pixelSize).y), size.y, glm::vec4(.9f, .9f, .9f, 0.05f));
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(startPos.x, PixelToWorld(m_pixelSize).y), size.y, lineColor);
         startPos.x += worldStep;
     }
 
     startPos.x = std::floor(m_worldOrigin.x / worldStep) * worldStep;
     while (startPos.y < PixelToWorld(m_pixelSize).y)
     {
-        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(PixelToWorld(m_pixelSize).x, startPos.y), size.x, glm::vec4(.9f, .9f, .9f, 0.05f));
+        Stroke(glm::vec2(startPos.x, startPos.y), glm::vec2(PixelToWorld(m_pixelSize).x, startPos.y), size.x, lineColor);
         startPos.y += worldStep;
     }
 }
