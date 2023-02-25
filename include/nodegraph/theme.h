@@ -6,9 +6,6 @@
 namespace NodeGraph
 {
 
-namespace Theme
-{
-
 enum class ThemeType
 {
     Unknown,
@@ -105,7 +102,7 @@ struct ThemeValue
     ThemeType type;
 };
 
-using ThemeMap = std::map<uint32_t, ThemeValue>;
+using ThemeMap = std::map<const StringId*, ThemeValue>;
 class ThemeManager
 {
 public:
@@ -117,57 +114,57 @@ public:
 
     void Set(const StringId& id, const ThemeValue& value)
     {
-        m_themes[m_currentTheme][id.id] = value;
+        auto& slot = m_themes[m_currentTheme][&id];
+        slot = value;
     }
 
     const ThemeValue& Get(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[id.id];
+        return theme[&id];
     }
 
     float GetFloat(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[id.id].ToFloat();
+        return theme[&id].ToFloat();
     }
 
     glm::vec2 GetVec2f(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[id.id].ToVec2f();
+        return theme[&id].ToVec2f();
     }
 
     glm::vec4 GetVec4f(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[id.id].ToVec4f();
+        return theme[&id].ToVec4f();
     }
 
     std::map<std::string, ThemeMap> m_themes;
+
     std::string m_currentTheme;
 };
 
-
-} // namespace Theme
 } // namespace MUtils
 
 #ifdef DECLARE_THEMES
-#define DECLARE_THEME(name) NodeGraph::StringId name(#name);
+#define DECLARE_THEME_VALUE(name) NodeGraph::StringId name(#name);
 #else
-#define DECLARE_THEME(name) extern NodeGraph::StringId name;
+#define DECLARE_THEME_VALUE(name) extern NodeGraph::StringId name;
 #endif
 
-DECLARE_THEME(s_nodeOuter);
-DECLARE_THEME(s_nodeTitleHeight);
-DECLARE_THEME(s_nodePadSize);
-DECLARE_THEME(s_nodeTitleFontSize);
-DECLARE_THEME(s_nodeLayoutMargin);
-DECLARE_THEME(s_nodeBorderRadius);
-DECLARE_THEME(s_nodeShadowSize);
+DECLARE_THEME_VALUE(s_nodeOuter);
+DECLARE_THEME_VALUE(s_nodeTitleHeight);
+DECLARE_THEME_VALUE(s_nodePadSize);
+DECLARE_THEME_VALUE(s_nodeTitleFontSize);
+DECLARE_THEME_VALUE(s_nodeLayoutMargin);
+DECLARE_THEME_VALUE(s_nodeBorderRadius);
+DECLARE_THEME_VALUE(s_nodeShadowSize);
 
-DECLARE_THEME(s_controlTextMargin);
-DECLARE_THEME(s_controlShadowSize);
-DECLARE_THEME(s_gridLineSize);
+DECLARE_THEME_VALUE(s_controlTextMargin);
+DECLARE_THEME_VALUE(s_controlShadowSize);
+DECLARE_THEME_VALUE(s_gridLineSize);
 
-DECLARE_THEME(c_gridLines);
+DECLARE_THEME_VALUE(c_gridLines);

@@ -22,7 +22,7 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     spFontContext = std::make_shared<FontContext>();
     fonts_init(*spFontContext, pFontTexture);
 
-    auto& theme = NodeGraph::Theme::ThemeManager::Instance();
+    auto& theme = ThemeManager::Instance();
 
     // For connectors around side
     theme.Set(s_nodeOuter, 20.0f);
@@ -156,7 +156,7 @@ void Canvas::HandleMouse()
 
 void Canvas::DrawGrid(float worldStep)
 {
-    auto& theme = Theme::ThemeManager::Instance();
+    auto& theme = ThemeManager::Instance();
 
     auto startPos = m_worldOrigin;
     startPos.x = std::floor(m_worldOrigin.x / worldStep) * worldStep;

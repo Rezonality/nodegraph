@@ -16,11 +16,16 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/canvas.cpp
     ${NODEGRAPH_ROOT}/src/fonts.cpp
     ${NODEGRAPH_ROOT}/src/canvas_imgui.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/widget.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/node.cpp
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
     ${NODEGRAPH_ROOT}/include/nodegraph/imgui_glm.h
     ${NODEGRAPH_ROOT}/include/nodegraph/math_utils.h
     ${NODEGRAPH_ROOT}/include/nodegraph/theme.h
+    
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/node.h
     
     ${NODEGRAPH_ROOT}/src/string/string_utils.cpp
     ${NODEGRAPH_ROOT}/include/nodegraph/string/string_utils.h
