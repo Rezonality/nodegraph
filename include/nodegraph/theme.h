@@ -168,3 +168,6 @@ DECLARE_THEME_VALUE(s_controlShadowSize);
 DECLARE_THEME_VALUE(s_gridLineSize);
 
 DECLARE_THEME_VALUE(c_gridLines);
+DECLARE_THEME_VALUE(c_widgetBackground);
+DECLARE_THEME_VALUE(c_nodeTitleBackground);
+DECLARE_THEME_VALUE(c_widgetShadow);

@@ -4,6 +4,8 @@
 #include <nodegraph/canvas.h>
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/theme.h>
+#include <nodegraph/widgets/widget.h>
+#include <nodegraph/widgets/node.h>
 
 using namespace NodeGraph;
 namespace fs = std::filesystem;
@@ -11,6 +13,8 @@ namespace fs = std::filesystem;
 namespace {
 std::unique_ptr<CanvasImGui> spCanvas;
 const glm::vec2 worldCenter = glm::vec2(0.0f);
+
+std::unique_ptr<Widget> spWidget;
 }
 
 void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
@@ -20,6 +24,9 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         spCanvas = std::make_unique<CanvasImGui>(pFontTexture, 1.0f, glm::vec2(0.1f, 20.0f));
         spCanvas->SetPixelRegionSize(size);
         spCanvas->SetWorldAtCenter(worldCenter);
+
+        spWidget = std::make_unique<Node>();
+        spWidget->SetRect(NRectf(0.0f, -350.0f, 300.0f, 150.0f));
     }
     spCanvas->SetPixelRegionSize(size);
 }
@@ -89,6 +96,7 @@ void demo_draw()
 
     spCanvas->TextBox(glm::vec2(150.0f, -150.0f), 30.0f, 200.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "This is text that has been split and aligned into a box, so that it sits within it.");
 
+    spWidget->Draw(*spCanvas);
     spCanvas->End();
 
     spCanvas->HandleMouse();

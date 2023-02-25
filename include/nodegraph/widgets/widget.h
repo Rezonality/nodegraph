@@ -4,11 +4,25 @@
 
 namespace NodeGraph {
 
+class Canvas;
+
 struct IWidget
 {
-    virtual const NRectf& GetSize();
-    virtual void SetSize(const NRectf& sz);
-    virtual void Draw();
+    virtual const NRectf& GetRect() const = 0;
+    virtual void SetRect(const NRectf& sz) = 0;
+    virtual void Draw(Canvas& canvas) = 0;
+};
+
+class Widget : public IWidget
+{
+public:
+    Widget();
+    virtual const NRectf& GetRect() const override;
+    virtual void SetRect(const NRectf& sz) override;
+    virtual void Draw(Canvas& canvas) override;
+
+protected:
+    NRectf m_rect;
 };
 
 }
