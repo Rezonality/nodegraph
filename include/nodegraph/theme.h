@@ -1,6 +1,8 @@
 #pragma once
 
-#include <map>
+#include <filesystem>
+#include <glm/glm.hpp>
+#include <unordered_map>
 #include <nodegraph/string/string_utils.h>
 
 namespace NodeGraph
@@ -43,20 +45,13 @@ struct ThemeValue
     {
     }
 
-    void Check() const
-    {
-        if (type == ThemeType::Unknown)
-        {
-            assert(!"Type undeclared");
-        }
-    }
-
     glm::vec4 ToVec4f() const
     {
         if (type == ThemeType::Unknown)
         {
             type = ThemeType::Vec4f;
         }
+
         if (type == ThemeType::Vec4f)
         {
             return f4;
@@ -70,6 +65,7 @@ struct ThemeValue
         {
             type = ThemeType::Vec2f;
         }
+
         switch (type)
         {
         case ThemeType::Vec2f:
@@ -88,6 +84,30 @@ struct ThemeValue
         return glm::vec2(0.0f);
     }
 
+    glm::vec3 ToVec3f() const
+    {
+        if (type == ThemeType::Unknown)
+        {
+            type = ThemeType::Vec3f;
+        }
+
+        switch (type)
+        {
+        case ThemeType::Vec2f:
+            return glm::vec3(f2.x, f2.y, 0.0f);
+            break;
+        case ThemeType::Vec3f:
+            return f3;
+            break;
+        case ThemeType::Vec4f:
+            return glm::vec3(f4);
+            break;
+        case ThemeType::Float:
+            return glm::vec3(f);
+            break;
+        }
+        return glm::vec3(0.0f);
+    }
 
     float ToFloat() const
     {
@@ -95,12 +115,14 @@ struct ThemeValue
         {
             type = ThemeType::Float;
         }
+
         if (type == ThemeType::Float)
         {
             return f;
         }
         return f4.x;
     }
+
     union
     {
         glm::vec4 f4 = glm::vec4(1.0f);
@@ -111,7 +133,7 @@ struct ThemeValue
     mutable ThemeType type;
 };
 
-using ThemeMap = std::map<const StringId*, ThemeValue>;
+using ThemeMap = std::unordered_map<const StringId*, ThemeValue>;
 class ThemeManager
 {
 public:
@@ -121,6 +143,8 @@ public:
         return theme;
     }
 
+    bool Save(const std::filesystem::path& path);
+    bool Load(const std::filesystem::path& path);
     void Set(const StringId& id, const ThemeValue& value)
     {
         auto& slot = m_themes[m_currentTheme][&id];
@@ -151,9 +175,8 @@ public:
         return theme[&id].ToVec4f();
     }
 
-    std::map<std::string, ThemeMap> m_themes;
-
-    std::string m_currentTheme;
+    std::unordered_map<std::string, ThemeMap> m_themes;
+    std::string m_currentTheme = "Default Theme";
 };
 
 } // namespace MUtils

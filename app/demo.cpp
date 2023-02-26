@@ -7,6 +7,7 @@
 #include <nodegraph/widgets/widget.h>
 #include <nodegraph/widgets/node.h>
 
+#include <config_app.h>
 using namespace NodeGraph;
 namespace fs = std::filesystem;
 
@@ -27,6 +28,8 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
 
         spWidget = std::make_unique<Node>();
         spWidget->SetRect(NRectf(0.0f, -350.0f, 300.0f, 150.0f));
+        
+        ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     }
     spCanvas->SetPixelRegionSize(size);
 }
@@ -104,5 +107,6 @@ void demo_draw()
 
 void demo_cleanup()
 {
+    ThemeManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     spCanvas.reset();
 }

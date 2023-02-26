@@ -18,6 +18,8 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/canvas_imgui.cpp
     ${NODEGRAPH_ROOT}/src/widgets/widget.cpp
     ${NODEGRAPH_ROOT}/src/widgets/node.cpp
+    ${NODEGRAPH_ROOT}/src/theme.cpp
+
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
     ${NODEGRAPH_ROOT}/include/nodegraph/imgui_glm.h
@@ -57,6 +59,7 @@ PRIVATE
     ${CMAKE_BINARY_DIR}
 PUBLIC
     $<BUILD_INTERFACE:${NODEGRAPH_ROOT}/include>
+    $<BUILD_INTERFACE:${NODEGRAPH_ROOT}/tomlplusplus/include>
     $<INSTALL_INTERFACE:include>
 )
 
