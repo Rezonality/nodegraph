@@ -53,7 +53,10 @@ struct ThemeValue
 
     glm::vec4 ToVec4f() const
     {
-        Check();
+        if (type == ThemeType::Unknown)
+        {
+            type = ThemeType::Vec4f;
+        }
         if (type == ThemeType::Vec4f)
         {
             return f4;
@@ -63,7 +66,10 @@ struct ThemeValue
     
     glm::vec2 ToVec2f() const
     {
-        Check();
+        if (type == ThemeType::Unknown)
+        {
+            type = ThemeType::Vec2f;
+        }
         switch (type)
         {
         case ThemeType::Vec2f:
@@ -85,7 +91,10 @@ struct ThemeValue
 
     float ToFloat() const
     {
-        Check();
+        if (type == ThemeType::Unknown)
+        {
+            type = ThemeType::Float;
+        }
         if (type == ThemeType::Float)
         {
             return f;
@@ -94,12 +103,12 @@ struct ThemeValue
     }
     union
     {
-        glm::vec4 f4;
+        glm::vec4 f4 = glm::vec4(1.0f);
         glm::vec3 f3;
         glm::vec2 f2;
         float f;
     };
-    ThemeType type;
+    mutable ThemeType type;
 };
 
 using ThemeMap = std::map<const StringId*, ThemeValue>;
@@ -155,19 +164,17 @@ public:
 #define DECLARE_THEME_VALUE(name) extern NodeGraph::StringId name;
 #endif
 
-DECLARE_THEME_VALUE(s_nodeOuter);
-DECLARE_THEME_VALUE(s_nodeTitleHeight);
-DECLARE_THEME_VALUE(s_nodePadSize);
 DECLARE_THEME_VALUE(s_nodeTitleFontSize);
-DECLARE_THEME_VALUE(s_nodeLayoutMargin);
+DECLARE_THEME_VALUE(s_nodeTitleFontPad);
+DECLARE_THEME_VALUE(s_nodeTitleBorder);
 DECLARE_THEME_VALUE(s_nodeBorderRadius);
+
 DECLARE_THEME_VALUE(s_nodeShadowSize);
+DECLARE_THEME_VALUE(c_nodeShadow);
+DECLARE_THEME_VALUE(c_nodeBackground);
 
-DECLARE_THEME_VALUE(s_controlTextMargin);
-DECLARE_THEME_VALUE(s_controlShadowSize);
-DECLARE_THEME_VALUE(s_gridLineSize);
-
-DECLARE_THEME_VALUE(c_gridLines);
-DECLARE_THEME_VALUE(c_widgetBackground);
 DECLARE_THEME_VALUE(c_nodeTitleBackground);
-DECLARE_THEME_VALUE(c_widgetShadow);
+
+DECLARE_THEME_VALUE(s_gridLineSize);
+DECLARE_THEME_VALUE(c_gridLines);
+

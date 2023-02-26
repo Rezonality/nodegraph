@@ -25,26 +25,23 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     auto& theme = ThemeManager::Instance();
 
     // For connectors around side
-    theme.Set(s_nodeOuter, 20.0f);
+    //theme.Set(s_nodeOuter, 20.0f);
 
     float margin = 2.0f;
 
     // Title and padding
-    theme.Set(s_nodeTitleHeight, 30.0f);
-    theme.Set(s_nodePadSize, 24.0f);
     theme.Set(s_nodeTitleFontSize, 26.0f);
-    theme.Set(s_nodeLayoutMargin, glm::vec4(margin));
+    theme.Set(s_nodeTitleFontPad, 2.0f);
     theme.Set(s_nodeBorderRadius, 4.0f);
     theme.Set(s_nodeShadowSize, 4.0f);
 
-    theme.Set(s_controlTextMargin, 2.0f);
-    theme.Set(s_controlShadowSize, 2.0f);
+    theme.Set(s_nodeShadowSize, 2.0f);
+    theme.Set(c_nodeShadow, glm::vec4(0.1f, 0.1f, 0.1f, 0.5f));
+    theme.Set(c_nodeBackground, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
     
     theme.Set(s_gridLineSize, 2.0f);
 
     theme.Set(c_gridLines, glm::vec4(0.25f, 0.25f, 0.25f, 1.0f));
-    theme.Set(c_widgetBackground, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
-    theme.Set(c_widgetShadow, glm::vec4(0.1f, 0.1f, 0.1f, 0.7f));
     
     theme.Set(c_nodeTitleBackground, glm::vec4(0.2f, 0.2f, 0.2f, 0.7f));
 

@@ -20,11 +20,6 @@ void Widget::SetRect(const NRectf& sz)
 void Widget::Draw(Canvas& canvas)
 {
     auto& theme = ThemeManager::Instance();
-    m_rect.Adjust(theme.GetVec2f(s_nodeShadowSize));
-    canvas.FillRoundedRect(m_rect, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_widgetShadow));
-
-    m_rect.Adjust(-theme.GetVec2f(s_nodeShadowSize));
-    canvas.FillRoundedRect(m_rect, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_widgetBackground));
 }
 
 }
