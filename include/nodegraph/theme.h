@@ -133,7 +133,7 @@ struct ThemeValue
     mutable ThemeType type;
 };
 
-using ThemeMap = std::unordered_map<const StringId*, ThemeValue>;
+using ThemeMap = std::unordered_map<StringId, ThemeValue>;
 class ThemeManager
 {
 public:
@@ -147,32 +147,32 @@ public:
     bool Load(const std::filesystem::path& path);
     void Set(const StringId& id, const ThemeValue& value)
     {
-        auto& slot = m_themes[m_currentTheme][&id];
+        auto& slot = m_themes[m_currentTheme][id];
         slot = value;
     }
 
     const ThemeValue& Get(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[&id];
+        return theme[id];
     }
 
     float GetFloat(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[&id].ToFloat();
+        return theme[id].ToFloat();
     }
 
     glm::vec2 GetVec2f(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[&id].ToVec2f();
+        return theme[id].ToVec2f();
     }
 
     glm::vec4 GetVec4f(const StringId& id)
     {
         auto& theme = m_themes[m_currentTheme];
-        return theme[&id].ToVec4f();
+        return theme[id].ToVec4f();
     }
 
     std::unordered_map<std::string, ThemeMap> m_themes;
@@ -187,17 +187,20 @@ public:
 #define DECLARE_THEME_VALUE(name) extern NodeGraph::StringId name;
 #endif
 
-DECLARE_THEME_VALUE(s_nodeTitleFontSize);
-DECLARE_THEME_VALUE(s_nodeTitleFontPad);
-DECLARE_THEME_VALUE(s_nodeTitleBorder);
-DECLARE_THEME_VALUE(s_nodeBorderRadius);
+// Grid
+DECLARE_THEME_VALUE(s_gridLineSize);
+DECLARE_THEME_VALUE(c_gridLines);
 
+// Node
+DECLARE_THEME_VALUE(s_nodeBorderRadius);
 DECLARE_THEME_VALUE(s_nodeShadowSize);
 DECLARE_THEME_VALUE(c_nodeShadow);
 DECLARE_THEME_VALUE(c_nodeBackground);
 
+// Title
+DECLARE_THEME_VALUE(s_nodeTitleFontSize);
+DECLARE_THEME_VALUE(s_nodeTitleFontPad);
+DECLARE_THEME_VALUE(s_nodeTitleBorder);
+DECLARE_THEME_VALUE(s_nodeTitleBorderRadius);
+
 DECLARE_THEME_VALUE(c_nodeTitleBackground);
-
-DECLARE_THEME_VALUE(s_gridLineSize);
-DECLARE_THEME_VALUE(c_gridLines);
-

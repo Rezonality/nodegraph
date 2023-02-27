@@ -41,7 +41,7 @@ void demo_theme_editor()
         auto& theme = ThemeManager::Instance();
         for (auto& [mstr, val] : theme.m_themes[theme.m_currentTheme])
         {
-            auto name = mstr->ToString();
+            auto name = mstr.ToString();
             auto prefix = name.substr(0, 2);
             if (prefix == "c_")
             {

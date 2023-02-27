@@ -15,21 +15,21 @@ bool ThemeManager::Save(const std::filesystem::path& path)
             switch (value.type)
             {
             case ThemeType::Float:
-                values_table.insert(value_name->ToString(), value.ToFloat());
+                values_table.insert(value_name.ToString(), value.ToFloat());
                 break;
             case ThemeType::Vec2f:
             {
-                toml_write_vec2(values_table, value_name->ToString(), value.ToVec2f());
+                toml_write_vec2(values_table, value_name.ToString(), value.ToVec2f());
             }
             break;
             case ThemeType::Vec3f:
             {
-                toml_write_vec3(values_table, value_name->ToString(), value.ToVec3f());
+                toml_write_vec3(values_table, value_name.ToString(), value.ToVec3f());
             }
             break;
             case ThemeType::Vec4f:
             {
-                toml_write_vec4(values_table, value_name->ToString(), value.ToVec4f());
+                toml_write_vec4(values_table, value_name.ToString(), value.ToVec4f());
             }
             break;
             }
@@ -48,14 +48,15 @@ bool ThemeManager::Load(const std::filesystem::path& path)
     try
     {
         tbl = toml::parse_file(path.string());
-        tbl.for_each([&](auto& theme, auto& value) {
-            // Set(StringId(key), ThemeValue(value));
+        for (auto& [theme, value] : tbl)
+        {
             if (value.is_table())
             {
                 auto theme_table = value.as_table();
                 if (theme_table)
                 {
-                    theme_table->for_each([&](auto& themeName, auto& themeValue) {
+                    for (auto& [themeName, themeValue] : *theme_table)
+                    {
                         if (themeValue.is_array())
                         {
                             auto name = std::string(themeName.str());
@@ -66,10 +67,10 @@ bool ThemeManager::Load(const std::filesystem::path& path)
                                 Set(StringId(std::string(themeName.str())), toml_read_vec2(themeValue, glm::vec2(0.0f)));
                                 break;
                             case 3:
-                                Set(StringId(std::string(themeName.str())), toml_read_vec2(themeValue, glm::vec2(0.0f)));
+                                Set(StringId(std::string(themeName.str())), toml_read_vec3(themeValue, glm::vec3(0.0f)));
                                 break;
                             case 4:
-                                Set(StringId(std::string(themeName.str())), toml_read_vec2(themeValue, glm::vec2(0.0f)));
+                                Set(StringId(std::string(themeName.str())), toml_read_vec4(themeValue, glm::vec4(0.0f)));
                                 break;
                             }
                         }
@@ -77,11 +78,10 @@ bool ThemeManager::Load(const std::filesystem::path& path)
                         {
                             Set(StringId(std::string(themeName.str())), (float)themeValue.as<double>()->get());
                         }
-                    });
+                    }
                 }
             }
-
-        });
+        }
     }
     catch (const toml::parse_error&)
     {

@@ -33,6 +33,7 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     theme.Set(s_nodeTitleFontSize, 26.0f);
     theme.Set(s_nodeTitleFontPad, 2.0f);
     theme.Set(s_nodeBorderRadius, 4.0f);
+    theme.Set(s_nodeTitleBorderRadius, 8.0f);
     theme.Set(s_nodeShadowSize, 4.0f);
 
     theme.Set(s_nodeShadowSize, 2.0f);
