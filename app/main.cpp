@@ -15,9 +15,11 @@
 
 #include "demo.h"
 
+#include <nodegraph/logger/logger.h>
 #include <nodegraph/vulkan/vulkan_imgui_texture.h>
 
 namespace fs = std::filesystem;
+using namespace NodeGraph;
 
 //#define IMGUI_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
@@ -39,6 +41,16 @@ static uint32_t                 g_MinImageCount = 2;
 static bool                     g_SwapChainRebuild = false;
 
 std::shared_ptr<NodeGraph::VulkanImGuiTexture> g_pFontTexture;
+
+namespace NodeGraph {
+#undef ERROR
+#ifdef _DEBUG
+Logger logger = { true, LT::DBG };
+#else
+Logger logger = { true, LT::INFO };
+#endif
+bool Log::disabled = false;
+}
 
 static void check_vk_result(VkResult err)
 {

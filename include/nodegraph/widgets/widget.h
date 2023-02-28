@@ -5,11 +5,14 @@
 namespace NodeGraph {
 
 class Canvas;
-enum class MouseButton
+struct CanvasInputState;
+
+enum MouseButtons
 {
-    None,
-    Left,
-    Right
+    MOUSE_LEFT,
+    MOUSE_RIGHT,
+    MOUSE_MIDDLE,
+    MOUSE_MAX
 };
 
 struct IWidget
@@ -20,9 +23,15 @@ struct IWidget
     virtual const std::vector<std::shared_ptr<IWidget>>& GetChildren() const = 0;
     virtual void AddChild(std::shared_ptr<IWidget> spWidget) = 0;
 
-    virtual IWidget* MouseDown(const glm::vec2& pos, MouseButton button = MouseButton::Left) = 0;
-    virtual void MouseUp(const glm::vec2& pos, MouseButton button = MouseButton::Left) = 0;
-    virtual void MouseMove(const glm::vec2& pos) = 0;
+    virtual void MouseDown(const CanvasInputState& input) = 0;
+    virtual void MouseUp(const CanvasInputState& input) = 0;
+    virtual bool MouseMove(const CanvasInputState& input) = 0;
+    
+    virtual void SetCapture(bool capture) = 0;
+    virtual bool GetCapture() const = 0;
+    
+    virtual void MoveChildToFront(std::shared_ptr<IWidget> pWidget) = 0;
+    virtual void MoveChildToBack(std::shared_ptr<IWidget> pWidget) = 0;
 };
 
 class Widget : public IWidget
@@ -36,15 +45,20 @@ public:
     virtual const std::vector<std::shared_ptr<IWidget>>& GetChildren() const override;
     virtual void AddChild(std::shared_ptr<IWidget> spWidget) override;
 
-    static IWidget* HandleMouseDown(const glm::vec2& pos, MouseButton button = MouseButton::Left);
-    static void HandleMouseUp(const glm::vec2& pos, MouseButton button = MouseButton::Left);
-    static void HandleMouseMove(const glm::vec2& pos);
+    virtual void MouseDown(const CanvasInputState& input);
+    virtual void MouseUp(const CanvasInputState& input);
+    virtual bool MouseMove(const CanvasInputState& input);
+    virtual void SetCapture(bool capture);
+    virtual bool GetCapture() const;
+
+    virtual void MoveChildToFront(std::shared_ptr<IWidget> pWidget) override;
+    virtual void MoveChildToBack(std::shared_ptr<IWidget> pWidget) override;
 
 protected:
     NRectf m_rect;
     std::vector<std::shared_ptr<IWidget>> m_children;
-    static IWidget* s_pMouseCapture;
-    static MouseButton s_buttonDown;
+    IWidget* m_pParent = nullptr;
+    bool m_capture = false;
 };
 
 }

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <nodegraph/math_utils.h>
+#include <nodegraph/widgets/widget.h>
 
 // #include "nodegraph/model/graph.h"
 
@@ -12,14 +13,6 @@ namespace NodeGraph {
 
 struct FontContext;
 struct IFontTexture;
-
-enum MouseButtons
-{
-    MOUSE_LEFT,
-    MOUSE_RIGHT,
-    MOUSE_MIDDLE,
-    MOUSE_MAX
-};
 
 enum class LineCap
 {
@@ -54,12 +47,17 @@ enum class CaptureState
 struct CanvasInputState
 {
     glm::vec2 mousePos; // Mouse location, pixel coordinates
+    glm::vec2 dragDelta; // Drag delta while mouse button down
+    glm::vec2 mouseDelta; // Mouse move delta (without drag?)
+
+    glm::vec2 worldMousePos; // Mouse location, pixel coordinates
+    glm::vec2 worldDragDelta; // Drag delta while mouse button down
+    glm::vec2 worldMoveDelta; // Mouse move delta (without drag?)
+
     // Button states
     bool buttonDown[MouseButtons::MOUSE_MAX];
     bool buttonClicked[MouseButtons::MOUSE_MAX];
     bool buttonReleased[MouseButtons::MOUSE_MAX];
-    glm::vec2 dragDelta; // Drag delta while mouse button down
-    glm::vec2 mouseDelta; // Mouse move delta (without drag?)
     bool slowDrag = false; // Dragging slowly
     float wheelDelta;
     bool canCapture = false;
@@ -125,6 +123,14 @@ public:
     virtual NRectf TextBounds(const glm::vec2& pos, float size, const char* pszText, const char* pszFace, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) const = 0;
     virtual void TextBox(const glm::vec2& pos, float size, float breakWidth, const glm::vec4& color, const char* pszText, const char* pszFace = nullptr, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) = 0;
 
+    void HandleMouseDown(const CanvasInputState& input);
+    void HandleMouseUp(const CanvasInputState& input);
+    void HandleMouseMove(const CanvasInputState& input);
+
+    IWidget* GetRootWidget() const;
+
+    void Draw();
+
 protected:
     glm::vec2 m_pixelSize; // Pixel size on screen of canvas
     glm::vec2 m_worldOrigin = glm::vec2(0.0f); // Origin of the world at the top left pixel
@@ -133,6 +139,9 @@ protected:
     CanvasInputState m_inputState;
     std::vector<glm::vec2> pointStorage;
     std::shared_ptr<FontContext> spFontContext;
+    std::shared_ptr<IWidget> m_spRootWidget;
+    
+    std::shared_ptr<IWidget> m_spMouseCapture;
 };
 
 } // namespace NodeGraph

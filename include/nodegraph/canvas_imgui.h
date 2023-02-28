@@ -2,6 +2,7 @@
 #include <nodegraph/canvas.h>
 
 #include <imgui.h>
+#include <nodegraph/logger/logger.h>
 
 namespace NodeGraph
 {
@@ -11,7 +12,7 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::ve
     auto& state = canvas.GetInputState();
 
     auto mousePos = (glm::vec2)ImGui::GetIO().MousePos;
-    auto windowPos = (glm::vec2)ImGui::GetWindowPos(); 
+    auto windowPos = (glm::vec2)ImGui::GetWindowContentRegionMin() + (glm::vec2)ImGui::GetWindowPos(); 
 
     state.mousePos = mousePos - windowPos;
     //glm::vec2(mousePos.x, mousePos.y);
@@ -22,6 +23,7 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::ve
         state.buttonReleased[i] = ImGui::GetIO().MouseReleased[i];
         state.buttonDown[i] = ImGui::GetIO().MouseDown[i];
     }
+    ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
     state.canCapture = ImGui::GetIO().WantCaptureMouse || forceCanCapture;
     state.mouseDelta = ImGui::GetIO().MouseDelta;
     if (state.buttonDown[0] == 1)
@@ -43,6 +45,10 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::ve
         state.slowDrag = false;
     }
 
+    state.worldMousePos = canvas.PixelToWorld(state.mousePos);
+    state.worldDragDelta = state.dragDelta / canvas.GetWorldScale(); // Drag delta while mouse button down
+    state.worldMoveDelta = state.mouseDelta / canvas.GetWorldScale(); // Mouse move delta (without drag?)
+    LOG(DBG, "Move: " << state.worldMoveDelta.x << ", " << state.mouseDelta.x);
     return state;
 }
 

@@ -2,8 +2,8 @@
 #include <nodegraph/fonts.h>
 
 #define DECLARE_THEMES
-#include <nodegraph/theme.h>
 #include <algorithm>
+#include <nodegraph/theme.h>
 
 // #include "mutils/logger/logger.h"
 
@@ -19,13 +19,15 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     : m_worldScale(worldScale)
     , m_worldScaleLimits(scaleLimits)
 {
+    m_spRootWidget = std::make_shared<Widget>();
+
     spFontContext = std::make_shared<FontContext>();
     fonts_init(*spFontContext, pFontTexture);
 
     auto& theme = ThemeManager::Instance();
 
     // For connectors around side
-    //theme.Set(s_nodeOuter, 20.0f);
+    // theme.Set(s_nodeOuter, 20.0f);
 
     float margin = 2.0f;
 
@@ -39,13 +41,12 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     theme.Set(s_nodeShadowSize, 2.0f);
     theme.Set(c_nodeShadow, glm::vec4(0.1f, 0.1f, 0.1f, 0.5f));
     theme.Set(c_nodeBackground, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
-    
+
     theme.Set(s_gridLineSize, 2.0f);
 
     theme.Set(c_gridLines, glm::vec4(0.25f, 0.25f, 0.25f, 1.0f));
-    
-    theme.Set(c_nodeTitleBackground, glm::vec4(0.2f, 0.2f, 0.2f, 0.7f));
 
+    theme.Set(c_nodeTitleBackground, glm::vec4(0.2f, 0.2f, 0.2f, 0.7f));
 }
 
 Canvas::~Canvas()
@@ -119,8 +120,24 @@ void Canvas::SetWorldAtCenter(const glm::vec2& world)
 // Handle the mouse wheel zoom and the right button panning, for manipulating the canvas
 void Canvas::HandleMouse()
 {
+    for (uint32_t i = 0; i < MOUSE_MAX; i++)
+    {
+        if (m_inputState.buttonClicked[i])
+        {
+            HandleMouseDown(m_inputState);
+        }
+        if (m_inputState.buttonReleased[i])
+        {
+            HandleMouseUp(m_inputState);
+        }
+    }
+    if (m_inputState.mouseDelta.x != 0.0f || m_inputState.mouseDelta.y != 0.0f)
+    {
+        HandleMouseMove(m_inputState);
+    }
+
     // We only handle moving canvas here
-    if (m_inputState.captureState == CaptureState::Parameter || m_inputState.captureState == CaptureState::MoveNode)
+    if (m_inputState.captureState == CaptureState::Parameter || m_inputState.captureState == CaptureState::MoveNode || m_spMouseCapture)
     {
         return;
     }
@@ -237,6 +254,68 @@ void Canvas::DrawCubicBezier(const glm::vec2& p1, const glm::vec2& p2, const glm
 bool Canvas::HasGradientVarying() const
 {
     return true;
+}
+
+void Canvas::HandleMouseDown(const CanvasInputState& input)
+{
+    for (auto& pWidget : m_spRootWidget->GetChildren())
+    {
+        if (pWidget->GetRect().Contains(input.worldMousePos))
+        {
+            pWidget->MouseDown(input);
+            if (pWidget->GetCapture())
+            {
+                m_spMouseCapture = pWidget;
+
+                // Draw the recently clicked one last
+                GetRootWidget()->MoveChildToBack(m_spMouseCapture);
+                return;
+            }
+        }
+    }
+}
+
+void Canvas::HandleMouseUp(const CanvasInputState& input)
+{
+    if (m_spMouseCapture)
+    {
+        m_spMouseCapture->MouseUp(input);
+        m_spMouseCapture.reset();
+        return;
+    }
+}
+
+void Canvas::HandleMouseMove(const CanvasInputState& input)
+{
+    if (m_spMouseCapture)
+    {
+        m_spMouseCapture->MouseMove(input);
+        return;
+    }
+
+    for (auto& pWidget : m_spRootWidget->GetChildren())
+    {
+        if (pWidget->GetRect().Contains(input.worldMousePos))
+        {
+            if (pWidget->MouseMove(input))
+            {
+                return;
+            }
+        }
+    }
+}
+
+void Canvas::Draw()
+{
+    for (auto& pWidget : m_spRootWidget->GetChildren())
+    {
+        pWidget->Draw(*this);
+    }
+}
+
+IWidget* Canvas::GetRootWidget() const
+{
+    return m_spRootWidget.get();
 }
 
 } // namespace NodeGraph

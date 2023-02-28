@@ -1,12 +1,14 @@
 ['Default Theme']
 c_gridLines = [ 0.25, 0.25, 0.25, 1.0 ]
 c_nodeBackground = [ 0.3688760995864868, 0.3688760995864868, 0.3688760995864868, 1.0 ]
+c_nodeBorderColor = [ 0.4639769196510315, 0.4639769196510315, 0.4639769196510315, 1.0 ]
 c_nodeShadow = [ 0.10000000149011612, 0.10000000149011612, 0.10000000149011612, 0.5 ]
 c_nodeTitleBackground = [ 0.20000000298023224, 0.20000000298023224, 0.20000000298023224, 0.699999988079071 ]
 s_gridLineSize = 2.0
 s_nodeBorderRadius = 4.0
-s_nodeShadowSize = 13.0
-s_nodeTitleBorder = 6.0
+s_nodeBorderSize = 2.0
+s_nodeShadowSize = 56.0
+s_nodeTitleBorder = 7.0
 s_nodeTitleBorderRadius = 8.0
 s_nodeTitleFontPad = 2.0
-s_nodeTitleFontSize = 26.0
+s_nodeTitleFontSize = 28.0

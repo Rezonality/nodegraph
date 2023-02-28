@@ -9,23 +9,54 @@ void Node::Draw(Canvas& canvas)
     auto& theme = ThemeManager::Instance();
     Widget::Draw(canvas);
 
+    auto rc = m_rect;
     // Shadow
-    m_rect.Adjust(theme.GetVec2f(s_nodeShadowSize));
-    canvas.FillRoundedRect(m_rect, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeShadow));
+    rc.Adjust(theme.GetVec2f(s_nodeShadowSize));
+    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeShadow));
 
-    m_rect.Adjust(-theme.GetVec2f(s_nodeShadowSize));
-    canvas.FillRoundedRect(m_rect, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeBackground));
+    // Border rectangle
+    rc.Adjust(-theme.GetVec2f(s_nodeShadowSize));
+    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeBorderColor));
+
+    // Center color
+    auto borderSize = theme.GetFloat(s_nodeBorderSize);
+    rc.Adjust(borderSize, borderSize, -borderSize, -borderSize);
+    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeBackground));
 
     auto fontSize = theme.GetFloat(s_nodeTitleFontSize);
     auto titleHeight = fontSize + theme.GetFloat(s_nodeTitleFontPad) * 2.0f;
     auto titleBorder = theme.GetFloat(s_nodeTitleBorder);
 
-    auto titlePanelRect = NRectf(m_rect.Left() + titleBorder, m_rect.Top() + titleBorder, m_rect.Width() - titleBorder * 2.0f, titleHeight);
+    auto titlePanelRect = NRectf(rc.Left() + titleBorder, rc.Top() + titleBorder, rc.Width() - titleBorder * 2.0f, titleHeight);
 
-    // Border curve * 2 to compensate
+    // Border curve * 2 to compensate, title background
     canvas.FillRoundedRect(titlePanelRect, theme.GetFloat(s_nodeTitleBorderRadius), theme.GetVec4f(c_nodeTitleBackground));
 
+    // Text
     canvas.Text(titlePanelRect.Center(), fontSize, glm::vec4(.1f, 0.1f, 0.1f, 1.0f), "Name", nullptr);
+}
+    
+void Node::MouseDown(const CanvasInputState& input)
+{
+    if (input.buttonClicked[0])
+    {
+        m_capture = true;
+    }
+}
+
+void Node::MouseUp(const CanvasInputState& input)
+{
+    m_capture = false;
+}
+
+bool Node::MouseMove(const CanvasInputState& input)
+{
+    if (m_capture)
+    {
+        m_rect.Adjust(input.worldMoveDelta);
+        return true;
+    }
+    return false;
 }
 
 }

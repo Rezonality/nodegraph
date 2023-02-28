@@ -5,9 +5,6 @@
 
 namespace NodeGraph {
 
-IWidget* Widget::s_pMouseCapture = nullptr;
-MouseButton Widget::s_buttonDown = MouseButton::None;
-
 Widget::Widget()
 {
 }
@@ -36,48 +33,73 @@ void Widget::AddChild(std::shared_ptr<IWidget> spWidget)
     return m_children.push_back(spWidget);
 }
 
-IWidget* Widget::HandleMouseDown(const glm::vec2& pos, MouseButton button)
+void Widget::MouseDown(const CanvasInputState& input)
 {
-    /*
-    for (auto& pWidget : m_children)
-    {
-        auto pCapture = pWidget->MouseDown(pos, button);
-        if (pCapture)
-        {
-            return pCapture;
-        }
-    }*/
-    return nullptr;
 }
 
-void Widget::HandleMouseUp(const glm::vec2& pos, MouseButton button)
+void Widget::MouseUp(const CanvasInputState& input)
 {
-    if (s_pMouseCapture)
-    {
-        s_pMouseCapture->MouseUp(pos, button);
-        s_pMouseCapture = nullptr;
-        return;
-    }
-}
-
-void Widget::HandleMouseMove(const glm::vec2& pos)
-{
-    if (s_pMouseCapture)
-    {
-        s_pMouseCapture->MouseMove(pos);
-        s_pMouseCapture = nullptr;
-        return;
-    }
-
     std::function<void(IWidget*)> pfnMove;
-
     pfnMove = [=](IWidget* pWidget) {
         for (auto& pChild : pWidget->GetChildren())
         {
-            pChild->MouseMove(pos);
+            pChild->MouseMove(input);
             pfnMove(pChild.get());
         }
     };
+}
+
+bool Widget::MouseMove(const CanvasInputState& input)
+{
+    std::function<void(IWidget*)> pfnMove;
+    pfnMove = [=](IWidget* pWidget) {
+        for (auto& pChild : pWidget->GetChildren())
+        {
+            pChild->MouseMove(input);
+            pfnMove(pChild.get());
+        }
+    };
+    return false;
+}
+
+void Widget::SetCapture(bool capture)
+{
+    m_capture = capture;
+}
+
+bool Widget::GetCapture() const
+{
+    return m_capture;
+}
+
+void Widget::MoveChildToFront(std::shared_ptr<IWidget> pWidget)
+{
+     auto itr = std::find_if(m_children.begin(),
+        m_children.end(),
+        [&](const auto& pFound) -> bool {
+            return pFound.get() == pWidget.get();
+        });
+
+     if (itr != m_children.end())
+     {
+         m_children.erase(itr);
+         m_children.insert(m_children.begin(), pWidget);
+     }
+}
+
+void Widget::MoveChildToBack(std::shared_ptr<IWidget> pWidget)
+{
+     auto itr = std::find_if(m_children.begin(),
+        m_children.end(),
+        [&](const auto& pFound) -> bool {
+            return pFound.get() == pWidget.get();
+        });
+
+     if (itr != m_children.end())
+     {
+         m_children.erase(itr);
+         m_children.insert(m_children.end(), pWidget);
+     }
 }
 
 }

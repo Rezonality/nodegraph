@@ -194,8 +194,10 @@ DECLARE_THEME_VALUE(c_gridLines);
 // Node
 DECLARE_THEME_VALUE(s_nodeBorderRadius);
 DECLARE_THEME_VALUE(s_nodeShadowSize);
+DECLARE_THEME_VALUE(s_nodeBorderSize);
 DECLARE_THEME_VALUE(c_nodeShadow);
 DECLARE_THEME_VALUE(c_nodeBackground);
+DECLARE_THEME_VALUE(c_nodeBorderColor);
 
 // Title
 DECLARE_THEME_VALUE(s_nodeTitleFontSize);
