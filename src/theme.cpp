@@ -76,7 +76,7 @@ bool ThemeManager::Load(const std::filesystem::path& path)
                         }
                         else if (themeValue.is_floating_point())
                         {
-                            Set(StringId(std::string(themeName.str())), (float)themeValue.as<double>()->get());
+                            Set(StringId(std::string(themeName.str())), (float)themeValue.as_floating_point()->get());
                         }
                     }
                 }
