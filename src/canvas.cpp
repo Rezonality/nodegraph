@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <nodegraph/canvas.h>
 #include <nodegraph/fonts.h>
 
@@ -258,7 +259,8 @@ bool Canvas::HasGradientVarying() const
 
 void Canvas::HandleMouseDown(const CanvasInputState& input)
 {
-    for (auto& pWidget : m_spRootWidget->GetChildren())
+    const auto& search = m_spRootWidget->GetFrontToBack();
+    for (auto& pWidget : search)
     {
         if (pWidget->GetRect().Contains(input.worldMousePos))
         {
