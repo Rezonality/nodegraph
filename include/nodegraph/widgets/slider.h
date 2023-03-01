@@ -4,10 +4,10 @@
 namespace NodeGraph {
 
 class Canvas;
-class Node : public Widget 
+class Slider : public Widget 
 {
 public:
-    Node(const std::string& label);
+    Slider(const std::string& label);
     virtual void Draw(Canvas& canvas) override;
     virtual void MouseDown(const CanvasInputState& input) override;
     virtual void MouseUp(const CanvasInputState& input) override;

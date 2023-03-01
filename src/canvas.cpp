@@ -262,7 +262,7 @@ void Canvas::HandleMouseDown(const CanvasInputState& input)
     const auto& search = m_spRootWidget->GetFrontToBack();
     for (auto& pWidget : search)
     {
-        if (pWidget->GetRect().Contains(input.worldMousePos))
+        if (pWidget->GetWorldRect().Contains(input.worldMousePos))
         {
             pWidget->MouseDown(input);
             if (pWidget->GetCapture())
@@ -297,7 +297,7 @@ void Canvas::HandleMouseMove(const CanvasInputState& input)
 
     for (auto& pWidget : m_spRootWidget->GetFrontToBack())
     {
-        if (pWidget->GetRect().Contains(input.worldMousePos))
+        if (pWidget->GetWorldRect().Contains(input.worldMousePos))
         {
             if (pWidget->MouseMove(input))
             {

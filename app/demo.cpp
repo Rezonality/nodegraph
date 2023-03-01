@@ -4,8 +4,9 @@
 #include <nodegraph/canvas.h>
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/theme.h>
-#include <nodegraph/widgets/widget.h>
 #include <nodegraph/widgets/node.h>
+#include <nodegraph/widgets/widget.h>
+#include <nodegraph/widgets/slider.h>
 
 #include <config_app.h>
 using namespace NodeGraph;
@@ -25,19 +26,29 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         spCanvas->SetPixelRegionSize(size);
         spCanvas->SetWorldAtCenter(worldCenter);
 
-        auto spWidget = std::make_shared<Node>();
-        spWidget->SetRect(NRectf(0.0f, -350.0f, 300.0f, 150.0f));
-        spCanvas->GetRootWidget()->AddChild(spWidget);
-        
-        auto spWidget2 = std::make_shared<Node>();
-        spWidget2->SetRect(NRectf(100.0f, -450.0f, 300.0f, 150.0f));
-        spCanvas->GetRootWidget()->AddChild(spWidget2);
+        // Node 1
+        {
+            auto spWidget = std::make_shared<Node>("Node 1");
+            spWidget->SetRect(NRectf(0.0f, -350.0f, 300.0f, 150.0f));
+            spCanvas->GetRootWidget()->AddChild(spWidget);
 
-        // Child
-        auto spNodeChild = std::make_shared<Node>();
-        spNodeChild->SetRect(NRectf(10.0f, 10.0f, 90.0f, 90.0f));
-        spWidget->AddChild(spNodeChild);
-        
+            // Child
+            auto spNodeChild = std::make_shared<Node>("Child");
+            spNodeChild->SetRect(NRectf(10.0f, 40.0f, 170.0f, 90.0f));
+            spWidget->AddChild(spNodeChild);
+        }
+
+        // Node 2
+        {
+            auto spWidget = std::make_shared<Node>("Node 2");
+            spWidget->SetRect(NRectf(100.0f, -450.0f, 300.0f, 150.0f));
+            spCanvas->GetRootWidget()->AddChild(spWidget);
+
+            auto spSlider = std::make_shared<Slider>("Amplitude");
+            spSlider->SetRect(NRectf(20.0f, 60.0f, 140.0f, 40.0f));
+            spWidget->AddChild(spSlider);
+        }
+
         ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     }
     spCanvas->SetPixelRegionSize(size);

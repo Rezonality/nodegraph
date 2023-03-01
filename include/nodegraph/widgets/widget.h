@@ -21,7 +21,7 @@ using WidgetList = std::vector<std::shared_ptr<Widget>>;
 class Widget
 {
 public:
-    Widget();
+    Widget(const std::string& label = std::string());
     virtual const NRectf& GetRect() const;
     virtual void SetRect(const NRectf& sz);
     virtual void Draw(Canvas& canvas);
@@ -42,7 +42,10 @@ public:
     virtual const WidgetList& GetFrontToBack() const;
     virtual const WidgetList& GetBackToFront() const;
 
-    virtual NRectf ToWorldRect(const NRectf& rc);
+    virtual NRectf ToWorldRect(const NRectf& rc) const;
+    virtual NRectf GetWorldRect() const;
+
+    virtual const std::string& GetLabel() const;
 
 protected:
     void SortWidgets();
@@ -53,6 +56,7 @@ protected:
     WidgetList m_frontToBack;
     Widget* m_pParent = nullptr;
     bool m_capture = false;
+    std::string m_label;
 };
 
 }

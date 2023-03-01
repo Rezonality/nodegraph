@@ -5,7 +5,8 @@
 
 namespace NodeGraph {
 
-Widget::Widget()
+Widget::Widget(const std::string& label)
+    : m_label(label)
 {
 }
     
@@ -31,15 +32,20 @@ void Widget::SetRect(const NRectf& sz)
     m_rect = sz;
 }
 
-NRectf Widget::ToWorldRect(const NRectf& rc)
+NRectf Widget::ToWorldRect(const NRectf& rc) const
 {
-    if (!pWidget)
+    if (!m_pParent)
     {
         return rc;
     }
 
-    auto rcNew = rc.Adjusted(pWidget->GetRect().TopLeft());
-    return ToWorldRect(pWidget->GetParent(), rcNew);
+    auto rcNew = rc.Adjusted(m_pParent->GetRect().TopLeft());
+    return m_pParent->ToWorldRect(rcNew);
+}
+
+NRectf Widget::GetWorldRect() const
+{
+    return ToWorldRect(m_rect);
 }
 
 void Widget::Draw(Canvas& canvas)
@@ -139,6 +145,11 @@ void Widget::MoveChildToBack(std::shared_ptr<Widget> pWidget)
         m_children.insert(m_children.end(), pWidget);
     }
     SortWidgets();
+}
+    
+const std::string& Widget::GetLabel() const
+{
+    return m_label;
 }
 
 }

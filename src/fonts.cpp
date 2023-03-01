@@ -425,7 +425,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
     }
 
     // TODO: add back-end bit to do this just once per frame.
-    flush_texture(ctx);
+    //flush_texture(ctx);
 
     render_text(ctx, verts, nverts);
 
@@ -567,7 +567,6 @@ int fonts_break_lines(FontContext& ctx, const char* string, const char* end, flo
                 float nextWidth = iter.nextx - rowStartX;
 
                 // track last non-white space character
-                if (type == NVG_CHAR || type == NVG_CJK_CHAR)
                 {
                     rowEnd = iter.next;
                     rowWidth = iter.nextx - rowStartX;
@@ -848,6 +847,7 @@ void fonts_begin_frame(FontContext& ctx)
 
 void fonts_end_frame(FontContext& ctx)
 {
+    flush_texture(ctx);
     if (ctx.fontImageIdx != 0)
     {
         int fontImage = ctx.fontImages[ctx.fontImageIdx];
