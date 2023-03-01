@@ -26,8 +26,8 @@ struct NRect
     {
     }
 
-    vec2 topLeftPx;
-    vec2 bottomRightPx;
+    vec2 topLeftPx = vec2(0.0f);
+    vec2 bottomRightPx = vec2(0.0f);
 
     bool Contains(const vec2& pt) const
     {
@@ -41,6 +41,10 @@ struct NRect
     vec2 TopRight() const
     {
         return vec2(bottomRightPx.x, topLeftPx.y);
+    }
+    vec2 TopLeft() const
+    {
+        return topLeftPx;
     }
 
     T Left() const

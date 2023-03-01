@@ -295,7 +295,7 @@ void Canvas::HandleMouseMove(const CanvasInputState& input)
         return;
     }
 
-    for (auto& pWidget : m_spRootWidget->GetChildren())
+    for (auto& pWidget : m_spRootWidget->GetFrontToBack())
     {
         if (pWidget->GetRect().Contains(input.worldMousePos))
         {
@@ -309,13 +309,13 @@ void Canvas::HandleMouseMove(const CanvasInputState& input)
 
 void Canvas::Draw()
 {
-    for (auto& pWidget : m_spRootWidget->GetChildren())
+    for (auto& pWidget : m_spRootWidget->GetBackToFront())
     {
         pWidget->Draw(*this);
     }
 }
 
-IWidget* Canvas::GetRootWidget() const
+Widget* Canvas::GetRootWidget() const
 {
     return m_spRootWidget.get();
 }

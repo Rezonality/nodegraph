@@ -8,6 +8,19 @@ namespace NodeGraph {
 Widget::Widget()
 {
 }
+    
+Widget* Widget::GetParent() const
+{
+    return m_pParent;
+}
+
+void Widget::SetParent(Widget* pParent)
+{
+    assert(!m_pParent);
+    assert(pParent);
+    m_pParent = pParent;
+}
+
 const NRectf& Widget::GetRect() const
 {
     return m_rect;
@@ -18,19 +31,26 @@ void Widget::SetRect(const NRectf& sz)
     m_rect = sz;
 }
 
+NRectf Widget::ToWorldRect(const NRectf& rc)
+{
+    if (!pWidget)
+    {
+        return rc;
+    }
+
+    auto rcNew = rc.Adjusted(pWidget->GetRect().TopLeft());
+    return ToWorldRect(pWidget->GetParent(), rcNew);
+}
+
 void Widget::Draw(Canvas& canvas)
 {
     auto& theme = ThemeManager::Instance();
 }
 
-const WidgetList& Widget::GetChildren() const
-{
-    return m_children;
-}
-
-void Widget::AddChild(std::shared_ptr<IWidget> spWidget)
+void Widget::AddChild(std::shared_ptr<Widget> spWidget)
 {
     m_children.push_back(spWidget);
+    spWidget->SetParent(this);
     SortWidgets();
 }
 
@@ -40,9 +60,9 @@ void Widget::MouseDown(const CanvasInputState& input)
 
 void Widget::MouseUp(const CanvasInputState& input)
 {
-    std::function<void(IWidget*)> pfnMove;
-    pfnMove = [=](IWidget* pWidget) {
-        for (auto& pChild : pWidget->GetChildren())
+    std::function<void(Widget*)> pfnMove;
+    pfnMove = [=](Widget* pWidget) {
+        for (auto& pChild : pWidget->GetFrontToBack())
         {
             pChild->MouseMove(input);
             pfnMove(pChild.get());
@@ -52,9 +72,9 @@ void Widget::MouseUp(const CanvasInputState& input)
 
 bool Widget::MouseMove(const CanvasInputState& input)
 {
-    std::function<void(IWidget*)> pfnMove;
-    pfnMove = [=](IWidget* pWidget) {
-        for (auto& pChild : pWidget->GetChildren())
+    std::function<void(Widget*)> pfnMove;
+    pfnMove = [=](Widget* pWidget) {
+        for (auto& pChild : pWidget->GetFrontToBack())
         {
             pChild->MouseMove(input);
             pfnMove(pChild.get());
@@ -79,7 +99,7 @@ void Widget::SortWidgets()
     std::reverse(m_frontToBack.begin(), m_frontToBack.end());
 }
 
-void Widget::MoveChildToFront(std::shared_ptr<IWidget> pWidget)
+void Widget::MoveChildToFront(std::shared_ptr<Widget> pWidget)
 {
     auto itr = std::find_if(m_children.begin(),
         m_children.end(),
@@ -100,7 +120,12 @@ const WidgetList& Widget::GetFrontToBack() const
     return m_frontToBack;
 }
 
-void Widget::MoveChildToBack(std::shared_ptr<IWidget> pWidget)
+const WidgetList& Widget::GetBackToFront() const
+{
+    return m_children;
+}
+
+void Widget::MoveChildToBack(std::shared_ptr<Widget> pWidget)
 {
     auto itr = std::find_if(m_children.begin(),
         m_children.end(),

@@ -32,6 +32,11 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         auto spWidget2 = std::make_shared<Node>();
         spWidget2->SetRect(NRectf(100.0f, -450.0f, 300.0f, 150.0f));
         spCanvas->GetRootWidget()->AddChild(spWidget2);
+
+        // Child
+        auto spNodeChild = std::make_shared<Node>();
+        spNodeChild->SetRect(NRectf(10.0f, 10.0f, 90.0f, 90.0f));
+        spWidget->AddChild(spNodeChild);
         
         ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     }

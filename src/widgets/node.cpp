@@ -9,7 +9,8 @@ void Node::Draw(Canvas& canvas)
     auto& theme = ThemeManager::Instance();
     Widget::Draw(canvas);
 
-    auto rc = m_rect;
+    auto rc = ToWorldRect(m_rect);
+
     // Shadow
     rc.Adjust(theme.GetVec2f(s_nodeShadowSize));
     canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeShadow));
@@ -34,6 +35,11 @@ void Node::Draw(Canvas& canvas)
 
     // Text
     canvas.Text(titlePanelRect.Center(), fontSize, glm::vec4(.1f, 0.1f, 0.1f, 1.0f), "Name", nullptr);
+
+    for (auto& child : GetBackToFront())
+    {
+        child->Draw(canvas);
+    }
 }
     
 void Node::MouseDown(const CanvasInputState& input)
@@ -51,6 +57,7 @@ void Node::MouseUp(const CanvasInputState& input)
 
 bool Node::MouseMove(const CanvasInputState& input)
 {
+    // Only move top level
     if (m_capture)
     {
         m_rect.Adjust(input.worldMoveDelta);

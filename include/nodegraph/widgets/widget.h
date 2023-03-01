@@ -15,40 +15,20 @@ enum MouseButtons
     MOUSE_MAX
 };
 
-struct IWidget;
-using WidgetList = std::vector<std::shared_ptr<IWidget>>;
+class Widget;
+using WidgetList = std::vector<std::shared_ptr<Widget>>;
 
-struct IWidget
-{
-    virtual const NRectf& GetRect() const = 0;
-    virtual void SetRect(const NRectf& sz) = 0;
-    virtual void Draw(Canvas& canvas) = 0;
-    virtual const WidgetList& GetChildren() const = 0;
-    virtual void AddChild(std::shared_ptr<IWidget> spWidget) = 0;
-
-    virtual void MouseDown(const CanvasInputState& input) = 0;
-    virtual void MouseUp(const CanvasInputState& input) = 0;
-    virtual bool MouseMove(const CanvasInputState& input) = 0;
-
-    virtual void SetCapture(bool capture) = 0;
-    virtual bool GetCapture() const = 0;
-
-    virtual void MoveChildToFront(std::shared_ptr<IWidget> pWidget) = 0;
-    virtual void MoveChildToBack(std::shared_ptr<IWidget> pWidget) = 0;
-    
-    virtual const WidgetList& GetFrontToBack() const = 0;
-};
-
-class Widget : public IWidget
+class Widget
 {
 public:
     Widget();
-    virtual const NRectf& GetRect() const override;
-    virtual void SetRect(const NRectf& sz) override;
-    virtual void Draw(Canvas& canvas) override;
+    virtual const NRectf& GetRect() const;
+    virtual void SetRect(const NRectf& sz);
+    virtual void Draw(Canvas& canvas);
+    virtual Widget* GetParent() const;
+    virtual void SetParent(Widget* pParent);
 
-    virtual const WidgetList& GetChildren() const override;
-    virtual void AddChild(std::shared_ptr<IWidget> spWidget) override;
+    virtual void AddChild(std::shared_ptr<Widget> spWidget);
 
     virtual void MouseDown(const CanvasInputState& input);
     virtual void MouseUp(const CanvasInputState& input);
@@ -56,10 +36,13 @@ public:
     virtual void SetCapture(bool capture);
     virtual bool GetCapture() const;
 
-    virtual void MoveChildToFront(std::shared_ptr<IWidget> pWidget) override;
-    virtual void MoveChildToBack(std::shared_ptr<IWidget> pWidget) override;
+    virtual void MoveChildToFront(std::shared_ptr<Widget> pWidget);
+    virtual void MoveChildToBack(std::shared_ptr<Widget> pWidget);
 
-    virtual const WidgetList& GetFrontToBack() const override;
+    virtual const WidgetList& GetFrontToBack() const;
+    virtual const WidgetList& GetBackToFront() const;
+
+    virtual NRectf ToWorldRect(const NRectf& rc);
 
 protected:
     void SortWidgets();
@@ -68,7 +51,7 @@ protected:
     NRectf m_rect;
     WidgetList m_children;
     WidgetList m_frontToBack;
-    IWidget* m_pParent = nullptr;
+    Widget* m_pParent = nullptr;
     bool m_capture = false;
 };
 

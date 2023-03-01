@@ -127,7 +127,7 @@ public:
     void HandleMouseUp(const CanvasInputState& input);
     void HandleMouseMove(const CanvasInputState& input);
 
-    IWidget* GetRootWidget() const;
+    Widget* GetRootWidget() const;
 
     void Draw();
 
@@ -139,9 +139,9 @@ protected:
     CanvasInputState m_inputState;
     std::vector<glm::vec2> pointStorage;
     std::shared_ptr<FontContext> spFontContext;
-    std::shared_ptr<IWidget> m_spRootWidget;
+    std::shared_ptr<Widget> m_spRootWidget;
     
-    std::shared_ptr<IWidget> m_spMouseCapture;
+    std::shared_ptr<Widget> m_spMouseCapture;
 };
 
 } // namespace NodeGraph
