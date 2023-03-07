@@ -199,10 +199,20 @@ DECLARE_THEME_VALUE(c_nodeShadow);
 DECLARE_THEME_VALUE(c_nodeBackground);
 DECLARE_THEME_VALUE(c_nodeBorderColor);
 
-// Title
+// - Title
 DECLARE_THEME_VALUE(s_nodeTitleFontSize);
 DECLARE_THEME_VALUE(s_nodeTitleFontPad);
 DECLARE_THEME_VALUE(s_nodeTitleBorder);
 DECLARE_THEME_VALUE(s_nodeTitleBorderRadius);
 
 DECLARE_THEME_VALUE(c_nodeTitleBackground);
+
+// Slider
+DECLARE_THEME_VALUE(s_sliderBorderSize);
+DECLARE_THEME_VALUE(s_sliderThumbPad);
+DECLARE_THEME_VALUE(s_sliderBorderRadius);
+DECLARE_THEME_VALUE(s_sliderThumbRadius);
+DECLARE_THEME_VALUE(s_sliderFontPad);
+DECLARE_THEME_VALUE(c_sliderBorderColor);
+DECLARE_THEME_VALUE(c_sliderCenterColor);
+DECLARE_THEME_VALUE(c_sliderThumbColor);

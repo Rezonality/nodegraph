@@ -4,10 +4,10 @@
 
 namespace NodeGraph {
 
-Slider::Slider(const std::string& label)
+Slider::Slider(const std::string& label, const SliderCB& fn)
     : Widget(label)
+    , m_callback(fn)
 {
-
 }
 
 void Slider::Draw(Canvas& canvas)
@@ -17,22 +17,26 @@ void Slider::Draw(Canvas& canvas)
 
     auto rc = GetWorldRect();
 
-
     // Border rectangle
-    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeBorderColor));
+    auto borderSize = theme.GetFloat(s_sliderBorderSize);
+    rc.Adjust(borderSize, borderSize);
+    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_sliderBorderColor));
 
     // Center color
-    auto borderSize = theme.GetFloat(s_nodeBorderSize) * 2.0f;
-    rc.Adjust(borderSize, borderSize, -borderSize, -borderSize);
-    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeBackground));
+    rc.Adjust(-borderSize, -borderSize);
+    canvas.FillRoundedRect(rc, theme.GetFloat(s_sliderBorderRadius), theme.GetVec4f(c_sliderCenterColor));
 
-    auto fontSize = rc.Height() - theme.GetFloat(s_nodeTitleFontPad);
+    auto thumbPad = theme.GetFloat(s_sliderThumbPad);
+
+    auto fontSize = rc.Height() - theme.GetFloat(s_sliderFontPad) * 2.0f - thumbPad * 2.0f;
     auto titlePanelRect = rc;
+    titlePanelRect.Adjust(thumbPad, 0.0f, -thumbPad, 0.0f);
 
-
-    rc.SetSize(glm::vec2(20.0f, rc.Size().y));
-
-    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), glm::vec4(0.8f, 0.8f, 0.2f, 1.0f));
+    SliderValue val;
+    m_callback(SliderParams::Step, SliderOp::Get, val);
+    rc.SetSize(glm::vec2(val.f * rc.Size().x, rc.Size().y));
+    rc.Adjust(thumbPad, thumbPad, -thumbPad, -thumbPad);
+    canvas.FillRoundedRect(rc, theme.GetFloat(s_sliderThumbRadius), theme.GetVec4f(c_sliderThumbColor));
 
     // Text
     canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, glm::vec4(.1f, 0.1f, 0.1f, 1.0f), m_label.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
@@ -61,7 +65,7 @@ bool Slider::MouseMove(const CanvasInputState& input)
     // Only move top level
     if (m_capture)
     {
-//        m_rect.Adjust(input.worldMoveDelta);
+        //        m_rect.Adjust(input.worldMoveDelta);
         return true;
     }
     return false;

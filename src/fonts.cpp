@@ -87,7 +87,7 @@ void get_texture_size(FontContext& ctx, int image, int* w, int* h)
     ctx.pFontTexture->GetTextureSize(image, w, h);
 }
 
-void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
+void render_text(FontContext& ctx, NVGvertex* verts, int nverts, uint32_t color)
 {
     auto pDraw = ImGui::GetWindowDrawList();
     auto image = ctx.fontImages[ctx.fontImageIdx];
@@ -108,7 +108,7 @@ void render_text(FontContext& ctx, NVGvertex* verts, int nverts)
 
     for (int i = 0; i < nverts; i += 2)
     {
-        pDraw->PrimRectUV(ImVec2(verts[i].x, verts[i].y), ImVec2(verts[i + 1].x, verts[i + 1].y), ImVec2(verts[i].u, verts[i].v), ImVec2(verts[i + 1].u, verts[i + 1].v), 0xFFFFFFFF);
+        pDraw->PrimRectUV(ImVec2(verts[i].x, verts[i].y), ImVec2(verts[i + 1].x, verts[i + 1].y), ImVec2(verts[i].u, verts[i].v), ImVec2(verts[i + 1].u, verts[i + 1].v), color);
     }
 
     pDraw->PopTextureID();
@@ -337,7 +337,7 @@ void fonts_set_scale(FontContext& ctx, float scale)
     ctx.xform[5] = 0.0f;
 }
 
-float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, const char* end)
+float fonts_draw_text(FontContext& ctx, float x, float y, uint32_t color, const char* string, const char* end)
 {
     FONStextIter iter, prevIter;
     FONSquad q;
@@ -375,7 +375,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
         { // can not retrieve glyph?
             if (nverts != 0)
             {
-                render_text(ctx, verts, nverts);
+                render_text(ctx, verts, nverts, color);
                 nverts = 0;
             }
             if (!alloc_text_atlas(ctx))
@@ -427,7 +427,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, const char* string, co
     // TODO: add back-end bit to do this just once per frame.
     //flush_texture(ctx);
 
-    render_text(ctx, verts, nverts);
+    render_text(ctx, verts, nverts, color);
 
     return iter.nextx / scale;
 }
@@ -660,7 +660,7 @@ int fonts_break_lines(FontContext& ctx, const char* string, const char* end, flo
     return nrows;
 }
 
-void fonts_text_box(FontContext& ctx, float x, float y, float breakRowWidth, const char* string, const char* end)
+void fonts_text_box(FontContext& ctx, float x, float y, float breakRowWidth, uint32_t color, const char* string, const char* end)
 {
     NVGtextRow rows[2];
     int nrows = 0, i;
@@ -682,11 +682,11 @@ void fonts_text_box(FontContext& ctx, float x, float y, float breakRowWidth, con
         {
             NVGtextRow* row = &rows[i];
             if (haling & NVG_ALIGN_LEFT)
-                fonts_draw_text(ctx, x, y, row->start, row->end);
+                fonts_draw_text(ctx, x, y, color, row->start, row->end);
             else if (haling & NVG_ALIGN_CENTER)
-                fonts_draw_text(ctx, x + breakRowWidth * 0.5f - row->width * 0.5f, y, row->start, row->end);
+                fonts_draw_text(ctx, x + breakRowWidth * 0.5f - row->width * 0.5f, y, color, row->start, row->end);
             else if (haling & NVG_ALIGN_RIGHT)
-                fonts_draw_text(ctx, x + breakRowWidth - row->width, y, row->start, row->end);
+                fonts_draw_text(ctx, x + breakRowWidth - row->width, y, color, row->start, row->end);
             y += lineh * ctx.lineHeight;
         }
         string = rows[nrows - 1].next;

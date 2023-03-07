@@ -182,10 +182,12 @@ void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color,
         fonts_set_face(*spFontContext, pszFace);
     }
 
+    auto packedColor = glm::packUnorm4x8(color);
+
     fonts_set_size(*spFontContext, size);
     fonts_set_align(*spFontContext, align);
     fonts_set_scale(*spFontContext, m_worldScale);
-    fonts_draw_text(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, pszText, nullptr);
+    fonts_draw_text(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, packedColor, pszText, nullptr);
 }
 
 void CanvasImGui::TextBox(const glm::vec2& pos, float size, float breakWidth, const glm::vec4& color, const char* pszText, const char* pszFace, uint32_t align)
@@ -201,7 +203,7 @@ void CanvasImGui::TextBox(const glm::vec2& pos, float size, float breakWidth, co
     fonts_set_size(*spFontContext, size);
     fonts_set_align(*spFontContext, align);
     fonts_set_scale(*spFontContext, m_worldScale);
-    fonts_text_box(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, breakWidth, pszText, nullptr);
+    fonts_text_box(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, breakWidth, glm::packUnorm4x8(color), pszText, nullptr);
 }
 
 void CanvasImGui::Arc(const glm::vec2& pos, float radius, float width, const glm::vec4& color, float startAngle, float endAngle)

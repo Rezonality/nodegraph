@@ -5,8 +5,8 @@
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/node.h>
-#include <nodegraph/widgets/widget.h>
 #include <nodegraph/widgets/slider.h>
+#include <nodegraph/widgets/widget.h>
 
 #include <config_app.h>
 using namespace NodeGraph;
@@ -44,7 +44,17 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spWidget->SetRect(NRectf(100.0f, -450.0f, 300.0f, 150.0f));
             spCanvas->GetRootWidget()->AddChild(spWidget);
 
-            auto spSlider = std::make_shared<Slider>("Amplitude");
+            auto spSlider = std::make_shared<Slider>("Amplitude",
+                [&](auto param, auto op, SliderValue& val) {
+                    switch (param)
+                    {
+                    case SliderParams::Step:
+                        val.f = (op == SliderOp::Get) ? .33f : 0.0f;
+                        break;
+                    default:
+                        break;
+                    }
+                });
             spSlider->SetRect(NRectf(20.0f, 60.0f, 140.0f, 40.0f));
             spWidget->AddChild(spSlider);
         }
