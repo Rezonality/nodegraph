@@ -152,4 +152,29 @@ const std::string& Widget::GetLabel() const
     return m_label;
 }
 
+NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText, float fontPad, const glm::vec4& textColor)
+{
+    NRectf rc = rect;
+
+    rc.Adjust(shadowSize, shadowSize);
+    canvas.FillRoundedRect(rc, borderRadius, shadowColor);
+
+    rc.Adjust(-shadowSize, -shadowSize, -shadowSize, -shadowSize);
+
+    if (borderSize != 0.0f)
+    {
+        canvas.FillRoundedRect(rc, borderRadius, borderColor);
+        rc.Adjust(borderSize, borderSize, -borderSize, - borderSize);
+    }
+
+    canvas.FillRoundedRect(rc, borderRadius, centerColor);
+
+    if (pszText)
+    {
+        auto fontSize = rc.Height() - fontPad * 2.0f;
+        canvas.Text(glm::vec2(rc.Left() + fontPad, rc.Center().y + 1), fontSize, textColor, pszText, nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
+    }
+    return rc;
+}
+
 }

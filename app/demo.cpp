@@ -69,10 +69,31 @@ void demo_theme_editor()
     if (ImGui::Begin("Theme"))
     {
         auto& theme = ThemeManager::Instance();
+        std::vector<StringId> themeNames;
+
         for (auto& [mstr, val] : theme.m_themes[theme.m_currentTheme])
         {
-            auto name = mstr.ToString();
+            themeNames.push_back(mstr);
+        }
+
+        std::sort(themeNames.begin(), themeNames.end(), [](auto& lhs, auto& rhs) {
+            return lhs.ToString().substr(2) < rhs.ToString().substr(2);
+        });
+
+        std::string last;
+        auto& themeMap = theme.m_themes[theme.m_currentTheme];
+        for (auto& id : themeNames)
+        {
+            auto name = id.ToString();
+            auto& val = themeMap[id];
             auto prefix = name.substr(0, 2);
+            
+            if (!last.empty() && (last != name.substr(2, 4)))
+            {
+                ImGui::NewLine();
+            }
+            last = name.substr(2, 4);
+
             if (prefix == "c_")
             {
                 glm::vec4 v = val.ToVec4f();
@@ -125,9 +146,9 @@ void demo_draw()
 
     spCanvas->DrawCubicBezier(glm::vec2(-200.0f, 150.0f), glm::vec2(-150.0f, 120.0f), glm::vec2(-100.0f, 150.0f), glm::vec2(-50.0f, 120.0f), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), 1.0f);
 
-    spCanvas->Text(glm::vec2(-150.0f, -150.0f), 30.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "Text");
+    spCanvas->Text(glm::vec2(-150.0f, -150.0f), 30.0f, glm::vec4(1.0f, 1.0f, 0.2f, 1.0f), "Text");
 
-    spCanvas->TextBox(glm::vec2(150.0f, -150.0f), 30.0f, 200.0f, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f), "This is text that has been split and aligned into a box, so that it sits within it.");
+    spCanvas->TextBox(glm::vec2(150.0f, -150.0f), 30.0f, 200.0f, glm::vec4(0.8f, 0.8f, 0.8f, 1.0f), "This is text that has been split and aligned into a box, so that it sits within it.");
 
     spCanvas->Draw();
 

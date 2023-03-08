@@ -17,30 +17,31 @@ void Node::Draw(Canvas& canvas)
 
     auto rc = GetWorldRect();
 
-    // Shadow
-    rc.Adjust(theme.GetVec2f(s_nodeShadowSize));
-    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeShadow));
+    rc = DrawSlab(canvas,
+        rc,
+        theme.GetFloat(s_nodeBorderRadius),
+        theme.GetFloat(s_nodeShadowSize),
+        theme.GetVec4f(c_nodeShadowColor),
+        theme.GetFloat(s_nodeBorderSize),
+        theme.GetVec4f(c_nodeBorderColor),
+        theme.GetVec4f(c_nodeCenterColor));
 
-    // Border rectangle
-    rc.Adjust(-theme.GetVec2f(s_nodeShadowSize));
-    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeBorderColor));
-
-    // Center color
-    auto borderSize = theme.GetFloat(s_nodeBorderSize);
-    rc.Adjust(borderSize, borderSize, -borderSize, -borderSize);
-    canvas.FillRoundedRect(rc, theme.GetFloat(s_nodeBorderRadius), theme.GetVec4f(c_nodeBackground));
-
-    auto fontSize = theme.GetFloat(s_nodeTitleFontSize);
+    auto fontSize = theme.GetFloat(s_nodeTitleSize);
     auto titleHeight = fontSize + theme.GetFloat(s_nodeTitleFontPad) * 2.0f;
-    auto titleBorder = theme.GetFloat(s_nodeTitleBorder);
+    auto titlePad = theme.GetFloat(s_nodeTitlePad);
 
-    auto titlePanelRect = NRectf(rc.Left() + titleBorder, rc.Top() + titleBorder, rc.Width() - titleBorder * 2.0f, titleHeight);
+    auto titlePanelRect = NRectf(rc.Left() + titlePad, rc.Top() + titlePad, rc.Width() - titlePad * 2.0f, titleHeight);
 
-    // Border curve * 2 to compensate, title background
-    canvas.FillRoundedRect(titlePanelRect, theme.GetFloat(s_nodeTitleBorderRadius), theme.GetVec4f(c_nodeTitleBackground));
-
-    // Text
-    canvas.Text(titlePanelRect.Center(), fontSize, glm::vec4(.1f, 0.1f, 0.1f, 1.0f), m_label.c_str(), nullptr);
+    rc = DrawSlab(canvas,
+        titlePanelRect,
+        theme.GetFloat(s_nodeTitleBorderRadius),
+        theme.GetFloat(s_nodeTitleShadowSize),
+        theme.GetVec4f(c_nodeTitleShadowColor),
+        theme.GetFloat(s_nodeTitleBorderSize),
+        theme.GetVec4f(c_nodeTitleBorderColor),
+        theme.GetVec4f(c_nodeTitleCenterColor),
+        m_label.c_str(),
+        theme.GetFloat(s_nodeTitleFontPad));
 
     for (auto& child : GetBackToFront())
     {

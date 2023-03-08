@@ -195,24 +195,35 @@ DECLARE_THEME_VALUE(c_gridLines);
 DECLARE_THEME_VALUE(s_nodeBorderRadius);
 DECLARE_THEME_VALUE(s_nodeShadowSize);
 DECLARE_THEME_VALUE(s_nodeBorderSize);
-DECLARE_THEME_VALUE(c_nodeShadow);
-DECLARE_THEME_VALUE(c_nodeBackground);
+DECLARE_THEME_VALUE(c_nodeShadowColor);
+DECLARE_THEME_VALUE(c_nodeCenterColor);
 DECLARE_THEME_VALUE(c_nodeBorderColor);
 
 // - Title
-DECLARE_THEME_VALUE(s_nodeTitleFontSize);
+DECLARE_THEME_VALUE(s_nodeTitleSize);
 DECLARE_THEME_VALUE(s_nodeTitleFontPad);
 DECLARE_THEME_VALUE(s_nodeTitleBorder);
 DECLARE_THEME_VALUE(s_nodeTitleBorderRadius);
-
-DECLARE_THEME_VALUE(c_nodeTitleBackground);
+DECLARE_THEME_VALUE(s_nodeTitlePad);
+DECLARE_THEME_VALUE(s_nodeTitleShadowSize);
+DECLARE_THEME_VALUE(s_nodeTitleBorderSize);
+ 
+DECLARE_THEME_VALUE(c_nodeTitleShadowColor);
+DECLARE_THEME_VALUE(c_nodeTitleCenterColor);
+DECLARE_THEME_VALUE(c_nodeTitleBorderColor);
 
 // Slider
 DECLARE_THEME_VALUE(s_sliderBorderSize);
+
 DECLARE_THEME_VALUE(s_sliderThumbPad);
-DECLARE_THEME_VALUE(s_sliderBorderRadius);
+DECLARE_THEME_VALUE(s_sliderThumbShadowSize);
 DECLARE_THEME_VALUE(s_sliderThumbRadius);
+DECLARE_THEME_VALUE(c_sliderThumbShadowColor);
+DECLARE_THEME_VALUE(c_sliderThumbColor);
+
+DECLARE_THEME_VALUE(s_sliderBorderRadius);
+DECLARE_THEME_VALUE(s_sliderShadowSize);
 DECLARE_THEME_VALUE(s_sliderFontPad);
 DECLARE_THEME_VALUE(c_sliderBorderColor);
 DECLARE_THEME_VALUE(c_sliderCenterColor);
-DECLARE_THEME_VALUE(c_sliderThumbColor);
+DECLARE_THEME_VALUE(c_sliderShadowColor);
