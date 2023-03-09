@@ -138,7 +138,7 @@ void Canvas::HandleMouse()
     }
 
     // We only handle moving canvas here
-    if (m_inputState.captureState == CaptureState::Parameter || m_inputState.captureState == CaptureState::MoveNode || m_spMouseCapture)
+    if (m_inputState.captureState == CaptureState::Parameter || m_inputState.captureState == CaptureState::MoveNode || m_inputState.m_pMouseCapture)
     {
         return;
     }
@@ -257,41 +257,40 @@ bool Canvas::HasGradientVarying() const
     return true;
 }
 
-void Canvas::HandleMouseDown(const CanvasInputState& input)
+void Canvas::HandleMouseDown(CanvasInputState& input)
 {
     const auto& search = m_spRootWidget->GetFrontToBack();
     for (auto& pWidget : search)
     {
         if (pWidget->GetWorldRect().Contains(input.worldMousePos))
         {
-            pWidget->MouseDown(input);
-            if (pWidget->GetCapture())
+            if (auto pCapture = pWidget->MouseDown(input))
             {
-                m_spMouseCapture = pWidget;
+                input.m_pMouseCapture = pCapture;
 
                 // Draw the recently clicked one last
-                GetRootWidget()->MoveChildToBack(m_spMouseCapture);
+                GetRootWidget()->MoveChildToBack(pWidget);
                 return;
             }
         }
     }
 }
 
-void Canvas::HandleMouseUp(const CanvasInputState& input)
+void Canvas::HandleMouseUp(CanvasInputState& input)
 {
-    if (m_spMouseCapture)
+    if (input.m_pMouseCapture)
     {
-        m_spMouseCapture->MouseUp(input);
-        m_spMouseCapture.reset();
+        input.m_pMouseCapture->MouseUp(input);
+        input.m_pMouseCapture = nullptr;
         return;
     }
 }
 
-void Canvas::HandleMouseMove(const CanvasInputState& input)
+void Canvas::HandleMouseMove(CanvasInputState& input)
 {
-    if (m_spMouseCapture)
+    if (input.m_pMouseCapture)
     {
-        m_spMouseCapture->MouseMove(input);
+        input.m_pMouseCapture->MouseMove(input);
         return;
     }
 

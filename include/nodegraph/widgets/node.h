@@ -9,9 +9,9 @@ class Node : public Widget
 public:
     Node(const std::string& label);
     virtual void Draw(Canvas& canvas) override;
-    virtual void MouseDown(const CanvasInputState& input) override;
-    virtual void MouseUp(const CanvasInputState& input) override;
-    virtual bool MouseMove(const CanvasInputState& input) override;
+    virtual Widget* MouseDown(CanvasInputState& input) override;
+    virtual void MouseUp(CanvasInputState& input) override;
+    virtual bool MouseMove(CanvasInputState& input) override;
 };
 
 }

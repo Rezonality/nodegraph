@@ -49,23 +49,28 @@ void Node::Draw(Canvas& canvas)
     }
 }
 
-void Node::MouseDown(const CanvasInputState& input)
+Widget* Node::MouseDown(CanvasInputState& input)
 {
+    if (auto pCapture = Widget::MouseDown(input))
+    {
+        return pCapture;
+    }
+    
     if (input.buttonClicked[0])
     {
-        m_capture = true;
+        return this;
     }
+    return nullptr;
 }
 
-void Node::MouseUp(const CanvasInputState& input)
+void Node::MouseUp(CanvasInputState& input)
 {
-    m_capture = false;
 }
 
-bool Node::MouseMove(const CanvasInputState& input)
+bool Node::MouseMove(CanvasInputState& input)
 {
     // Only move top level
-    if (m_capture)
+    if (input.m_pMouseCapture == this)
     {
         m_rect.Adjust(input.worldMoveDelta);
         return true;

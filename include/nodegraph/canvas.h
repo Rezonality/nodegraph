@@ -62,6 +62,7 @@ struct CanvasInputState
     float wheelDelta;
     bool canCapture = false;
     CaptureState captureState = CaptureState::None;
+    Widget* m_pMouseCapture = nullptr;
 };
 
 class Canvas
@@ -123,9 +124,9 @@ public:
     virtual NRectf TextBounds(const glm::vec2& pos, float size, const char* pszText, const char* pszFace, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) const = 0;
     virtual void TextBox(const glm::vec2& pos, float size, float breakWidth, const glm::vec4& color, const char* pszText, const char* pszFace = nullptr, uint32_t align = TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER) = 0;
 
-    void HandleMouseDown(const CanvasInputState& input);
-    void HandleMouseUp(const CanvasInputState& input);
-    void HandleMouseMove(const CanvasInputState& input);
+    void HandleMouseDown(CanvasInputState& input);
+    void HandleMouseUp(CanvasInputState& input);
+    void HandleMouseMove(CanvasInputState& input);
 
     Widget* GetRootWidget() const;
 
@@ -141,7 +142,6 @@ protected:
     std::shared_ptr<FontContext> spFontContext;
     std::shared_ptr<Widget> m_spRootWidget;
     
-    std::shared_ptr<Widget> m_spMouseCapture;
 };
 
 } // namespace NodeGraph

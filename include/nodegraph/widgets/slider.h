@@ -4,13 +4,8 @@
 
 namespace NodeGraph {
 
-enum class SliderParams
-{
-    Step,
-    Value,
-    Name,
-    Tip
-};
+class Canvas;
+class Slider;
 
 enum class SliderOp
 {
@@ -20,23 +15,32 @@ enum class SliderOp
 
 struct SliderValue
 {
-    float f = 0.0f;
-    std::string s;
+    float step = 0.25f;
+    float value = 0.0f;
+    std::string name;
+    std::string tip;
 };
 
-using SliderCB = std::function<void(SliderParams, SliderOp, SliderValue& val)>;
-class Canvas;
-class Slider : public Widget 
+struct ISliderCB
+{
+    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val) = 0;
+};
+
+class Slider : public Widget, public ISliderCB
 {
 public:
-    Slider(const std::string& label, const SliderCB& cb);
+    Slider(const std::string& label, ISliderCB* pCB = nullptr);
     virtual void Draw(Canvas& canvas) override;
-    virtual void MouseDown(const CanvasInputState& input) override;
-    virtual void MouseUp(const CanvasInputState& input) override;
-    virtual bool MouseMove(const CanvasInputState& input) override;
+    virtual Widget* MouseDown(CanvasInputState& input) override;
+    virtual void MouseUp(CanvasInputState& input) override;
+    virtual bool MouseMove(CanvasInputState& input) override;
+    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val) override;
+
+    virtual void ClampNormalized(SliderValue& value);
 
 private:
-    SliderCB m_callback;
+    ISliderCB* m_pCB = nullptr;
+    SliderValue m_value;
 };
 
 }

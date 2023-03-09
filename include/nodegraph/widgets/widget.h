@@ -30,11 +30,9 @@ public:
 
     virtual void AddChild(std::shared_ptr<Widget> spWidget);
 
-    virtual void MouseDown(const CanvasInputState& input);
-    virtual void MouseUp(const CanvasInputState& input);
-    virtual bool MouseMove(const CanvasInputState& input);
-    virtual void SetCapture(bool capture);
-    virtual bool GetCapture() const;
+    virtual Widget* MouseDown(CanvasInputState& input);
+    virtual void MouseUp(CanvasInputState& input);
+    virtual bool MouseMove(CanvasInputState& input);
 
     virtual void MoveChildToFront(std::shared_ptr<Widget> pWidget);
     virtual void MoveChildToBack(std::shared_ptr<Widget> pWidget);
@@ -58,7 +56,6 @@ protected:
     WidgetList m_children;
     WidgetList m_frontToBack;
     Widget* m_pParent = nullptr;
-    bool m_capture = false;
     std::string m_label;
 };
 

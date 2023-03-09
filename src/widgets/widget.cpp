@@ -60,14 +60,25 @@ void Widget::AddChild(std::shared_ptr<Widget> spWidget)
     SortWidgets();
 }
 
-void Widget::MouseDown(const CanvasInputState& input)
+Widget* Widget::MouseDown(CanvasInputState& input)
 {
+    for (auto& child : GetFrontToBack())
+    {
+        if (child->GetWorldRect().Contains(input.worldMousePos))
+        {
+            if (auto pCapture = child->MouseDown(input))
+            {
+                return pCapture;
+            }
+        }
+    }
+    return nullptr;
 }
 
-void Widget::MouseUp(const CanvasInputState& input)
+void Widget::MouseUp(CanvasInputState& input)
 {
     std::function<void(Widget*)> pfnMove;
-    pfnMove = [=](Widget* pWidget) {
+    pfnMove = [&](Widget* pWidget) {
         for (auto& pChild : pWidget->GetFrontToBack())
         {
             pChild->MouseMove(input);
@@ -76,10 +87,10 @@ void Widget::MouseUp(const CanvasInputState& input)
     };
 }
 
-bool Widget::MouseMove(const CanvasInputState& input)
+bool Widget::MouseMove(CanvasInputState& input)
 {
     std::function<void(Widget*)> pfnMove;
-    pfnMove = [=](Widget* pWidget) {
+    pfnMove = [&](Widget* pWidget) {
         for (auto& pChild : pWidget->GetFrontToBack())
         {
             pChild->MouseMove(input);
@@ -87,16 +98,6 @@ bool Widget::MouseMove(const CanvasInputState& input)
         }
     };
     return false;
-}
-
-void Widget::SetCapture(bool capture)
-{
-    m_capture = capture;
-}
-
-bool Widget::GetCapture() const
-{
-    return m_capture;
 }
 
 void Widget::SortWidgets()
@@ -156,10 +157,10 @@ NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, 
 {
     NRectf rc = rect;
 
-    rc.Adjust(shadowSize, shadowSize);
+    rc.Adjust(shadowSize, shadowSize, 0.0f, 0.0f);
     canvas.FillRoundedRect(rc, borderRadius, shadowColor);
 
-    rc.Adjust(-shadowSize, -shadowSize, -shadowSize, -shadowSize);
+    rc.Adjust(-shadowSize, -shadowSize);
 
     if (borderSize != 0.0f)
     {

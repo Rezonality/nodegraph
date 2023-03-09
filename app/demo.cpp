@@ -44,7 +44,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spWidget->SetRect(NRectf(100.0f, -450.0f, 300.0f, 150.0f));
             spCanvas->GetRootWidget()->AddChild(spWidget);
 
-            auto spSlider = std::make_shared<Slider>("Amplitude",
+            auto spSlider = std::make_shared<Slider>("Amplitude" /*,
                 [&](auto param, auto op, SliderValue& val) {
                     switch (param)
                     {
@@ -54,7 +54,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                     default:
                         break;
                     }
-                });
+                }*/);
             spSlider->SetRect(NRectf(20.0f, 60.0f, 140.0f, 40.0f));
             spWidget->AddChild(spSlider);
         }

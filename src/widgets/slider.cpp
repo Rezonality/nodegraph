@@ -1,13 +1,20 @@
+#include <fmt/format.h>
+#include <algorithm>
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/slider.h>
 
 namespace NodeGraph {
 
-Slider::Slider(const std::string& label, const SliderCB& fn)
+Slider::Slider(const std::string& label, ISliderCB* pCB)
     : Widget(label)
-    , m_callback(fn)
+    , m_pCB(pCB)
 {
+    m_value.name = label;
+    if (!m_pCB)
+    {
+        m_pCB = this;
+    }
 }
 
 void Slider::Draw(Canvas& canvas)
@@ -32,8 +39,9 @@ void Slider::Draw(Canvas& canvas)
     titlePanelRect.Adjust(thumbPad, 0.0f, -thumbPad, 0.0f);
 
     SliderValue val;
-    m_callback(SliderParams::Step, SliderOp::Get, val);
-    rc.SetSize(glm::vec2(val.f * rc.Size().x, rc.Size().y));
+    m_pCB->UpdateSlider(this, SliderOp::Get, val);
+
+    rc.SetSize(glm::vec2(val.step * rc.Size().x, rc.Size().y));
     rc.Adjust(thumbPad, thumbPad, -thumbPad, -thumbPad);
 
     rc = DrawSlab(canvas,
@@ -45,9 +53,6 @@ void Slider::Draw(Canvas& canvas)
         glm::vec4(0.0f),
         theme.GetVec4f(c_sliderThumbColor));
 
-
-    canvas.FillRoundedRect(rc, theme.GetFloat(s_sliderThumbRadius), theme.GetVec4f(c_sliderThumbColor));
-
     // Text
     canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, glm::vec4(.9f, 0.9f, 0.9f, 1.0f), m_label.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
@@ -57,28 +62,50 @@ void Slider::Draw(Canvas& canvas)
     }
 }
 
-void Slider::MouseDown(const CanvasInputState& input)
+void Slider::ClampNormalized(SliderValue& value)
+{
+    value.value = std::max(0.0f, value.value);
+    value.value = std::min(1.0f, value.value);
+    
+    value.step = std::max(0.001f, value.value);
+    value.step = std::min(1.0f, value.value);
+}
+
+Widget* Slider::MouseDown(CanvasInputState& input)
 {
     if (input.buttonClicked[0])
     {
-        m_capture = true;
+        return this;
     }
+    return nullptr;
 }
 
-void Slider::MouseUp(const CanvasInputState& input)
+void Slider::MouseUp(CanvasInputState& input)
 {
-    m_capture = false;
 }
 
-bool Slider::MouseMove(const CanvasInputState& input)
+bool Slider::MouseMove(CanvasInputState& input)
 {
     // Only move top level
-    if (m_capture)
+    if (input.m_pMouseCapture == this)
     {
         //        m_rect.Adjust(input.worldMoveDelta);
         return true;
     }
     return false;
+}
+
+void Slider::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
+{
+    if (op == SliderOp::Set)
+    {
+        m_value = val;
+    }
+    else
+    {
+        m_value.tip = fmt::format("{}:{}", m_value.name, std::to_string(m_value.value));
+        val = m_value;
+    }
 }
 
 }
