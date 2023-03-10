@@ -227,3 +227,11 @@ DECLARE_THEME_VALUE(s_sliderFontPad);
 DECLARE_THEME_VALUE(c_sliderBorderColor);
 DECLARE_THEME_VALUE(c_sliderCenterColor);
 DECLARE_THEME_VALUE(c_sliderShadowColor);
+
+DECLARE_THEME_VALUE(s_sliderTipBorderRadius);
+DECLARE_THEME_VALUE(s_sliderTipShadowSize);
+DECLARE_THEME_VALUE(s_sliderTipFontPad);
+DECLARE_THEME_VALUE(s_sliderTipBorderSize);
+DECLARE_THEME_VALUE(c_sliderTipBorderColor);
+DECLARE_THEME_VALUE(c_sliderTipCenterColor);
+DECLARE_THEME_VALUE(c_sliderTipShadowColor);

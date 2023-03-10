@@ -54,6 +54,8 @@ struct CanvasInputState
     glm::vec2 worldDragDelta; // Drag delta while mouse button down
     glm::vec2 worldMoveDelta; // Mouse move delta (without drag?)
 
+    glm::vec2 lastWorldMouseClick[MouseButtons::MOUSE_MAX]; // Mouse down in world coordinates
+
     // Button states
     bool buttonDown[MouseButtons::MOUSE_MAX];
     bool buttonClicked[MouseButtons::MOUSE_MAX];
@@ -73,6 +75,8 @@ public:
 
     // Conversions between pixel space and world space
     const glm::vec2 PixelToWorld(const glm::vec2& pixel) const;
+    const glm::vec2 PixelSizeToWorldSize(const glm::vec2& pixel) const;
+    const float PixelSizeToWorldSize(const float size) const;
 
     virtual glm::vec2 WorldToPixels(const glm::vec2& pos) const;
     virtual NRectf WorldToPixels(const NRectf& rc) const;

@@ -97,6 +97,16 @@ const glm::vec2 Canvas::PixelToWorld(const glm::vec2& pixel) const
     return (m_worldOrigin + (pixel / m_worldScale));
 }
 
+const glm::vec2 Canvas::PixelSizeToWorldSize(const glm::vec2& pixel) const
+{
+    return (pixel / m_worldScale);
+}
+
+const float Canvas::PixelSizeToWorldSize(const float size) const
+{
+    return (size / m_worldScale);
+}
+
 glm::vec2 Canvas::WorldSizeToPixelSize(const glm::vec2& size) const
 {
     return (size * m_worldScale);

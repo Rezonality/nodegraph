@@ -49,6 +49,15 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const glm::ve
     state.worldDragDelta = state.dragDelta / canvas.GetWorldScale(); // Drag delta while mouse button down
     state.worldMoveDelta = state.mouseDelta / canvas.GetWorldScale(); // Mouse move delta (without drag?)
     LOG(DBG, "Move: " << state.worldMoveDelta.x << ", " << state.mouseDelta.x);
+
+    for (uint32_t i = 0; i < MOUSE_MAX; i++)
+    {
+        if (state.buttonClicked[i])
+        {
+            state.lastWorldMouseClick[i] = state.worldMousePos;
+        }
+    }
+
     return state;
 }
 

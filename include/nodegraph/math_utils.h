@@ -106,6 +106,11 @@ struct NRect
     {
         bottomRightPx = topLeftPx + size;
     }
+    
+    void SetSize(T x, T y)
+    {
+        SetSize(glm::vec2(x, y));
+    }
 
     NRect<T>& Adjust(T x, T y, T z, T w)
     {

@@ -16,6 +16,25 @@ namespace {
 std::unique_ptr<CanvasImGui> spCanvas;
 const glm::vec2 worldCenter = glm::vec2(0.0f);
 
+struct Setter : public ISliderCB
+{
+    SliderValue myVal;
+    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
+    {
+        myVal.type = SliderType::Mark;
+        myVal.step = 0.25f;
+        if (op == SliderOp::Get)
+        {
+            val = myVal;
+        }
+        else
+        {
+            myVal = val;
+        }
+
+    }
+};
+Setter s;
 }
 
 void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
@@ -29,19 +48,19 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         // Node 1
         {
             auto spWidget = std::make_shared<Node>("Node 1");
-            spWidget->SetRect(NRectf(0.0f, -350.0f, 300.0f, 150.0f));
+            spWidget->SetRect(NRectf(0.0f, -350.0f, 400.0f, 250.0f));
             spCanvas->GetRootWidget()->AddChild(spWidget);
 
             // Child
             auto spNodeChild = std::make_shared<Node>("Child");
-            spNodeChild->SetRect(NRectf(10.0f, 40.0f, 170.0f, 90.0f));
+            spNodeChild->SetRect(NRectf(10.0f, 40.0f, 270.0f, 190.0f));
             spWidget->AddChild(spNodeChild);
         }
 
         // Node 2
         {
             auto spWidget = std::make_shared<Node>("Node 2");
-            spWidget->SetRect(NRectf(100.0f, -450.0f, 300.0f, 150.0f));
+            spWidget->SetRect(NRectf(100.0f, -450.0f, 400.0f, 250.0f));
             spCanvas->GetRootWidget()->AddChild(spWidget);
 
             auto spSlider = std::make_shared<Slider>("Amplitude" /*,
@@ -54,8 +73,14 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                     default:
                         break;
                     }
-                }*/);
-            spSlider->SetRect(NRectf(20.0f, 60.0f, 140.0f, 40.0f));
+                }*/
+            );
+
+            spSlider->SetRect(NRectf(20.0f, 60.0f, 190.0f, 50.0f));
+            spWidget->AddChild(spSlider);
+
+            spSlider = std::make_shared<Slider>("Frequency", &s);
+            spSlider->SetRect(NRectf(20.0f, 115.0f, 190.0f, 50.0f));
             spWidget->AddChild(spSlider);
         }
 
@@ -87,7 +112,7 @@ void demo_theme_editor()
             auto name = id.ToString();
             auto& val = themeMap[id];
             auto prefix = name.substr(0, 2);
-            
+
             if (!last.empty() && (last != name.substr(2, 4)))
             {
                 ImGui::NewLine();
