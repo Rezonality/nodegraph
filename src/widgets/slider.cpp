@@ -91,12 +91,18 @@ void Slider::Draw(Canvas& canvas)
 
     if (canvas.GetInputState().m_pMouseCapture == this)
     {
-        auto valString = std::to_string(val.value);
-      
         titlePanelRect.Adjust(0.0f, -m_rect.Height(), 0.0f, 0.0f);
-        titlePanelRect.SetSize(valString.size() * fontSize * 0.6f, fontSize);
 
-        fontSize = titlePanelRect.Height() - thumbPad * 2.0f;
+        auto tipPad = theme.GetFloat(s_sliderTipFontPad);
+        auto fontSize = theme.GetFloat(s_sliderTipFontSize);
+
+        auto rcBounds = canvas.TextBounds(titlePanelRect.Center(), fontSize, val.tip.c_str(), nullptr, TEXT_ALIGN_CENTER | TEXT_ALIGN_MIDDLE);
+
+        titlePanelRect.SetSize(rcBounds.Width() + tipPad * 2.0f, fontSize + tipPad * 2.0f);
+
+        float szHalf = titlePanelRect.Width() / 2.0f;
+        titlePanelRect.Move(rc.Center().x - szHalf, titlePanelRect.Top());
+
         rc = DrawSlab(canvas,
             titlePanelRect,
             theme.GetFloat(s_sliderTipBorderRadius),
@@ -106,10 +112,7 @@ void Slider::Draw(Canvas& canvas)
             theme.GetVec4f(c_sliderTipBorderColor),
             theme.GetVec4f(c_sliderTipCenterColor));
 
-        float pad = theme.GetFloat(s_sliderTipFontPad);
-        fontSize -= pad;
-
-        canvas.Text(glm::vec2(titlePanelRect.Center().x, titlePanelRect.Center().y), fontSize, glm::vec4(.9f, 0.9f, 0.9f, 1.0f), valString.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
+        canvas.Text(glm::vec2(titlePanelRect.Center().x, titlePanelRect.Center().y), fontSize, theme.GetVec4f(c_sliderTipFontColor), val.tip.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
     }
 
     for (auto& child : GetBackToFront())
@@ -177,7 +180,7 @@ void Slider::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
     }
     else
     {
-        m_value.tip = fmt::format("{}:{}", m_value.name, std::to_string(m_value.value));
+        m_value.tip = fmt::format("{}:{:1.2f}", m_value.name, m_value.value);
         val = m_value;
     }
 }

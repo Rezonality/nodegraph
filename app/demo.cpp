@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <memory>
+#include <fmt/format.h>
 
 #include <nodegraph/canvas.h>
 #include <nodegraph/canvas_imgui.h>
@@ -25,6 +26,7 @@ struct Setter : public ISliderCB
         myVal.step = 0.25f;
         if (op == SliderOp::Get)
         {
+            myVal.tip = fmt::format("My Val: {:1.2f}", myVal.value);
             val = myVal;
         }
         else

@@ -166,10 +166,8 @@ NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* psz
     fonts_set_scale(*spFontContext, m_worldScale);
     auto width = fonts_text_bounds(*spFontContext, worldPos.x / m_worldScale, worldPos.y / m_worldScale, pszText, nullptr, nullptr);
 
-    auto worldWidth = WorldSizeToPixelSize(size);
-
     // Return everything in World space, since we scale every draw call
-    return NRectf(pos.x, pos.y, pos.x + width, pos.y + worldWidth);
+    return NRectf(pos.x, pos.y, PixelSizeToWorldSize(width) * m_worldScale, PixelSizeToWorldSize(size));
 }
 
 void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color, const char* pszText, const char* pszFace, uint32_t align)
