@@ -1,6 +1,7 @@
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/node.h>
+#include <nodegraph/widgets/layout.h>
 
 namespace NodeGraph {
 
@@ -43,7 +44,7 @@ void Node::Draw(Canvas& canvas)
         m_label.c_str(),
         theme.GetFloat(s_nodeTitleFontPad));
 
-    for (auto& child : GetBackToFront())
+    for (auto& child : GetLayout()->GetBackToFront())
     {
         child->Draw(canvas);
     }

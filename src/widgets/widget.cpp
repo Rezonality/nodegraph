@@ -2,6 +2,7 @@
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/widget.h>
+#include <nodegraph/widgets/layout.h>
 
 namespace NodeGraph {
 
@@ -9,7 +10,7 @@ Widget::Widget(const std::string& label)
     : m_label(label)
 {
 }
-    
+
 Widget* Widget::GetParent() const
 {
     return m_pParent;
@@ -51,9 +52,16 @@ NRectf Widget::GetWorldRect() const
 void Widget::Draw(Canvas& canvas)
 {
     auto& theme = ThemeManager::Instance();
+    if (m_spLayout)
+    {
+        m_spLayout->SetRect(m_rect);
+
+        auto pLayout = dynamic_cast<Layout*>(m_spLayout.get());
+        pLayout->Update();
+    }
 }
 
-void Widget::AddChild(std::shared_ptr<Widget> spWidget)
+void Widget::AddChildInternal(std::shared_ptr<Widget> spWidget)
 {
     m_children.push_back(spWidget);
     spWidget->SetParent(this);
@@ -62,7 +70,7 @@ void Widget::AddChild(std::shared_ptr<Widget> spWidget)
 
 Widget* Widget::MouseDown(CanvasInputState& input)
 {
-    for (auto& child : GetFrontToBack())
+    for (auto& child : GetLayout()->GetFrontToBack())
     {
         if (child->GetWorldRect().Contains(input.worldMousePos))
         {
@@ -77,32 +85,30 @@ Widget* Widget::MouseDown(CanvasInputState& input)
 
 void Widget::MouseUp(CanvasInputState& input)
 {
-    std::function<void(Widget*)> pfnMove;
-    pfnMove = [&](Widget* pWidget) {
-        for (auto& pChild : pWidget->GetFrontToBack())
+    for (auto& child : GetLayout()->GetFrontToBack())
+    {
+        if (child->GetWorldRect().Contains(input.worldMousePos))
         {
-            pChild->MouseMove(input);
-            pfnMove(pChild.get());
+            child->MouseUp(input);
         }
-    };
+    }
 }
 
 bool Widget::MouseMove(CanvasInputState& input)
 {
-    std::function<void(Widget*)> pfnMove;
-    pfnMove = [&](Widget* pWidget) {
-        for (auto& pChild : pWidget->GetFrontToBack())
+    for (auto& child : GetLayout()->GetFrontToBack())
+    {
+        if (child->GetWorldRect().Contains(input.worldMousePos))
         {
-            pChild->MouseMove(input);
-            pfnMove(pChild.get());
+            return child->MouseMove(input);
         }
-    };
+    }
     return false;
 }
 
 void Widget::SortWidgets()
 {
-    m_frontToBack = m_children;
+    m_frontToBack = GetBackToFront();
     std::reverse(m_frontToBack.begin(), m_frontToBack.end());
 }
 
@@ -131,6 +137,11 @@ const WidgetList& Widget::GetBackToFront() const
 {
     return m_children;
 }
+    
+const WidgetList& Widget::GetChildren() const
+{
+    return m_children;
+}
 
 void Widget::MoveChildToBack(std::shared_ptr<Widget> pWidget)
 {
@@ -147,7 +158,7 @@ void Widget::MoveChildToBack(std::shared_ptr<Widget> pWidget)
     }
     SortWidgets();
 }
-    
+
 const std::string& Widget::GetLabel() const
 {
     return m_label;
@@ -165,7 +176,7 @@ NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, 
     if (borderSize != 0.0f)
     {
         canvas.FillRoundedRect(rc, borderRadius, borderColor);
-        rc.Adjust(borderSize, borderSize, -borderSize, - borderSize);
+        rc.Adjust(borderSize, borderSize, -borderSize, -borderSize);
     }
 
     canvas.FillRoundedRect(rc, borderRadius, centerColor);
@@ -176,6 +187,40 @@ NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, 
         canvas.Text(glm::vec2(rc.Left() + fontPad, rc.Center().y + 1), fontSize, textColor, pszText, nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
     }
     return rc;
+}
+
+const glm::uvec2& Widget::GetConstraints() const
+{
+    return m_constraints;
+}
+
+void Widget::SetConstraints(const glm::uvec2& constraints)
+{
+    m_constraints = constraints;
+}
+
+const glm::vec4& Widget::GetPadding() const
+{
+    return m_padding;
+}
+
+void Widget::SetPadding(const glm::vec4& padding)
+{
+    m_padding = padding;
+}
+    
+void Widget::SetLayout(std::shared_ptr<Layout> spLayout)
+{
+    m_spLayout = spLayout;
+}
+    
+Layout* Widget::GetLayout()
+{
+    if (!m_spLayout)
+    {
+        m_spLayout = std::make_shared<Layout>();
+    }
+    return m_spLayout.get();
 }
 
 }

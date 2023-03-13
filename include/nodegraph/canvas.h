@@ -132,7 +132,7 @@ public:
     void HandleMouseUp(CanvasInputState& input);
     void HandleMouseMove(CanvasInputState& input);
 
-    Widget* GetRootWidget() const;
+    Layout* GetRootLayout() const;
 
     void Draw();
 
@@ -144,7 +144,7 @@ protected:
     CanvasInputState m_inputState;
     std::vector<glm::vec2> pointStorage;
     std::shared_ptr<FontContext> spFontContext;
-    std::shared_ptr<Widget> m_spRootWidget;
+    std::shared_ptr<Layout> m_spRootLayout;
     
 };
 

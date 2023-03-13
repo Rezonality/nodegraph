@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <nodegraph/canvas.h>
 #include <nodegraph/fonts.h>
+#include <nodegraph/widgets/layout.h>
 
 #define DECLARE_THEMES
 #include <algorithm>
@@ -20,7 +21,7 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     : m_worldScale(worldScale)
     , m_worldScaleLimits(scaleLimits)
 {
-    m_spRootWidget = std::make_shared<Widget>();
+    m_spRootLayout = std::make_shared<Layout>();
 
     spFontContext = std::make_shared<FontContext>();
     fonts_init(*spFontContext, pFontTexture);
@@ -269,7 +270,7 @@ bool Canvas::HasGradientVarying() const
 
 void Canvas::HandleMouseDown(CanvasInputState& input)
 {
-    const auto& search = m_spRootWidget->GetFrontToBack();
+    const auto& search = GetRootLayout()->GetFrontToBack();
     for (auto& pWidget : search)
     {
         if (pWidget->GetWorldRect().Contains(input.worldMousePos))
@@ -279,7 +280,7 @@ void Canvas::HandleMouseDown(CanvasInputState& input)
                 input.m_pMouseCapture = pCapture;
 
                 // Draw the recently clicked one last
-                GetRootWidget()->MoveChildToBack(pWidget);
+                GetRootLayout()->MoveChildToBack(pWidget);
                 return;
             }
         }
@@ -304,7 +305,7 @@ void Canvas::HandleMouseMove(CanvasInputState& input)
         return;
     }
 
-    for (auto& pWidget : m_spRootWidget->GetFrontToBack())
+    for (auto& pWidget : m_spRootLayout->GetFrontToBack())
     {
         if (pWidget->GetWorldRect().Contains(input.worldMousePos))
         {
@@ -318,15 +319,15 @@ void Canvas::HandleMouseMove(CanvasInputState& input)
 
 void Canvas::Draw()
 {
-    for (auto& pWidget : m_spRootWidget->GetBackToFront())
+    for (auto& pWidget : m_spRootLayout->GetBackToFront())
     {
         pWidget->Draw(*this);
     }
 }
 
-Widget* Canvas::GetRootWidget() const
+Layout* Canvas::GetRootLayout() const
 {
-    return m_spRootWidget.get();
+    return m_spRootLayout.get();
 }
 
 } // namespace NodeGraph

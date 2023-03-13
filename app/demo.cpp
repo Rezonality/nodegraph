@@ -6,6 +6,7 @@
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/node.h>
+#include <nodegraph/widgets/layout.h>
 #include <nodegraph/widgets/slider.h>
 #include <nodegraph/widgets/widget.h>
 
@@ -51,19 +52,22 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         {
             auto spWidget = std::make_shared<Node>("Node 1");
             spWidget->SetRect(NRectf(0.0f, -350.0f, 400.0f, 250.0f));
-            spCanvas->GetRootWidget()->AddChild(spWidget);
+            spCanvas->GetRootLayout()->AddChild(spWidget);
 
             // Child
             auto spNodeChild = std::make_shared<Node>("Child");
             spNodeChild->SetRect(NRectf(10.0f, 40.0f, 270.0f, 190.0f));
-            spWidget->AddChild(spNodeChild);
+            spWidget->GetLayout()->AddChild(spNodeChild);
         }
 
         // Node 2
         {
             auto spWidget = std::make_shared<Node>("Node 2");
             spWidget->SetRect(NRectf(100.0f, -450.0f, 400.0f, 250.0f));
-            spCanvas->GetRootWidget()->AddChild(spWidget);
+            spCanvas->GetRootLayout()->AddChild(spWidget);
+
+            auto spRootLayout = std::make_shared<Layout>();
+            spWidget->SetLayout(spRootLayout);
 
             auto spSlider = std::make_shared<Slider>("Amplitude" /*,
                 [&](auto param, auto op, SliderValue& val) {
@@ -79,11 +83,12 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             );
 
             spSlider->SetRect(NRectf(20.0f, 60.0f, 190.0f, 50.0f));
-            spWidget->AddChild(spSlider);
+            spRootLayout->AddChild(spSlider);
 
             spSlider = std::make_shared<Slider>("Frequency", &s);
             spSlider->SetRect(NRectf(20.0f, 115.0f, 190.0f, 50.0f));
-            spWidget->AddChild(spSlider);
+            spRootLayout->AddChild(spSlider);
+            
         }
 
         ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
