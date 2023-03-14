@@ -52,13 +52,6 @@ NRectf Widget::GetWorldRect() const
 void Widget::Draw(Canvas& canvas)
 {
     auto& theme = ThemeManager::Instance();
-    if (m_spLayout)
-    {
-        m_spLayout->SetRect(m_rect);
-
-        auto pLayout = dynamic_cast<Layout*>(m_spLayout.get());
-        pLayout->Update();
-    }
 }
 
 Widget* Widget::MouseDown(CanvasInputState& input)
@@ -152,6 +145,7 @@ void Widget::SetPadding(const glm::vec4& padding)
 void Widget::SetLayout(std::shared_ptr<Layout> spLayout)
 {
     m_spLayout = spLayout;
+    m_spLayout->SetParent(this);
 }
     
 Layout* Widget::GetLayout()

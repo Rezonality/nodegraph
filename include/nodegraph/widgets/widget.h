@@ -62,8 +62,8 @@ protected:
     NRectf m_rect;
     Widget* m_pParent = nullptr;
     std::string m_label;
-    glm::uvec2 m_constraints;
-    glm::vec4 m_padding;
+    glm::uvec2 m_constraints = glm::uvec2(0, 0);
+    glm::vec4 m_padding = glm::vec4(0.0f);
     std::shared_ptr<Layout> m_spLayout;
    
 };

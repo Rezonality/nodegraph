@@ -16,10 +16,10 @@ void Node::Draw(Canvas& canvas)
     auto& theme = ThemeManager::Instance();
     Widget::Draw(canvas);
 
-    auto rc = GetWorldRect();
+    auto rcWorld = GetWorldRect();
 
-    rc = DrawSlab(canvas,
-        rc,
+    rcWorld = DrawSlab(canvas,
+        rcWorld,
         theme.GetFloat(s_nodeBorderRadius),
         theme.GetFloat(s_nodeShadowSize),
         theme.GetVec4f(c_nodeShadowColor),
@@ -31,9 +31,9 @@ void Node::Draw(Canvas& canvas)
     auto titleHeight = fontSize + theme.GetFloat(s_nodeTitleFontPad) * 2.0f;
     auto titlePad = theme.GetFloat(s_nodeTitlePad);
 
-    auto titlePanelRect = NRectf(rc.Left() + titlePad, rc.Top() + titlePad, rc.Width() - titlePad * 2.0f, titleHeight);
+    auto titlePanelRect = NRectf(rcWorld.Left() + titlePad, rcWorld.Top() + titlePad, rcWorld.Width() - titlePad * 2.0f, titleHeight);
 
-    rc = DrawSlab(canvas,
+    rcWorld = DrawSlab(canvas,
         titlePanelRect,
         theme.GetFloat(s_nodeTitleBorderRadius),
         theme.GetFloat(s_nodeTitleShadowSize),
@@ -43,6 +43,12 @@ void Node::Draw(Canvas& canvas)
         theme.GetVec4f(c_nodeTitleCenterColor),
         m_label.c_str(),
         theme.GetFloat(s_nodeTitleFontPad));
+
+    // Layout in child coordinates
+    auto layoutRect = NRectf(titlePanelRect.Left(), titlePanelRect.Bottom(), titlePanelRect.Width(), rcWorld.Bottom() - titlePanelRect.Bottom());
+    layoutRect.Adjust(-GetWorldRect().Left(), -GetWorldRect().Top());
+    GetLayout()->SetRect(layoutRect);
+    GetLayout()->SetPadding(glm::vec4(8.0f, 8.0f, 8.0f, 8.0f));
 
     for (auto& child : GetLayout()->GetBackToFront())
     {

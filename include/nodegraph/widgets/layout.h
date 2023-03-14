@@ -30,6 +30,8 @@ public:
 
     const WidgetList& GetChildren() const;
 
+    virtual void SetRect(const NRectf& sz) override;
+
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;
     WidgetList m_children;
