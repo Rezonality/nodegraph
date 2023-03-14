@@ -59,6 +59,22 @@ struct NRect
     {
         return TopRight().y;
     }
+    void SetTop(T val)
+    {
+        topLeftPx.y = val; 
+    }
+    void SetBottom(T val)
+    {
+        bottomRightPx.y = val; 
+    }
+    void SetRight(T val)
+    {
+        bottomRightPx.x = val; 
+    }
+    void SetLeft(T val)
+    {
+        topLeftPx.x = val; 
+    }
     T Bottom() const
     {
         return bottomRightPx.y;

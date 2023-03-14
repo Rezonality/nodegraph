@@ -48,12 +48,8 @@ void Node::Draw(Canvas& canvas)
     auto layoutRect = NRectf(titlePanelRect.Left(), titlePanelRect.Bottom(), titlePanelRect.Width(), rcWorld.Bottom() - titlePanelRect.Bottom());
     layoutRect.Adjust(-GetWorldRect().Left(), -GetWorldRect().Top());
     GetLayout()->SetRect(layoutRect);
-    GetLayout()->SetPadding(glm::vec4(8.0f, 8.0f, 8.0f, 8.0f));
 
-    for (auto& child : GetLayout()->GetBackToFront())
-    {
-        child->Draw(canvas);
-    }
+    GetLayout()->Draw(canvas);
 }
 
 Widget* Node::MouseDown(CanvasInputState& input)

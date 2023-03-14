@@ -1,8 +1,13 @@
 #include <algorithm>
 #include <nodegraph/widgets/layout.h>
+#include <nodegraph/canvas.h>
 
 namespace NodeGraph {
 
+Layout::Layout()
+{
+    m_padding = glm::vec4(8.0f);
+}
 void Layout::Update()
 {
     float totalFixedSize = 0;
@@ -11,10 +16,15 @@ void Layout::Update()
     float variableCount = 0;
 
     NRectf layoutRect = GetRect();
-    float layoutSize = 0.0f;
 
+    float layoutSize = 0.0f;
+ 
     for (auto& pWidget : m_children)
     {
+        if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
+        {
+            continue; 
+        }
         glm::uvec2 constraints = pWidget->GetConstraints();
         NRectf widgetRect = pWidget->GetRect();
         glm::vec4 widgetPad = pWidget->GetPadding();
@@ -28,7 +38,7 @@ void Layout::Update()
             }
             else
             {
-                totalFixedSize += widgetPad.y + widgetPad.w;
+                //totalFixedSize += widgetPad.y + widgetPad.w;
                 variableCount++;
             }
             maxSizeMinorAxis = std::max(maxSizeMinorAxis, widgetRect.Width() + widgetPad.x + widgetPad.z);
@@ -40,7 +50,7 @@ void Layout::Update()
             }
             else
             {
-                totalFixedSize += widgetPad.x + widgetPad.z;
+                //totalFixedSize += widgetPad.x + widgetPad.z;
                 variableCount++;
             }
             maxSizeMinorAxis = std::max(maxSizeMinorAxis, widgetRect.Height() + widgetPad.y + widgetPad.w);
@@ -50,25 +60,37 @@ void Layout::Update()
 
     // The rectangle for our layout contains all widgets plus our own padding
     // The layout rectangle grows in the minor axis but not the major one; it is fixed at whatever size it was when it was stacked
-    float currentPos = 0;
     auto contentMargins = GetPadding();
+
     switch (m_layoutType)
     {
     case LayoutType::Vertical:
         // Set size of owner
-        m_rect.SetSize(maxSizeMinorAxis + contentMargins.x + contentMargins.z, m_rect.Height());
-        currentPos = contentMargins.y;
+        layoutRect.SetSize(maxSizeMinorAxis + contentMargins.x + contentMargins.z, layoutRect.Height());
         availableSize = layoutRect.Height() - totalFixedSize - contentMargins.y - contentMargins.w;
         break;
     case LayoutType::Horizontal:
-        m_rect.SetSize(m_rect.Width(), maxSizeMinorAxis + contentMargins.y + contentMargins.w);
-        currentPos = contentMargins.x;
+        layoutRect.SetSize(layoutRect.Width(), maxSizeMinorAxis + contentMargins.y + contentMargins.w);
         availableSize = layoutRect.Width() - totalFixedSize - contentMargins.x - contentMargins.z;
         break;
     }
+
+    // Rect is the max minor axis size + content margins
+    // Major axis is whatever it was before
+    m_rect = layoutRect;
+
+    // Layout rect is now the inner rect; in child rect coordinates
+    layoutRect = NRectf(0.0f, 0.0f, layoutRect.Width(), layoutRect.Height());
+    layoutRect.Adjust(contentMargins.x, contentMargins.y, -contentMargins.z, -contentMargins.w);
+    m_innerRect = layoutRect.Adjusted(m_rect.TopLeft());
         
     for (auto& pWidget : m_children)
     {
+        if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
+        {
+            continue; 
+        }
+
         glm::uvec2 constraints = pWidget->GetConstraints();
         NRectf widgetRect = pWidget->GetRect();
         glm::vec4 widgetPad = pWidget->GetPadding();
@@ -77,24 +99,24 @@ void Layout::Update()
         switch (m_layoutType)
         {
         case LayoutType::Vertical:
-            widgetRect.Move(glm::vec2(contentMargins.x + widgetPad.x, currentPos + widgetPad.y));
+            widgetRect.Move(glm::vec2(layoutRect.Left() + widgetPad.x, layoutRect.Top() + widgetPad.y));
             if (constraints.y == LayoutConstraint::Expanding)
             {
                 widgetRect.SetSize(widgetRect.Width(), variableSize - widgetPad.y - widgetPad.w);
-                variableSize -= widgetRect.Height() - widgetPad.y - widgetPad.w;
+                availableSize -= widgetRect.Height() - widgetPad.y - widgetPad.w;
                 variableCount--;
             }
-            currentPos = widgetRect.Bottom() + widgetPad.w;
+            layoutRect.SetTop(widgetRect.Bottom() + widgetPad.w);
             break;
         case LayoutType::Horizontal:
-            widgetRect.Move(glm::vec2(currentPos + widgetPad.x, contentMargins.y + widgetPad.y));
+            widgetRect.Move(glm::vec2(layoutRect.Left() + widgetPad.x, layoutRect.Top() + widgetPad.y));
             if (constraints.x == LayoutConstraint::Expanding)
             {
                 widgetRect.SetSize(variableSize - widgetPad.x - widgetPad.z, widgetRect.Height());
-                variableSize -= widgetRect.Width() - widgetPad.x - widgetPad.z;
+                availableSize -= (widgetRect.Width() + widgetPad.x + widgetPad.z);
                 variableCount--;
             }
-            currentPos = widgetRect.Right() + widgetPad.z;
+            layoutRect.SetLeft(widgetRect.Right() + widgetPad.z);
             break;
         }
         pWidget->SetRect(widgetRect);
@@ -165,6 +187,21 @@ void Layout::SortWidgets()
 const WidgetList& Layout::GetChildren() const
 {
     return m_children;
+}
+    
+void Layout::Draw(Canvas& canvas)
+{
+    canvas.FillRect(ToWorldRect(m_rect), glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
+    canvas.FillRect(ToWorldRect(m_innerRect), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
+    for (auto& child : GetLayout()->GetBackToFront())
+    {
+        child->Draw(canvas);
+    }
+}
+
+Layout* Layout::GetLayout()
+{
+    return this;
 }
 
 }

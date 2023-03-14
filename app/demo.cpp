@@ -57,6 +57,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             // Child
             auto spNodeChild = std::make_shared<Node>("Child");
             spNodeChild->SetRect(NRectf(10.0f, 40.0f, 270.0f, 190.0f));
+            spNodeChild->SetFlags(WidgetFlags::DoNotLayout);
             spWidget->GetLayout()->AddChild(spNodeChild);
         }
 
@@ -66,8 +67,8 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spWidget->SetRect(NRectf(100.0f, -450.0f, 400.0f, 250.0f));
             spCanvas->GetRootLayout()->AddChild(spWidget);
 
-            auto spRootLayout = std::make_shared<Layout>();
-            spWidget->SetLayout(spRootLayout);
+            //auto spRootLayout = std::make_shared<Layout>();
+            //spWidget->SetLayout(spRootLayout);
 
             auto spSlider = std::make_shared<Slider>("Amplitude" /*,
                 [&](auto param, auto op, SliderValue& val) {
@@ -83,11 +84,11 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             );
 
             spSlider->SetRect(NRectf(20.0f, 60.0f, 190.0f, 50.0f));
-            spRootLayout->AddChild(spSlider);
+            spWidget->GetLayout()->AddChild(spSlider);
 
             spSlider = std::make_shared<Slider>("Frequency", &s);
             spSlider->SetRect(NRectf(20.0f, 115.0f, 190.0f, 50.0f));
-            spRootLayout->AddChild(spSlider);
+            spWidget->GetLayout()->AddChild(spSlider);
             
         }
 

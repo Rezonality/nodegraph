@@ -1,8 +1,8 @@
 #include <functional>
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
-#include <nodegraph/widgets/widget.h>
 #include <nodegraph/widgets/layout.h>
+#include <nodegraph/widgets/widget.h>
 
 namespace NodeGraph {
 
@@ -141,20 +141,30 @@ void Widget::SetPadding(const glm::vec4& padding)
 {
     m_padding = padding;
 }
-    
+
 void Widget::SetLayout(std::shared_ptr<Layout> spLayout)
 {
     m_spLayout = spLayout;
     m_spLayout->SetParent(this);
 }
-    
+
 Layout* Widget::GetLayout()
 {
     if (!m_spLayout)
     {
-        m_spLayout = std::make_shared<Layout>();
+        SetLayout(std::make_shared<Layout>());
     }
     return m_spLayout.get();
+}
+
+uint64_t Widget::GetFlags() const
+{
+    return m_flags;
+}
+
+void Widget::SetFlags(uint64_t flags)
+{
+    m_flags = flags;
 }
 
 }

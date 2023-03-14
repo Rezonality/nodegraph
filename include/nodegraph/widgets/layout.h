@@ -16,7 +16,7 @@ enum class LayoutType
 class Layout : public Widget
 {
 public:
-    Layout() {}
+    Layout();
     virtual void Update();
     virtual void AddChild(std::shared_ptr<Widget> spWidget);
 
@@ -32,10 +32,15 @@ public:
 
     virtual void SetRect(const NRectf& sz) override;
 
+    virtual void Draw(Canvas& canvas) override;
+
+    virtual Layout* GetLayout() override;
+
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;
     WidgetList m_children;
     WidgetList m_frontToBack;
+    NRectf m_innerRect;
 };
 
 }
