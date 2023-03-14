@@ -61,13 +61,6 @@ void Widget::Draw(Canvas& canvas)
     }
 }
 
-void Widget::AddChildInternal(std::shared_ptr<Widget> spWidget)
-{
-    m_children.push_back(spWidget);
-    spWidget->SetParent(this);
-    SortWidgets();
-}
-
 Widget* Widget::MouseDown(CanvasInputState& input)
 {
     for (auto& child : GetLayout()->GetFrontToBack())
@@ -104,59 +97,6 @@ bool Widget::MouseMove(CanvasInputState& input)
         }
     }
     return false;
-}
-
-void Widget::SortWidgets()
-{
-    m_frontToBack = GetBackToFront();
-    std::reverse(m_frontToBack.begin(), m_frontToBack.end());
-}
-
-void Widget::MoveChildToFront(std::shared_ptr<Widget> pWidget)
-{
-    auto itr = std::find_if(m_children.begin(),
-        m_children.end(),
-        [&](const auto& pFound) -> bool {
-            return pFound.get() == pWidget.get();
-        });
-
-    if (itr != m_children.end())
-    {
-        m_children.erase(itr);
-        m_children.insert(m_children.begin(), pWidget);
-    }
-    SortWidgets();
-}
-
-const WidgetList& Widget::GetFrontToBack() const
-{
-    return m_frontToBack;
-}
-
-const WidgetList& Widget::GetBackToFront() const
-{
-    return m_children;
-}
-    
-const WidgetList& Widget::GetChildren() const
-{
-    return m_children;
-}
-
-void Widget::MoveChildToBack(std::shared_ptr<Widget> pWidget)
-{
-    auto itr = std::find_if(m_children.begin(),
-        m_children.end(),
-        [&](const auto& pFound) -> bool {
-            return pFound.get() == pWidget.get();
-        });
-
-    if (itr != m_children.end())
-    {
-        m_children.erase(itr);
-        m_children.insert(m_children.end(), pWidget);
-    }
-    SortWidgets();
 }
 
 const std::string& Widget::GetLabel() const

@@ -3,6 +3,7 @@
 #include <nodegraph/logger/logger.h>
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
+#include <nodegraph/widgets/layout.h>
 #include <nodegraph/widgets/slider.h>
 
 namespace NodeGraph {
@@ -115,7 +116,7 @@ void Slider::Draw(Canvas& canvas)
         canvas.Text(glm::vec2(titlePanelRect.Center().x, titlePanelRect.Center().y), fontSize, theme.GetVec4f(c_sliderTipFontColor), val.tip.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
     }
 
-    for (auto& child : GetBackToFront())
+    for (auto& child : GetLayout()->GetBackToFront())
     {
         child->Draw(canvas);
     }

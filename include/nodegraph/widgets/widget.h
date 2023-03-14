@@ -47,13 +47,6 @@ public:
     virtual void MouseUp(CanvasInputState& input);
     virtual bool MouseMove(CanvasInputState& input);
 
-    virtual void MoveChildToFront(std::shared_ptr<Widget> pWidget);
-    virtual void MoveChildToBack(std::shared_ptr<Widget> pWidget);
-
-    virtual const WidgetList& GetFrontToBack() const;
-    virtual const WidgetList& GetBackToFront() const;
-    virtual const WidgetList& GetChildren() const;
-
     virtual NRectf ToWorldRect(const NRectf& rc) const;
     virtual NRectf GetWorldRect() const;
 
@@ -66,14 +59,7 @@ public:
     NRectf DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText = nullptr, float fontPad = 2.0f, const glm::vec4& textColor = glm::vec4(1.0f));
 
 protected:
-    void SortWidgets();
-    
-    virtual void AddChildInternal(std::shared_ptr<Widget> spWidget);
-
-protected:
     NRectf m_rect;
-    WidgetList m_children;
-    WidgetList m_frontToBack;
     Widget* m_pParent = nullptr;
     std::string m_label;
     glm::uvec2 m_constraints;

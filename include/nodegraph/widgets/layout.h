@@ -20,8 +20,20 @@ public:
     virtual void Update();
     virtual void AddChild(std::shared_ptr<Widget> spWidget);
 
+    virtual void MoveChildToFront(std::shared_ptr<Widget> pWidget);
+    virtual void MoveChildToBack(std::shared_ptr<Widget> pWidget);
+
+    virtual const WidgetList& GetFrontToBack() const;
+    virtual const WidgetList& GetBackToFront() const;
+
+    virtual void SortWidgets();
+
+    const WidgetList& GetChildren() const;
+
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;
+    WidgetList m_children;
+    WidgetList m_frontToBack;
 };
 
 }
