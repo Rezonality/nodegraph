@@ -14,7 +14,8 @@ enum class ThemeType
     Float,
     Vec2f,
     Vec3f,
-    Vec4f
+    Vec4f,
+    Bool
 };
 
 struct ThemeValue
@@ -41,6 +42,11 @@ struct ThemeValue
     }
     ThemeValue(const float& val)
         : type(ThemeType::Float)
+        , f(val)
+    {
+    }
+    ThemeValue(const bool& val)
+        : type(ThemeType::Bool)
         , f(val)
     {
     }
@@ -123,12 +129,27 @@ struct ThemeValue
         return f4.x;
     }
 
+    bool ToBool() const
+    {
+        if (type == ThemeType::Unknown)
+        {
+            type = ThemeType::Bool;
+        }
+        
+        if (type == ThemeType::Bool)
+        {
+            return b;
+        }
+
+        return f4.x > 0.0f ? true : false;
+    }
     union
     {
         glm::vec4 f4 = glm::vec4(1.0f);
         glm::vec3 f3;
         glm::vec2 f2;
         float f;
+        bool b;
     };
     mutable ThemeType type;
 };
@@ -173,6 +194,12 @@ public:
     {
         auto& theme = m_themes[m_currentTheme];
         return theme[id].ToVec4f();
+    }
+    
+    bool GetBool(const StringId& id)
+    {
+        auto& theme = m_themes[m_currentTheme];
+        return theme[id].ToBool();
     }
 
     std::unordered_map<std::string, ThemeMap> m_themes;
@@ -237,3 +264,5 @@ DECLARE_THEME_VALUE(c_sliderTipBorderColor);
 DECLARE_THEME_VALUE(c_sliderTipCenterColor);
 DECLARE_THEME_VALUE(c_sliderTipShadowColor);
 DECLARE_THEME_VALUE(c_sliderTipFontColor);
+
+DECLARE_THEME_VALUE(b_debugShowLayout);

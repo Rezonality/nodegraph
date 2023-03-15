@@ -41,6 +41,7 @@ private:
     WidgetList m_children;
     WidgetList m_frontToBack;
     NRectf m_innerRect;
+    float m_spacing = 8.0f;
 };
 
 }

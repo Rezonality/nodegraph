@@ -1,12 +1,13 @@
 #include <algorithm>
 #include <nodegraph/widgets/layout.h>
 #include <nodegraph/canvas.h>
+#include <nodegraph/theme.h>
 
 namespace NodeGraph {
 
 Layout::Layout()
 {
-    m_padding = glm::vec4(8.0f);
+    m_padding = glm::vec4(4.0f, 4.0f, 4.0f, 4.0f);
 }
 void Layout::Update()
 {
@@ -18,13 +19,17 @@ void Layout::Update()
     NRectf layoutRect = GetRect();
 
     float layoutSize = 0.0f;
- 
+
+    uint32_t totalWidgets = 0;
+    Widget* pLastWidget = nullptr;
     for (auto& pWidget : m_children)
     {
         if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
         {
             continue; 
         }
+        pLastWidget = pWidget.get();
+        totalWidgets++;
         glm::uvec2 constraints = pWidget->GetConstraints();
         NRectf widgetRect = pWidget->GetRect();
         glm::vec4 widgetPad = pWidget->GetPadding();
@@ -57,6 +62,13 @@ void Layout::Update()
             break;
         }
     }
+   
+    // Add space between all widgets
+    float spacingSize = 0.0f;
+    if (totalWidgets > 0)
+    {
+        spacingSize += ((totalWidgets - 1) * m_spacing);
+    }
 
     // The rectangle for our layout contains all widgets plus our own padding
     // The layout rectangle grows in the minor axis but not the major one; it is fixed at whatever size it was when it was stacked
@@ -82,8 +94,11 @@ void Layout::Update()
     // Layout rect is now the inner rect; in child rect coordinates
     layoutRect = NRectf(0.0f, 0.0f, layoutRect.Width(), layoutRect.Height());
     layoutRect.Adjust(contentMargins.x, contentMargins.y, -contentMargins.z, -contentMargins.w);
+    
+    // Local World space
     m_innerRect = layoutRect.Adjusted(m_rect.TopLeft());
-        
+       
+    float expandingWidgetSize = (availableSize - totalFixedSize - spacingSize) / variableCount;
     for (auto& pWidget : m_children)
     {
         if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
@@ -94,7 +109,7 @@ void Layout::Update()
         glm::uvec2 constraints = pWidget->GetConstraints();
         NRectf widgetRect = pWidget->GetRect();
         glm::vec4 widgetPad = pWidget->GetPadding();
-        float variableSize = (availableSize / variableCount);
+        auto space = (pWidget.get() == pLastWidget ? 0.0f : m_spacing);
 
         switch (m_layoutType)
         {
@@ -102,21 +117,17 @@ void Layout::Update()
             widgetRect.Move(glm::vec2(layoutRect.Left() + widgetPad.x, layoutRect.Top() + widgetPad.y));
             if (constraints.y == LayoutConstraint::Expanding)
             {
-                widgetRect.SetSize(widgetRect.Width(), variableSize - widgetPad.y - widgetPad.w);
-                availableSize -= widgetRect.Height() - widgetPad.y - widgetPad.w;
-                variableCount--;
+                widgetRect.SetSize(widgetRect.Width(), expandingWidgetSize - widgetPad.y - widgetPad.w);
             }
-            layoutRect.SetTop(widgetRect.Bottom() + widgetPad.w);
+            layoutRect.SetTop(widgetRect.Bottom() + widgetPad.w + space);
             break;
         case LayoutType::Horizontal:
             widgetRect.Move(glm::vec2(layoutRect.Left() + widgetPad.x, layoutRect.Top() + widgetPad.y));
             if (constraints.x == LayoutConstraint::Expanding)
             {
-                widgetRect.SetSize(variableSize - widgetPad.x - widgetPad.z, widgetRect.Height());
-                availableSize -= (widgetRect.Width() + widgetPad.x + widgetPad.z);
-                variableCount--;
+                widgetRect.SetSize(expandingWidgetSize - widgetPad.x - widgetPad.z, widgetRect.Height());
             }
-            layoutRect.SetLeft(widgetRect.Right() + widgetPad.z);
+            layoutRect.SetLeft(widgetRect.Right() + widgetPad.z + space);
             break;
         }
         pWidget->SetRect(widgetRect);
@@ -191,8 +202,12 @@ const WidgetList& Layout::GetChildren() const
     
 void Layout::Draw(Canvas& canvas)
 {
-    canvas.FillRect(ToWorldRect(m_rect), glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
-    canvas.FillRect(ToWorldRect(m_innerRect), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
+    auto& theme = ThemeManager::Instance(); 
+    if (theme.GetBool(b_debugShowLayout))
+    {
+        canvas.FillRect(ToWorldRect(m_rect), glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
+        canvas.FillRect(ToWorldRect(m_innerRect), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
+    }
     for (auto& child : GetLayout()->GetBackToFront())
     {
         child->Draw(canvas);

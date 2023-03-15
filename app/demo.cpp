@@ -135,6 +135,14 @@ void demo_theme_editor()
                     val.f4 = v;
                 }
             }
+            else if (prefix == "b_")
+            {
+                bool v = val.ToBool();
+                if (ImGui::Checkbox(name.c_str(), &v))
+                {
+                    val.b = v;
+                }
+            }
             else if (prefix == "s_")
             {
                 float f = 0.0f;

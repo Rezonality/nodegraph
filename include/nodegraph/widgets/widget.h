@@ -74,7 +74,7 @@ protected:
     Widget* m_pParent = nullptr;
     std::string m_label;
     glm::uvec2 m_constraints = glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Expanding);
-    glm::vec4 m_padding = glm::vec4(2.0f);
+    glm::vec4 m_padding = glm::vec4(0.0f);
     std::shared_ptr<Layout> m_spLayout;
     uint64_t m_flags = 0;
    
