@@ -70,7 +70,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             //auto spRootLayout = std::make_shared<Layout>();
             //spWidget->SetLayout(spRootLayout);
 
-            auto spSlider = std::make_shared<Slider>("Amplitude" /*,
+            auto spSlider = std::make_shared<Slider>("Amp" /*,
                 [&](auto param, auto op, SliderValue& val) {
                     switch (param)
                     {
@@ -83,12 +83,25 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                 }*/
             );
 
-            spSlider->SetRect(NRectf(20.0f, 60.0f, 190.0f, 50.0f));
+            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
             spWidget->GetLayout()->AddChild(spSlider);
 
-            spSlider = std::make_shared<Slider>("Frequency", &s);
-            spSlider->SetRect(NRectf(20.0f, 115.0f, 190.0f, 50.0f));
+            spSlider = std::make_shared<Slider>("Freq", &s);
+            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
             spWidget->GetLayout()->AddChild(spSlider);
+
+            auto spSubLayout = std::make_shared<Layout>();
+            spSubLayout->SetPadding(glm::vec4(0.0f));
+            spWidget->GetLayout()->AddChild(spSubLayout);
+
+            spSlider = std::make_shared<Slider>("A");
+            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
+            spSubLayout->AddChild(spSlider);
+            
+            spSlider = std::make_shared<Slider>("B");
+            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
+            spSlider->SetPadding(glm::vec4(4.0f));
+            spSubLayout->AddChild(spSlider);
             
         }
 

@@ -36,12 +36,16 @@ public:
 
     virtual Layout* GetLayout() override;
 
+    virtual void SetContentsMargins(const glm::vec4& contentsMargins);
+    virtual const glm::vec4& GetContentsMargins() const;
+
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;
     WidgetList m_children;
     WidgetList m_frontToBack;
     NRectf m_innerRect;
     float m_spacing = 8.0f;
+    glm::vec4 m_contentsMargins = glm::vec4(2.0f);
 };
 
 }

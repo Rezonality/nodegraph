@@ -72,7 +72,7 @@ void Layout::Update()
 
     // The rectangle for our layout contains all widgets plus our own padding
     // The layout rectangle grows in the minor axis but not the major one; it is fixed at whatever size it was when it was stacked
-    auto contentMargins = GetPadding();
+    auto contentMargins = GetContentsMargins();
 
     switch (m_layoutType)
     {
@@ -217,6 +217,16 @@ void Layout::Draw(Canvas& canvas)
 Layout* Layout::GetLayout()
 {
     return this;
+}
+    
+void Layout::SetContentsMargins(const glm::vec4& contentsMargins)
+{
+    m_contentsMargins = contentsMargins;
+}
+
+const glm::vec4& Layout::GetContentsMargins() const
+{
+    return m_contentsMargins;
 }
 
 }
