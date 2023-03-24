@@ -123,6 +123,16 @@ struct NRect
         bottomRightPx = topLeftPx + size;
     }
     
+    void SetWidth(float w)
+    {
+        bottomRightPx.x = topLeftPx.x + w;
+    }
+    
+    void SetHeight(float h)
+    {
+        bottomRightPx.y = topLeftPx.y + h;
+    }
+
     void SetSize(T x, T y)
     {
         SetSize(glm::vec2(x, y));

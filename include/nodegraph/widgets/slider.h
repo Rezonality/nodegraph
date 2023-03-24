@@ -54,7 +54,7 @@ public:
 private:
     ISliderCB* m_pCB = nullptr;
     SliderValue m_value;
-    NRectf m_sliderRange;
+    NRectf m_sliderRangeArea;
 };
 
 }

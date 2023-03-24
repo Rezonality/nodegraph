@@ -3,7 +3,7 @@
 #include <toml++/toml.h>
 
 namespace NodeGraph {
-bool ThemeManager::Save(const std::filesystem::path& path)
+bool SettingManager::Save(const std::filesystem::path& path)
 {
     toml::table tbl;
 
@@ -45,7 +45,7 @@ bool ThemeManager::Save(const std::filesystem::path& path)
     return true;
 }
 
-bool ThemeManager::Load(const std::filesystem::path& path)
+bool SettingManager::Load(const std::filesystem::path& path)
 {
     toml::table tbl;
     try

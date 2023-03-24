@@ -1,161 +1,11 @@
 #pragma once
 
-#include <filesystem>
-#include <glm/glm.hpp>
-#include <unordered_map>
-#include <nodegraph/string/string_utils.h>
+#include <nodegraph/setting.h>
 
 namespace NodeGraph
 {
 
-enum class ThemeType
-{
-    Unknown,
-    Float,
-    Vec2f,
-    Vec3f,
-    Vec4f,
-    Bool
-};
-
-struct ThemeValue
-{
-    ThemeValue()
-        : type(ThemeType::Unknown)
-        , f4(glm::vec4(0.0f))
-    {
-    }
-    ThemeValue(const glm::vec4& val)
-        : type(ThemeType::Vec4f)
-        , f4(val)
-    {
-    }
-    ThemeValue(const glm::vec3& val)
-        : type(ThemeType::Vec3f)
-        , f3(val)
-    {
-    }
-    ThemeValue(const glm::vec2& val)
-        : type(ThemeType::Vec2f)
-        , f2(val)
-    {
-    }
-    ThemeValue(const float& val)
-        : type(ThemeType::Float)
-        , f(val)
-    {
-    }
-    ThemeValue(const bool& val)
-        : type(ThemeType::Bool)
-        , f(val)
-    {
-    }
-
-    glm::vec4 ToVec4f() const
-    {
-        if (type == ThemeType::Unknown)
-        {
-            type = ThemeType::Vec4f;
-        }
-
-        if (type == ThemeType::Vec4f)
-        {
-            return f4;
-        }
-        return glm::vec4(f);
-    }
-    
-    glm::vec2 ToVec2f() const
-    {
-        if (type == ThemeType::Unknown)
-        {
-            type = ThemeType::Vec2f;
-        }
-
-        switch (type)
-        {
-        case ThemeType::Vec2f:
-            return f2;
-            break;
-        case ThemeType::Vec3f:
-            return glm::vec2(f3);
-            break;
-        case ThemeType::Vec4f:
-            return glm::vec2(f4);
-            break;
-        case ThemeType::Float:
-            return glm::vec2(f);
-            break;
-        }
-        return glm::vec2(0.0f);
-    }
-
-    glm::vec3 ToVec3f() const
-    {
-        if (type == ThemeType::Unknown)
-        {
-            type = ThemeType::Vec3f;
-        }
-
-        switch (type)
-        {
-        case ThemeType::Vec2f:
-            return glm::vec3(f2.x, f2.y, 0.0f);
-            break;
-        case ThemeType::Vec3f:
-            return f3;
-            break;
-        case ThemeType::Vec4f:
-            return glm::vec3(f4);
-            break;
-        case ThemeType::Float:
-            return glm::vec3(f);
-            break;
-        }
-        return glm::vec3(0.0f);
-    }
-
-    float ToFloat() const
-    {
-        if (type == ThemeType::Unknown)
-        {
-            type = ThemeType::Float;
-        }
-
-        if (type == ThemeType::Float)
-        {
-            return f;
-        }
-        return f4.x;
-    }
-
-    bool ToBool() const
-    {
-        if (type == ThemeType::Unknown)
-        {
-            type = ThemeType::Bool;
-        }
-        
-        if (type == ThemeType::Bool)
-        {
-            return b;
-        }
-
-        return f4.x > 0.0f ? true : false;
-    }
-    union
-    {
-        glm::vec4 f4 = glm::vec4(1.0f);
-        glm::vec3 f3;
-        glm::vec2 f2;
-        float f;
-        bool b;
-    };
-    mutable ThemeType type;
-};
-
-using ThemeMap = std::unordered_map<StringId, ThemeValue>;
-class ThemeManager
+class ThemeManager : public SettingManager
 {
 public:
     static ThemeManager& Instance()
@@ -163,106 +13,60 @@ public:
         static ThemeManager theme;
         return theme;
     }
-
-    bool Save(const std::filesystem::path& path);
-    bool Load(const std::filesystem::path& path);
-    void Set(const StringId& id, const ThemeValue& value)
-    {
-        auto& slot = m_themes[m_currentTheme][id];
-        slot = value;
-    }
-
-    const ThemeValue& Get(const StringId& id)
-    {
-        auto& theme = m_themes[m_currentTheme];
-        return theme[id];
-    }
-
-    float GetFloat(const StringId& id)
-    {
-        auto& theme = m_themes[m_currentTheme];
-        return theme[id].ToFloat();
-    }
-
-    glm::vec2 GetVec2f(const StringId& id)
-    {
-        auto& theme = m_themes[m_currentTheme];
-        return theme[id].ToVec2f();
-    }
-
-    glm::vec4 GetVec4f(const StringId& id)
-    {
-        auto& theme = m_themes[m_currentTheme];
-        return theme[id].ToVec4f();
-    }
-    
-    bool GetBool(const StringId& id)
-    {
-        auto& theme = m_themes[m_currentTheme];
-        return theme[id].ToBool();
-    }
-
-    std::unordered_map<std::string, ThemeMap> m_themes;
-    std::string m_currentTheme = "Default Theme";
 };
 
-} // namespace MUtils
-
-#ifdef DECLARE_THEMES
-#define DECLARE_THEME_VALUE(name) NodeGraph::StringId name(#name);
-#else
-#define DECLARE_THEME_VALUE(name) extern NodeGraph::StringId name;
-#endif
-
 // Grid
-DECLARE_THEME_VALUE(s_gridLineSize);
-DECLARE_THEME_VALUE(c_gridLines);
+DECLARE_SETTING_VALUE(s_gridLineSize);
+DECLARE_SETTING_VALUE(c_gridLines);
 
 // Node
-DECLARE_THEME_VALUE(s_nodeBorderRadius);
-DECLARE_THEME_VALUE(s_nodeShadowSize);
-DECLARE_THEME_VALUE(s_nodeBorderSize);
-DECLARE_THEME_VALUE(c_nodeShadowColor);
-DECLARE_THEME_VALUE(c_nodeCenterColor);
-DECLARE_THEME_VALUE(c_nodeBorderColor);
+DECLARE_SETTING_VALUE(s_nodeBorderRadius);
+DECLARE_SETTING_VALUE(s_nodeShadowSize);
+DECLARE_SETTING_VALUE(s_nodeBorderSize);
+DECLARE_SETTING_VALUE(c_nodeShadowColor);
+DECLARE_SETTING_VALUE(c_nodeCenterColor);
+DECLARE_SETTING_VALUE(c_nodeBorderColor);
 
 // - Title
-DECLARE_THEME_VALUE(s_nodeTitleSize);
-DECLARE_THEME_VALUE(s_nodeTitleFontPad);
-DECLARE_THEME_VALUE(s_nodeTitleBorder);
-DECLARE_THEME_VALUE(s_nodeTitleBorderRadius);
-DECLARE_THEME_VALUE(s_nodeTitlePad);
-DECLARE_THEME_VALUE(s_nodeTitleShadowSize);
-DECLARE_THEME_VALUE(s_nodeTitleBorderSize);
+DECLARE_SETTING_VALUE(s_nodeTitleSize);
+DECLARE_SETTING_VALUE(s_nodeTitleFontPad);
+DECLARE_SETTING_VALUE(s_nodeTitleBorder);
+DECLARE_SETTING_VALUE(s_nodeTitleBorderRadius);
+DECLARE_SETTING_VALUE(s_nodeTitlePad);
+DECLARE_SETTING_VALUE(s_nodeTitleShadowSize);
+DECLARE_SETTING_VALUE(s_nodeTitleBorderSize);
  
-DECLARE_THEME_VALUE(c_nodeTitleShadowColor);
-DECLARE_THEME_VALUE(c_nodeTitleCenterColor);
-DECLARE_THEME_VALUE(c_nodeTitleBorderColor);
+DECLARE_SETTING_VALUE(c_nodeTitleShadowColor);
+DECLARE_SETTING_VALUE(c_nodeTitleCenterColor);
+DECLARE_SETTING_VALUE(c_nodeTitleBorderColor);
 
 // Slider
-DECLARE_THEME_VALUE(s_sliderBorderSize);
+DECLARE_SETTING_VALUE(s_sliderBorderSize);
 
-DECLARE_THEME_VALUE(s_sliderThumbPad);
-DECLARE_THEME_VALUE(s_sliderThumbShadowSize);
-DECLARE_THEME_VALUE(s_sliderThumbRadius);
-DECLARE_THEME_VALUE(c_sliderThumbShadowColor);
-DECLARE_THEME_VALUE(c_sliderThumbColor);
+DECLARE_SETTING_VALUE(s_sliderThumbPad);
+DECLARE_SETTING_VALUE(s_sliderThumbShadowSize);
+DECLARE_SETTING_VALUE(s_sliderThumbRadius);
+DECLARE_SETTING_VALUE(c_sliderThumbShadowColor);
+DECLARE_SETTING_VALUE(c_sliderThumbColor);
 
-DECLARE_THEME_VALUE(s_sliderBorderRadius);
-DECLARE_THEME_VALUE(s_sliderShadowSize);
-DECLARE_THEME_VALUE(s_sliderFontPad);
-DECLARE_THEME_VALUE(c_sliderBorderColor);
-DECLARE_THEME_VALUE(c_sliderCenterColor);
-DECLARE_THEME_VALUE(c_sliderShadowColor);
+DECLARE_SETTING_VALUE(s_sliderBorderRadius);
+DECLARE_SETTING_VALUE(s_sliderShadowSize);
+DECLARE_SETTING_VALUE(s_sliderFontPad);
+DECLARE_SETTING_VALUE(c_sliderBorderColor);
+DECLARE_SETTING_VALUE(c_sliderCenterColor);
+DECLARE_SETTING_VALUE(c_sliderShadowColor);
 
-DECLARE_THEME_VALUE(s_sliderTipBorderRadius);
-DECLARE_THEME_VALUE(s_sliderTipShadowSize);
-DECLARE_THEME_VALUE(s_sliderTipFontPad);
-DECLARE_THEME_VALUE(s_sliderTipFontSize);
-DECLARE_THEME_VALUE(s_sliderTipBorderSize);
-DECLARE_THEME_VALUE(c_sliderTipBorderColor);
-DECLARE_THEME_VALUE(c_sliderTipCenterColor);
-DECLARE_THEME_VALUE(c_sliderTipShadowColor);
-DECLARE_THEME_VALUE(c_sliderTipFontColor);
+DECLARE_SETTING_VALUE(s_sliderTipBorderRadius);
+DECLARE_SETTING_VALUE(s_sliderTipShadowSize);
+DECLARE_SETTING_VALUE(s_sliderTipFontPad);
+DECLARE_SETTING_VALUE(s_sliderTipFontSize);
+DECLARE_SETTING_VALUE(s_sliderTipBorderSize);
+DECLARE_SETTING_VALUE(c_sliderTipBorderColor);
+DECLARE_SETTING_VALUE(c_sliderTipCenterColor);
+DECLARE_SETTING_VALUE(c_sliderTipShadowColor);
+DECLARE_SETTING_VALUE(c_sliderTipFontColor);
 
-DECLARE_THEME_VALUE(b_debugShowLayout);
+DECLARE_SETTING_VALUE(b_debugShowLayout);
+
+} // namespace Nodegraph
+

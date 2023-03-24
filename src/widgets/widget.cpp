@@ -30,6 +30,10 @@ const NRectf& Widget::GetRect() const
 
 void Widget::SetRect(const NRectf& sz)
 {
+    if (m_sizeHint.x == 0.0f && m_sizeHint.y == 0.0f)
+    {
+        m_sizeHint = sz.Size();
+    }
     m_rect = sz;
 }
 
@@ -96,6 +100,11 @@ const std::string& Widget::GetLabel() const
 {
     return m_label;
 }
+    
+void Widget::SetLabel(const char* pszLabel)
+{
+    m_label = pszLabel;
+}
 
 NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText, float fontPad, const glm::vec4& textColor)
 {
@@ -152,7 +161,7 @@ Layout* Widget::GetLayout()
 {
     if (!m_spLayout)
     {
-        SetLayout(std::make_shared<Layout>());
+        SetLayout(std::make_shared<Layout>(LayoutType::Vertical));
     }
     return m_spLayout.get();
 }
@@ -166,5 +175,39 @@ void Widget::SetFlags(uint64_t flags)
 {
     m_flags = flags;
 }
+    
+glm::vec4 Widget::GetMinMaxSize() const
+{
+    const float minSize = 10.0f; // TBD
+    const float maxSize = 100000.0f; // Arbitrary large (not max_float!)
+    auto ret = glm::vec4(minSize, minSize, maxSize, maxSize);
+
+    auto hint = GetSizeHint();
+    if (m_constraints.x & LayoutConstraint::Fixed)
+    {
+        ret.x = ret.z = m_rect.Width();
+    }
+    if (m_constraints.y & LayoutConstraint::Fixed)
+    {
+        ret.y = ret.w = m_rect.Height();
+    }
+    return ret;
+}
+
+glm::vec2 Widget::GetSizeHint() const
+{
+    return m_sizeHint;
+}
+
+NRectf Widget::GetRectWithPad() const
+{
+    return m_rect.Adjusted(glm::vec4(-m_padding.x, -m_padding.y, m_padding.z, m_padding.w));
+}
+
+void Widget::SetRectWithPad(const NRectf& rc)
+{
+    m_rect = rc.Adjusted(glm::vec4(m_padding.x, m_padding.y, -m_padding.z, -m_padding.w));
+}
+
 
 }

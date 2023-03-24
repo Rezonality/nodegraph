@@ -20,8 +20,10 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/widgets/widget.cpp
     ${NODEGRAPH_ROOT}/src/widgets/node.cpp
     ${NODEGRAPH_ROOT}/src/widgets/slider.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/knob.cpp
     ${NODEGRAPH_ROOT}/src/widgets/layout.cpp
-    ${NODEGRAPH_ROOT}/src/theme.cpp
+    ${NODEGRAPH_ROOT}/src/setting.cpp
+    ${NODEGRAPH_ROOT}/project.natvis
 
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
@@ -32,6 +34,7 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/node.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/slider.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/knob.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/layout.h
     
     ${NODEGRAPH_ROOT}/src/string/string_utils.cpp

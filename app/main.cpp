@@ -16,6 +16,7 @@
 #include "demo.h"
 
 #include <nodegraph/logger/logger.h>
+#include <nodegraph/setting.h>
 #include <nodegraph/vulkan/vulkan_imgui_texture.h>
 
 namespace fs = std::filesystem;
@@ -364,9 +365,27 @@ int main(int, char**)
         return -1;
     }
 
+    auto& settings = GlobalSettingManager::Instance();
+
+   settings.Load(fs::path(NODEGRAPH_ROOT) / "settings.toml");
+
+    auto windowSize = settings.GetVec2f(s_windowSize);
+    if (windowSize.x == 0 || windowSize.y == 0)
+    {
+        windowSize.x = 1280;
+        windowSize.y = 720;
+    }
+
+    bool max = settings.GetBool(b_windowMaximized);
+
     // Setup window
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("NodeGraph", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    if (max)
+    {
+        window_flags = SDL_WindowFlags(window_flags | SDL_WindowFlags::SDL_WINDOW_MAXIMIZED);
+    }
+
+    SDL_Window* window = SDL_CreateWindow("NodeGraph", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, int(windowSize.x), int(windowSize.y), window_flags);
     if (!window)
     {
         printf("%s\n", SDL_GetError());
@@ -579,8 +598,14 @@ int main(int, char**)
     CleanupVulkanWindow();
     CleanupVulkan();
 
+    SDL_GetWindowSize(window, &w, &h);
+    settings.Set(s_windowSize, glm::vec2(w, h));
+    settings.Set(b_windowMaximized, bool(SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED));
+
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    GlobalSettingManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "settings.toml");
 
     return 0;
 }

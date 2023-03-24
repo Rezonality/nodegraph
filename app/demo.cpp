@@ -1,12 +1,13 @@
 #include <filesystem>
-#include <memory>
 #include <fmt/format.h>
+#include <memory>
 
 #include <nodegraph/canvas.h>
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/theme.h>
-#include <nodegraph/widgets/node.h>
+#include <nodegraph/widgets/knob.h>
 #include <nodegraph/widgets/layout.h>
+#include <nodegraph/widgets/node.h>
 #include <nodegraph/widgets/slider.h>
 #include <nodegraph/widgets/widget.h>
 
@@ -34,7 +35,6 @@ struct Setter : public ISliderCB
         {
             myVal = val;
         }
-
     }
 };
 Setter s;
@@ -48,7 +48,8 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         spCanvas->SetPixelRegionSize(size);
         spCanvas->SetWorldAtCenter(worldCenter);
 
-        // Node 1
+// Node 1
+#ifdef N1
         {
             auto spWidget = std::make_shared<Node>("Node 1");
             spWidget->SetRect(NRectf(0.0f, -350.0f, 400.0f, 250.0f));
@@ -60,54 +61,136 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spNodeChild->SetFlags(WidgetFlags::DoNotLayout);
             spWidget->GetLayout()->AddChild(spNodeChild);
         }
+#endif
 
         // Node 2
         {
             auto spWidget = std::make_shared<Node>("Node 2");
-            spWidget->SetRect(NRectf(100.0f, -450.0f, 400.0f, 250.0f));
+            spWidget->SetRect(NRectf(0.0f, 0.0f, 400.0f, 250.0f));
             spCanvas->GetRootLayout()->AddChild(spWidget);
 
-            //auto spRootLayout = std::make_shared<Layout>();
-            //spWidget->SetLayout(spRootLayout);
+            auto spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
+            spRootLayout->SetLabel("Vertical Node 2");
+            spRootLayout->SetSpacing(4.0f);
+            spWidget->SetLayout(spRootLayout);
 
-            auto spSlider = std::make_shared<Slider>("Amp" /*,
-                [&](auto param, auto op, SliderValue& val) {
-                    switch (param)
-                    {
-                    case SliderParams::Step:
-                        val.f = (op == SliderOp::Get) ? .33f : 0.0f;
-                        break;
-                    default:
-                        break;
-                    }
-                }*/
-            );
+            // Sliders
+            #if 0
+            {
+                auto spSliderLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+                spSliderLayout->SetLabel("Slider Horizontal Layout");
+                spRootLayout->AddChild(spSliderLayout);
 
-            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
-            spWidget->GetLayout()->AddChild(spSlider);
+                auto spSlider = std::make_shared<Slider>("Amp" /*,
+                    [&](auto param, auto op, SliderValue& val) {
+                        switch (param)
+                        {
+                        case SliderParams::Step:
+                            val.f = (op == SliderOp::Get) ? .33f : 0.0f;
+                            break;
+                        default:
+                            break;
+                        }
+                    }*/
+                );
 
-            spSlider = std::make_shared<Slider>("Freq", &s);
-            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
-            spWidget->GetLayout()->AddChild(spSlider);
+                spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+                spSliderLayout->AddChild(spSlider);
 
-            auto spSubLayout = std::make_shared<Layout>();
-            spSubLayout->SetPadding(glm::vec4(0.0f));
-            spWidget->GetLayout()->AddChild(spSubLayout);
+                spSlider = std::make_shared<Slider>("Freq", &s);
+                spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+                spSliderLayout->AddChild(spSlider);
 
-            spSlider = std::make_shared<Slider>("A");
-            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
-            spSubLayout->AddChild(spSlider);
-            
-            spSlider = std::make_shared<Slider>("B");
-            spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
-            spSlider->SetPadding(glm::vec4(4.0f));
-            spSubLayout->AddChild(spSlider);
-            
+                {
+                    auto spSubLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+                    spSubLayout->SetLabel("Sub Layout");
+                    spSliderLayout->AddChild(spSubLayout);
+
+                    spSlider = std::make_shared<Slider>("A");
+                    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
+                    spSubLayout->AddChild(spSlider);
+
+                    spSlider = std::make_shared<Slider>("B");
+                    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
+                    spSlider->SetPadding(glm::vec4(4.0f));
+                    spSubLayout->AddChild(spSlider);
+                }
+            }
+            #endif
+
+            // Knobs
+            #if 1
+            {
+                auto spKnobLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+                spKnobLayout->SetLabel("Knob Horizontal Layout");
+                spRootLayout->AddChild(spKnobLayout);
+
+                auto spKnob = std::make_shared<Knob>("Attack");
+                spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 70.0f));
+                spKnob->SetPadding(glm::vec4(4.0f));
+                spKnobLayout->AddChild(spKnob);
+               
+                /*
+                spKnob = std::make_shared<Knob>("Decay");
+                spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 70.0f));
+                spKnob->SetPadding(glm::vec4(4.0f));
+                spKnobLayout->AddChild(spKnob);
+                */
+            }
+            #endif
         }
 
         ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     }
     spCanvas->SetPixelRegionSize(size);
+}
+
+void demo_hierarchy_editor()
+{
+    std::function<void(Widget*)> DrawWidgetTree = [&DrawWidgetTree](Widget* widget) {
+        ImGui::PushID(widget);
+        bool node_open;
+       
+        if (widget->GetLayout()->GetChildren().empty())
+        {
+            ImGui::Text(widget->GetLabel().c_str());
+            ImGui::PopID();
+            return;
+        }
+
+        std::string type = widget->GetLayout()->GetLayoutType() == LayoutType::Horizontal ? "Horizontal" : "Vertical";
+        node_open = ImGui::TreeNode(widget, fmt::format("{} ({})", widget->GetLabel(), type).c_str());
+
+        if (node_open)
+        {
+            auto layout = widget->GetLayout();
+            if (!layout->GetChildren().empty())
+            {
+                //std::string type = layout->GetLayoutType() == LayoutType::Horizontal ? "Horizontal" : "Vertical";
+                //bool node_open = ImGui::TreeNode(layout, fmt::format("({} Children)", type).c_str());
+                //if (node_open)
+                {
+
+                    auto children = layout->GetChildren();
+                    for (auto child : children)
+                    {
+                        DrawWidgetTree(child.get());
+                    }
+                    //ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    };
+
+    if (ImGui::Begin("Hierarchy"))
+    {
+        DrawWidgetTree((Widget*)(spCanvas->GetRootLayout()));
+    }
+    ImGui::End();
 }
 
 void demo_theme_editor()
@@ -117,7 +200,7 @@ void demo_theme_editor()
         auto& theme = ThemeManager::Instance();
         std::vector<StringId> themeNames;
 
-        for (auto& [mstr, val] : theme.m_themes[theme.m_currentTheme])
+        for (auto& [mstr, val] : theme.m_themes[theme.m_currentSetting])
         {
             themeNames.push_back(mstr);
         }
@@ -127,7 +210,7 @@ void demo_theme_editor()
         });
 
         std::string last;
-        auto& themeMap = theme.m_themes[theme.m_currentTheme];
+        auto& themeMap = theme.m_themes[theme.m_currentSetting];
         for (auto& id : themeNames)
         {
             auto name = id.ToString();
@@ -161,16 +244,16 @@ void demo_theme_editor()
                 float f = 0.0f;
                 switch (val.type)
                 {
-                case ThemeType::Float:
+                case SettingType::Float:
                     ImGui::DragFloat(name.c_str(), &val.f);
                     break;
-                case ThemeType::Vec2f:
+                case SettingType::Vec2f:
                     ImGui::DragFloat2(name.c_str(), &val.f);
                     break;
-                case ThemeType::Vec3f:
+                case SettingType::Vec3f:
                     ImGui::DragFloat3(name.c_str(), &val.f);
                     break;
-                case ThemeType::Vec4f:
+                case SettingType::Vec4f:
                     ImGui::DragFloat4(name.c_str(), &val.f);
                     break;
                 }
@@ -184,6 +267,7 @@ void demo_draw()
     canvas_imgui_update_state(*spCanvas, spCanvas->GetPixelRegionSize(), true);
 
     demo_theme_editor();
+    demo_hierarchy_editor();
 
     ImGui::End();
 

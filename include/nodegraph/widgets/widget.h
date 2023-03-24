@@ -59,6 +59,7 @@ public:
     virtual NRectf GetWorldRect() const;
 
     virtual const std::string& GetLabel() const;
+    virtual void SetLabel(const char* pszLabel);
 
     virtual void SetLayout(std::shared_ptr<Layout> spLayout);
     virtual Layout* GetLayout();
@@ -66,7 +67,16 @@ public:
     virtual uint64_t GetFlags() const;
     virtual void SetFlags(uint64_t flags);
 
-    // Draw helpers
+    // Min and max size for this widget
+    virtual glm::vec4 GetMinMaxSize() const;
+
+    // The size this widget would like to be.
+    virtual glm::vec2 GetSizeHint() const;
+
+    virtual NRectf GetRectWithPad() const;
+    virtual void SetRectWithPad(const NRectf& rc);
+
+    // Draw helpers 
     NRectf DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText = nullptr, float fontPad = 2.0f, const glm::vec4& textColor = glm::vec4(1.0f));
 
 protected:
@@ -77,6 +87,7 @@ protected:
     glm::vec4 m_padding = glm::vec4(0.0f);
     std::shared_ptr<Layout> m_spLayout;
     uint64_t m_flags = 0;
+    glm::vec2 m_sizeHint = glm::vec2(0.0f);
    
 };
 

@@ -13,10 +13,15 @@ enum class LayoutType
     Horizontal
 };
 
+struct SizeHint
+{
+    glm::vec2 hint = glm::vec2(0.0f);
+};
+
 class Layout : public Widget
 {
 public:
-    Layout();
+    Layout(LayoutType type);
     virtual void Update();
     virtual void AddChild(std::shared_ptr<Widget> spWidget);
 
@@ -38,6 +43,16 @@ public:
 
     virtual void SetContentsMargins(const glm::vec4& contentsMargins);
     virtual const glm::vec4& GetContentsMargins() const;
+
+    virtual LayoutType GetLayoutType() const;
+
+    virtual void SetSpacing(float val);
+
+    virtual void GetChildrenSizeHint(SizeHint& hint) const;
+
+    virtual glm::vec4 GetChildrenMinMaxSize() const;
+
+    //virtual void Resize(const glm::vec2& size);
 
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;

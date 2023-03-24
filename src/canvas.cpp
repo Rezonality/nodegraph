@@ -3,7 +3,7 @@
 #include <nodegraph/fonts.h>
 #include <nodegraph/widgets/layout.h>
 
-#define DECLARE_THEMES
+#define DECLARE_SETTINGS
 #include <algorithm>
 #include <nodegraph/theme.h>
 
@@ -21,7 +21,8 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     : m_worldScale(worldScale)
     , m_worldScaleLimits(scaleLimits)
 {
-    m_spRootLayout = std::make_shared<Layout>();
+    m_spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
+    m_spRootLayout->SetLabel("Canvas Root Layout");
 
     spFontContext = std::make_shared<FontContext>();
     fonts_init(*spFontContext, pFontTexture);

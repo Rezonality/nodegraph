@@ -61,21 +61,21 @@ void Slider::Draw(Canvas& canvas)
 
     ClampNormalized(val);
 
-    auto thumbWorldSize = ThumbWorldSize(canvas, val.step * m_sliderRange.Width());
-    m_sliderRange = titlePanelRect;
-    m_sliderRange.SetSize(m_sliderRange.Width() - thumbWorldSize, m_sliderRange.Height());
+    auto thumbWorldSize = ThumbWorldSize(canvas, val.step * m_sliderRangeArea.Width());
+    m_sliderRangeArea = titlePanelRect;
+    m_sliderRangeArea.SetSize(m_sliderRangeArea.Width() - thumbWorldSize, m_sliderRangeArea.Height());
 
     // Thumb
-    auto thumbRect = m_sliderRange;
+    auto thumbRect = m_sliderRangeArea;
 
     if (val.type == SliderType::Mark)
     {
         thumbRect.SetSize(glm::vec2(thumbWorldSize, thumbRect.Height())); // Width
-        thumbRect.Adjust(val.value * m_sliderRange.Width(), 0.0f); // pos
+        thumbRect.Adjust(val.value * m_sliderRangeArea.Width(), 0.0f); // pos
     }
     else // Mag 
     {
-        thumbRect.SetSize(glm::vec2(std::max(thumbWorldSize, val.value * m_sliderRange.Width() + thumbWorldSize), thumbRect.Height())); // Width
+        thumbRect.SetSize(glm::vec2(std::max(thumbWorldSize, val.value * m_sliderRangeArea.Width() + thumbWorldSize), thumbRect.Height())); // Width
     }
 
     DrawSlab(canvas,
@@ -152,7 +152,7 @@ void Slider::Update(CanvasInputState& input)
 
     ClampNormalized(val);
 
-    val.value = (input.worldMousePos.x - m_sliderRange.Left()) / m_sliderRange.Width();
+    val.value = (input.worldMousePos.x - m_sliderRangeArea.Left()) / m_sliderRangeArea.Width();
 
     // Quantize
     val.value = int(val.value / val.step) * val.step;
