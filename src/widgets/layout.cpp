@@ -1,7 +1,9 @@
 #include <algorithm>
-#include <nodegraph/widgets/layout.h>
+#include <fmt/format.h>
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
+#include <nodegraph/logger/logger.h>
+#include <nodegraph/widgets/layout.h>
 
 namespace NodeGraph {
 
@@ -10,6 +12,50 @@ Layout::Layout(LayoutType type)
     m_layoutType = type;
 }
 
+void Layout::LayoutWidget(Widget* pWidget)
+{
+    // Walk the children
+    glm::vec2 finalSize = glm::vec2(0.0f, 0.0f);
+    glm::vec2 position = glm::vec2(0.0f, 0.0f);
+    for (auto& pWidget : pWidget->GetLayout()->GetChildren())
+    {
+        if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
+        {
+            continue;
+        }
+
+        pWidget->SetRect(pWidget->GetRect().Moved(position));
+
+        LayoutWidget(pWidget.get());
+
+        auto rcWidget = pWidget->GetRect();
+
+        switch (m_layoutType)
+        {
+        case LayoutType::Vertical:
+            position.y += rcWidget.Height();
+            finalSize.y += rcWidget.Height();
+            finalSize.x = std::max(rcWidget.Width(), finalSize.x);
+            break;
+        case LayoutType::Horizontal:
+            position.x += rcWidget.Width();
+            finalSize.x += rcWidget.Width();
+            finalSize.y = std::max(rcWidget.Height(), finalSize.y);
+            break;
+        }
+    }
+    m_rect.SetSize(finalSize);
+
+    LOG(DBG, "Widget: " << GetLabel() << " : " << m_rect);
+}
+
+
+void Layout::Update()
+{
+    LayoutWidget(this);
+}
+
+/*
 void Layout::Update()
 {
     float totalFixedSize = 0;
@@ -29,7 +75,7 @@ void Layout::Update()
     {
         if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
         {
-            continue; 
+            continue;
         }
         pLastWidget = pWidget.get();
         totalWidgets++;
@@ -45,7 +91,7 @@ void Layout::Update()
             }
             else
             {
-                //totalFixedSize += widgetPad.y + widgetPad.w;
+                // totalFixedSize += widgetPad.y + widgetPad.w;
                 variableCount++;
             }
             break;
@@ -56,13 +102,13 @@ void Layout::Update()
             }
             else
             {
-                //totalFixedSize += widgetPad.x + widgetPad.z;
+                // totalFixedSize += widgetPad.x + widgetPad.z;
                 variableCount++;
             }
             break;
         }
     }
-   
+
     // Add space between all widgets
     float spacingSize = 0.0f;
     if (totalWidgets > 0)
@@ -94,16 +140,16 @@ void Layout::Update()
     // Layout rect is now the inner rect; in child rect coordinates
     layoutRect = NRectf(0.0f, 0.0f, layoutRect.Width(), layoutRect.Height());
     layoutRect.Adjust(contentMargins.x, contentMargins.y, -contentMargins.z, -contentMargins.w);
-    
+
     // Local World space
     m_innerRect = layoutRect.Adjusted(m_rect.TopLeft());
-       
+
     float expandingWidgetSize = (availableSize - totalFixedSize - spacingSize) / variableCount;
     for (auto& pWidget : m_children)
     {
         if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
         {
-            continue; 
+            continue;
         }
 
         NRectf widgetRect = pWidget->GetRectWithPad();
@@ -118,7 +164,7 @@ void Layout::Update()
                 widgetRect.SetSize(glm::vec2(layoutRect.Width(), pLayout->GetRect().Height()));
                 break;
             case LayoutType::Horizontal:
-                widgetRect.SetSize(glm::vec2( pLayout->GetRect().Width(), layoutRect.Height()));
+                widgetRect.SetSize(glm::vec2(pLayout->GetRect().Width(), layoutRect.Height()));
                 break;
             }
         }
@@ -168,6 +214,7 @@ void Layout::Update()
         }
     }
 }
+*/
 
 void Layout::SetRect(const NRectf& sz)
 {
@@ -258,10 +305,10 @@ const WidgetList& Layout::GetChildren() const
 {
     return m_children;
 }
-    
+
 void Layout::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance(); 
+    auto& theme = ThemeManager::Instance();
     if (theme.GetBool(b_debugShowLayout))
     {
         if (m_layoutType == LayoutType::Horizontal)
@@ -285,7 +332,7 @@ Layout* Layout::GetLayout()
 {
     return this;
 }
-    
+
 void Layout::SetContentsMargins(const glm::vec4& contentsMargins)
 {
     m_contentsMargins = contentsMargins;
@@ -295,12 +342,12 @@ const glm::vec4& Layout::GetContentsMargins() const
 {
     return m_contentsMargins;
 }
-    
+
 LayoutType Layout::GetLayoutType() const
 {
     return m_layoutType;
 }
-    
+
 void Layout::SetSpacing(float val)
 {
     m_spacing = val;

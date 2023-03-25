@@ -1,6 +1,7 @@
 #pragma once
 #include <sstream>
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 namespace NodeGraph {
 
@@ -309,7 +310,7 @@ inline NRect<T> operator+(const NRect<T>& lhs, const glm::vec2& pos)
 template <class T>
 inline std::ostream& operator<<(std::ostream& str, const NRect<T>& region)
 {
-    str << region.topLeftPx << ", " << region.bottomRightPx << ", size: " << region.Width() << ", " << region.Height();
+    str << glm::to_string(region.topLeftPx) << ", " << glm::to_string(region.bottomRightPx) << ", size: " << region.Width() << ", " << region.Height();
     return str;
 }
 

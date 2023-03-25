@@ -75,25 +75,13 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spWidget->SetLayout(spRootLayout);
 
             // Sliders
-            #if 0
+            #if 1
             {
                 auto spSliderLayout = std::make_shared<Layout>(LayoutType::Horizontal);
                 spSliderLayout->SetLabel("Slider Horizontal Layout");
                 spRootLayout->AddChild(spSliderLayout);
 
-                auto spSlider = std::make_shared<Slider>("Amp" /*,
-                    [&](auto param, auto op, SliderValue& val) {
-                        switch (param)
-                        {
-                        case SliderParams::Step:
-                            val.f = (op == SliderOp::Get) ? .33f : 0.0f;
-                            break;
-                        default:
-                            break;
-                        }
-                    }*/
-                );
-
+                /*
                 spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
                 spSliderLayout->AddChild(spSlider);
 
@@ -115,11 +103,12 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                     spSlider->SetPadding(glm::vec4(4.0f));
                     spSubLayout->AddChild(spSlider);
                 }
+                */
             }
             #endif
 
             // Knobs
-            #if 1
+            #if 0
             {
                 auto spKnobLayout = std::make_shared<Layout>(LayoutType::Horizontal);
                 spKnobLayout->SetLabel("Knob Horizontal Layout");

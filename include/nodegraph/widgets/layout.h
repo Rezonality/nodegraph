@@ -54,6 +54,9 @@ public:
 
     //virtual void Resize(const glm::vec2& size);
 
+protected:
+    virtual void LayoutWidget(Widget* pWidget);
+
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;
     WidgetList m_children;
