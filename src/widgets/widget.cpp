@@ -3,6 +3,7 @@
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
 #include <nodegraph/widgets/widget.h>
+#include <nodegraph/logger/logger.h>
 
 namespace NodeGraph {
 
@@ -35,6 +36,7 @@ void Widget::SetRect(const NRectf& sz)
         m_sizeHint = sz.Size();
     }
     m_rect = sz;
+    LOG(DBG, "Widget: " << GetLabel() << ": " << m_rect);
 }
 
 NRectf Widget::ToWorldRect(const NRectf& rc) const
@@ -100,7 +102,7 @@ const std::string& Widget::GetLabel() const
 {
     return m_label;
 }
-    
+
 void Widget::SetLabel(const char* pszLabel)
 {
     m_label = pszLabel;
@@ -175,7 +177,7 @@ void Widget::SetFlags(uint64_t flags)
 {
     m_flags = flags;
 }
-    
+
 glm::vec4 Widget::GetMinMaxSize() const
 {
     const float minSize = 10.0f; // TBD
@@ -206,8 +208,7 @@ NRectf Widget::GetRectWithPad() const
 
 void Widget::SetRectWithPad(const NRectf& rc)
 {
-    m_rect = rc.Adjusted(glm::vec4(m_padding.x, m_padding.y, -m_padding.z, -m_padding.w));
+    SetRect(rc.Adjusted(glm::vec4(m_padding.x, m_padding.y, -m_padding.z, -m_padding.w)));
 }
-
 
 }

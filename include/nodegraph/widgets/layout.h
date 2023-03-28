@@ -36,6 +36,8 @@ public:
     const WidgetList& GetChildren() const;
 
     virtual void SetRect(const NRectf& sz) override;
+    virtual NRectf GetRectWithPad() const override;
+    virtual void SetRectWithPad(const NRectf& rc) override;
 
     virtual void Draw(Canvas& canvas) override;
 
@@ -55,7 +57,21 @@ public:
     //virtual void Resize(const glm::vec2& size);
 
 protected:
-    virtual void LayoutWidget(Widget* pWidget);
+    enum class Axis
+    {
+        Major,
+        Minor
+    };
+
+    enum class AxisOp
+    {
+        Set,
+        Include
+    };
+
+    virtual void SetAxis(Axis axis, AxisOp op, NRectf& val, float update);
+    virtual float GetAxis(Axis axis, const NRectf& val) const;
+    virtual int GetAxisIndex(Axis axis) const;
 
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;

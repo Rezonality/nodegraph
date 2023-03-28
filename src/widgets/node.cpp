@@ -45,10 +45,11 @@ void Node::Draw(Canvas& canvas)
         theme.GetFloat(s_nodeTitleFontPad));
 
     auto bottomGap = theme.GetFloat(s_nodeBorderSize) + theme.GetFloat(s_nodeShadowSize);
+    
     // Layout in child coordinates
     auto layoutRect = NRectf(titlePanelRect.Left(), titlePanelRect.Bottom(), titlePanelRect.Width(), GetWorldRect().Bottom() - bottomGap - titlePanelRect.Bottom());
     layoutRect.Adjust(-GetWorldRect().Left(), -GetWorldRect().Top());
-    GetLayout()->SetRect(layoutRect);
+    GetLayout()->SetRectWithPad(layoutRect);
     GetLayout()->SetConstraints(glm::uvec2(LayoutConstraint::Fixed, LayoutConstraint::Expanding));
 
     GetLayout()->Draw(canvas);

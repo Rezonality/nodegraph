@@ -49,7 +49,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         spCanvas->SetWorldAtCenter(worldCenter);
 
 // Node 1
-#ifdef N1
+#if 1
         {
             auto spWidget = std::make_shared<Node>("Node 1");
             spWidget->SetRect(NRectf(0.0f, -350.0f, 400.0f, 250.0f));
@@ -81,7 +81,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                 spSliderLayout->SetLabel("Slider Horizontal Layout");
                 spRootLayout->AddChild(spSliderLayout);
 
-                /*
+                auto spSlider = std::make_shared<Slider>("Amp", &s);
                 spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
                 spSliderLayout->AddChild(spSlider);
 
@@ -103,12 +103,11 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                     spSlider->SetPadding(glm::vec4(4.0f));
                     spSubLayout->AddChild(spSlider);
                 }
-                */
             }
             #endif
 
             // Knobs
-            #if 0
+            #if 1
             {
                 auto spKnobLayout = std::make_shared<Layout>(LayoutType::Horizontal);
                 spKnobLayout->SetLabel("Knob Horizontal Layout");
@@ -119,12 +118,10 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                 spKnob->SetPadding(glm::vec4(4.0f));
                 spKnobLayout->AddChild(spKnob);
                
-                /*
                 spKnob = std::make_shared<Knob>("Decay");
                 spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 70.0f));
                 spKnob->SetPadding(glm::vec4(4.0f));
                 spKnobLayout->AddChild(spKnob);
-                */
             }
             #endif
         }

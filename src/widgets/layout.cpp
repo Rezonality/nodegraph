@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <fmt/format.h>
 #include <nodegraph/canvas.h>
-#include <nodegraph/theme.h>
 #include <nodegraph/logger/logger.h>
+#include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
 
 namespace NodeGraph {
@@ -12,11 +12,16 @@ Layout::Layout(LayoutType type)
     m_layoutType = type;
 }
 
-void Layout::LayoutWidget(Widget* pWidget)
+/*
+void Layout::LayoutWidget(Widget* pWidget, NRectf& ownerRc)
 {
     // Walk the children
-    glm::vec2 finalSize = glm::vec2(0.0f, 0.0f);
+    float finalSize = 0.0f;
     glm::vec2 position = glm::vec2(0.0f, 0.0f);
+
+    auto majorIndex = GetAxisIndex(Axis::Major);
+    auto minorIndex = GetAxisIndex(Axis::Minor);
+
     for (auto& pWidget : pWidget->GetLayout()->GetChildren())
     {
         if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
@@ -24,38 +29,140 @@ void Layout::LayoutWidget(Widget* pWidget)
             continue;
         }
 
-        pWidget->SetRect(pWidget->GetRect().Moved(position));
+        auto newRc = pWidget->GetRect();
+        newRc.Move(position);
 
-        LayoutWidget(pWidget.get());
+        LayoutWidget(pWidget.get(), newRc);
 
-        auto rcWidget = pWidget->GetRect();
+        auto minorAxis = GetAxis(Axis::Minor, newRc);
+        auto majorAxis = GetAxis(Axis::Major, newRc);
 
-        switch (m_layoutType)
-        {
-        case LayoutType::Vertical:
-            position.y += rcWidget.Height();
-            finalSize.y += rcWidget.Height();
-            finalSize.x = std::max(rcWidget.Width(), finalSize.x);
-            break;
-        case LayoutType::Horizontal:
-            position.x += rcWidget.Width();
-            finalSize.x += rcWidget.Width();
-            finalSize.y = std::max(rcWidget.Height(), finalSize.y);
-            break;
-        }
+        // Make the parent minor axis as big as the widget's minor axis.
+        SetAxis(Axis::Minor, AxisOp::Include, ownerRc, minorAxis);
+
+        // move the position down by the size of the widget
+        position[majorIndex] += majorAxis;
+
+        pWidget->SetRectWithPad(newRc);
     }
-    m_rect.SetSize(finalSize);
 
     LOG(DBG, "Widget: " << GetLabel() << " : " << m_rect);
 }
+*/
 
-
-void Layout::Update()
+void Layout::SetAxis(Axis axis, AxisOp op, NRectf& rc, float value)
 {
-    LayoutWidget(this);
+    switch (m_layoutType)
+    {
+    case LayoutType::Vertical:
+        if (axis == Axis::Major)
+        {
+            if (op == AxisOp::Set)
+            {
+                rc.SetHeight(value);
+            }
+            else
+            {
+                rc.SetHeight(std::max(rc.Height(), value));
+            }
+        }
+        else
+        {
+            if (op == AxisOp::Set)
+            {
+                rc.SetWidth(value);
+            }
+            else
+            {
+                rc.SetWidth(std::max(rc.Width(), value));
+            }
+        }
+        break;
+    case LayoutType::Horizontal:
+        if (axis == Axis::Major)
+        {
+            if (op == AxisOp::Set)
+            {
+                rc.SetWidth(value);
+            }
+            else
+            {
+                rc.SetWidth(std::max(rc.Width(), value));
+            }
+        }
+        else
+        {
+            if (op == AxisOp::Set)
+            {
+                rc.SetHeight(value);
+            }
+            else
+            {
+                rc.SetHeight(std::max(rc.Height(), value));
+            }
+        }
+        break;
+    }
 }
 
-/*
+float Layout::GetAxis(Axis axis, const NRectf& rc) const
+{
+    switch (m_layoutType)
+    {
+    case LayoutType::Vertical:
+        if (axis == Axis::Major)
+        {
+            return rc.Height();
+        }
+        else
+        {
+            return rc.Width();
+        }
+        break;
+    case LayoutType::Horizontal:
+        if (axis == Axis::Major)
+        {
+            return rc.Width();
+        }
+        else
+        {
+            return rc.Height();
+        }
+        break;
+    }
+    assert(!"Invalid");
+    return 0.0f;
+}
+
+int Layout::GetAxisIndex(Axis axis) const
+{
+    switch (m_layoutType)
+    {
+    case LayoutType::Vertical:
+        if (axis == Axis::Major)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+        break;
+    case LayoutType::Horizontal:
+        if (axis == Axis::Major)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
+        break;
+    }
+    assert(!"Invalid");
+    return 0;
+}
+
 void Layout::Update()
 {
     float totalFixedSize = 0;
@@ -214,7 +321,6 @@ void Layout::Update()
         }
     }
 }
-*/
 
 void Layout::SetRect(const NRectf& sz)
 {
@@ -244,6 +350,21 @@ void Layout::SetRect(const NRectf& sz)
     Widget::SetRect(rc);
 
     Update();
+}
+
+void Layout::SetRectWithPad(const NRectf& rc)
+{
+    auto cm = GetContentsMargins();
+    auto newRc = rc.Adjusted(glm::vec4(cm.x, cm.y, -cm.z, -cm.w));
+    Widget::SetRect(newRc);
+
+    Update();
+}
+
+NRectf Layout::GetRectWithPad() const
+{
+    auto cm = GetContentsMargins();
+    return m_rect.Adjusted(glm::vec4(-cm.x, -cm.y, cm.z, cm.w));
 }
 
 void Layout::AddChild(std::shared_ptr<Widget> spWidget)
@@ -313,13 +434,13 @@ void Layout::Draw(Canvas& canvas)
     {
         if (m_layoutType == LayoutType::Horizontal)
         {
-            canvas.FillRect(ToWorldRect(m_rect), glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
-            canvas.FillRect(ToWorldRect(m_innerRect), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
+            canvas.FillRect(ToWorldRect(GetRectWithPad()), glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
+            canvas.FillRect(ToWorldRect(m_rect), glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
         }
         else
         {
-            canvas.FillRect(ToWorldRect(m_rect), glm::vec4(0.2f, 0.2f, 1.0f, 1.0f));
-            canvas.FillRect(ToWorldRect(m_innerRect), glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+            canvas.FillRect(ToWorldRect(GetRectWithPad()), glm::vec4(0.2f, 0.2f, 1.0f, 1.0f));
+            canvas.FillRect(ToWorldRect(m_rect), glm::vec4(0.5f, 0.2f, 0.5f, 1.0f));
         }
     }
     for (auto& child : GetLayout()->GetBackToFront())
