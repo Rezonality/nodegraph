@@ -18,6 +18,8 @@ struct SizeHint
     glm::vec2 hint = glm::vec2(0.0f);
 };
 
+using tWidgets =std::vector<std::shared_ptr<Widget>>;
+
 class Layout : public Widget
 {
 public:
@@ -56,22 +58,16 @@ public:
 
     //virtual void Resize(const glm::vec2& size);
 
+    tWidgets GetNonFixedWidgets() const;
+
 protected:
     enum class Axis
     {
         Major,
         Minor
     };
-
-    enum class AxisOp
-    {
-        Set,
-        Include
-    };
-
-    virtual void SetAxis(Axis axis, AxisOp op, NRectf& val, float update);
-    virtual float GetAxis(Axis axis, const NRectf& val) const;
-    virtual int GetAxisIndex(Axis axis) const;
+    int GetAxisIndex(Axis axis) const;
+    float SpaceForWidgets(size_t count) const;
 
 private:
     LayoutType m_layoutType = LayoutType::Horizontal;

@@ -114,12 +114,12 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                 spRootLayout->AddChild(spKnobLayout);
 
                 auto spKnob = std::make_shared<Knob>("Attack");
-                spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 70.0f));
+                spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 120.0f));
                 spKnob->SetPadding(glm::vec4(4.0f));
                 spKnobLayout->AddChild(spKnob);
                
                 spKnob = std::make_shared<Knob>("Decay");
-                spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 70.0f));
+                spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 120.0f));
                 spKnob->SetPadding(glm::vec4(4.0f));
                 spKnobLayout->AddChild(spKnob);
             }

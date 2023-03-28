@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <fmt/format.h>
 #include <nodegraph/canvas.h>
 #include <nodegraph/logger/logger.h>
@@ -12,128 +11,7 @@ Layout::Layout(LayoutType type)
     m_layoutType = type;
 }
 
-/*
-void Layout::LayoutWidget(Widget* pWidget, NRectf& ownerRc)
-{
-    // Walk the children
-    float finalSize = 0.0f;
-    glm::vec2 position = glm::vec2(0.0f, 0.0f);
-
-    auto majorIndex = GetAxisIndex(Axis::Major);
-    auto minorIndex = GetAxisIndex(Axis::Minor);
-
-    for (auto& pWidget : pWidget->GetLayout()->GetChildren())
-    {
-        if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
-        {
-            continue;
-        }
-
-        auto newRc = pWidget->GetRect();
-        newRc.Move(position);
-
-        LayoutWidget(pWidget.get(), newRc);
-
-        auto minorAxis = GetAxis(Axis::Minor, newRc);
-        auto majorAxis = GetAxis(Axis::Major, newRc);
-
-        // Make the parent minor axis as big as the widget's minor axis.
-        SetAxis(Axis::Minor, AxisOp::Include, ownerRc, minorAxis);
-
-        // move the position down by the size of the widget
-        position[majorIndex] += majorAxis;
-
-        pWidget->SetRectWithPad(newRc);
-    }
-
-    LOG(DBG, "Widget: " << GetLabel() << " : " << m_rect);
-}
-*/
-
-void Layout::SetAxis(Axis axis, AxisOp op, NRectf& rc, float value)
-{
-    switch (m_layoutType)
-    {
-    case LayoutType::Vertical:
-        if (axis == Axis::Major)
-        {
-            if (op == AxisOp::Set)
-            {
-                rc.SetHeight(value);
-            }
-            else
-            {
-                rc.SetHeight(std::max(rc.Height(), value));
-            }
-        }
-        else
-        {
-            if (op == AxisOp::Set)
-            {
-                rc.SetWidth(value);
-            }
-            else
-            {
-                rc.SetWidth(std::max(rc.Width(), value));
-            }
-        }
-        break;
-    case LayoutType::Horizontal:
-        if (axis == Axis::Major)
-        {
-            if (op == AxisOp::Set)
-            {
-                rc.SetWidth(value);
-            }
-            else
-            {
-                rc.SetWidth(std::max(rc.Width(), value));
-            }
-        }
-        else
-        {
-            if (op == AxisOp::Set)
-            {
-                rc.SetHeight(value);
-            }
-            else
-            {
-                rc.SetHeight(std::max(rc.Height(), value));
-            }
-        }
-        break;
-    }
-}
-
-float Layout::GetAxis(Axis axis, const NRectf& rc) const
-{
-    switch (m_layoutType)
-    {
-    case LayoutType::Vertical:
-        if (axis == Axis::Major)
-        {
-            return rc.Height();
-        }
-        else
-        {
-            return rc.Width();
-        }
-        break;
-    case LayoutType::Horizontal:
-        if (axis == Axis::Major)
-        {
-            return rc.Width();
-        }
-        else
-        {
-            return rc.Height();
-        }
-        break;
-    }
-    assert(!"Invalid");
-    return 0.0f;
-}
-
+// Useful for indexing into glm::vec2
 int Layout::GetAxisIndex(Axis axis) const
 {
     switch (m_layoutType)
@@ -163,29 +41,43 @@ int Layout::GetAxisIndex(Axis axis) const
     return 0;
 }
 
+float Layout::SpaceForWidgets(size_t count) const
+{
+    // Add space between all widgets
+    float spacing = 0.0f;
+    if (count > 0)
+    {
+        spacing += ((count - 1) * m_spacing);
+    }
+    return spacing;
+}
+
+tWidgets Layout::GetNonFixedWidgets() const
+{
+    tWidgets ret;
+    std::copy_if(m_children.begin(), m_children.end(), std::back_inserter(ret), [](auto pWidget) {
+        return !(pWidget->GetFlags() & WidgetFlags::DoNotLayout);
+    });
+    return ret;
+}
+
 void Layout::Update()
 {
-    float totalFixedSize = 0;
-    float availableSize = 0;
-    float variableCount = 0;
+    tWidgets layoutWidgets = GetNonFixedWidgets();
+    if (layoutWidgets.empty())
+    {
+        return;
+    }
 
-    NRectf layoutRect = GetRect();
-
-    float layoutSize = 0.0f;
-
+    // Find out the total max width/height the child widgets would like to be
     SizeHint hint;
     GetChildrenSizeHint(hint);
 
-    uint32_t totalWidgets = 0;
-    Widget* pLastWidget = nullptr;
-    for (auto& pWidget : m_children)
+    float totalFixedSize = 0;
+    float variableCount = 0;
+
+    for (auto& pWidget : layoutWidgets)
     {
-        if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
-        {
-            continue;
-        }
-        pLastWidget = pWidget.get();
-        totalWidgets++;
         glm::uvec2 constraints = pWidget->GetConstraints();
         NRectf widgetRect = pWidget->GetRectWithPad();
 
@@ -198,7 +90,6 @@ void Layout::Update()
             }
             else
             {
-                // totalFixedSize += widgetPad.y + widgetPad.w;
                 variableCount++;
             }
             break;
@@ -209,23 +100,20 @@ void Layout::Update()
             }
             else
             {
-                // totalFixedSize += widgetPad.x + widgetPad.z;
                 variableCount++;
             }
             break;
         }
     }
 
-    // Add space between all widgets
-    float spacingSize = 0.0f;
-    if (totalWidgets > 0)
-    {
-        spacingSize += ((totalWidgets - 1) * m_spacing);
-    }
+    auto spacingSize = SpaceForWidgets(layoutWidgets.size());
 
     // The rectangle for our layout contains all widgets plus our own padding
     // The layout rectangle grows in the minor axis but not the major one; it is fixed at whatever size it was when it was stacked
     auto contentMargins = GetContentsMargins();
+
+    float availableSize = 0;
+    NRectf layoutRect = GetRect();
 
     switch (m_layoutType)
     {
@@ -251,18 +139,16 @@ void Layout::Update()
     // Local World space
     m_innerRect = layoutRect.Adjusted(m_rect.TopLeft());
 
+    // Resize all the widgets to fit
     float expandingWidgetSize = (availableSize - totalFixedSize - spacingSize) / variableCount;
-    for (auto& pWidget : m_children)
+    for (int i = 0; i < layoutWidgets.size(); i++)
     {
-        if (pWidget->GetFlags() & WidgetFlags::DoNotLayout)
-        {
-            continue;
-        }
+        auto& pWidget = layoutWidgets[i];
 
         NRectf widgetRect = pWidget->GetRectWithPad();
-        glm::uvec2 constraints = pWidget->GetConstraints();
-        auto space = (pWidget.get() == pLastWidget ? 0.0f : m_spacing);
 
+        // if this is a layout, make it fill the parent's minor axis
+        // Effectively it is expanding in this direction
         if (auto pLayout = dynamic_cast<Layout*>(pWidget.get()))
         {
             switch (m_layoutType)
@@ -276,6 +162,10 @@ void Layout::Update()
             }
         }
 
+        glm::uvec2 constraints = pWidget->GetConstraints();
+        auto space = ((i == (layoutWidgets.size() - 1)) ? 0.0f : m_spacing);
+
+        // Move and resize the rectangle to the correct location
         switch (m_layoutType)
         {
         case LayoutType::Vertical:
@@ -300,7 +190,7 @@ void Layout::Update()
 
     // Now the widgets might be too far apart; if we are stacking top->bottom
     float lastEdge = 0;
-    for (auto& pWidget : m_children)
+    for (auto& pWidget : layoutWidgets)
     {
         auto rc = pWidget->GetRectWithPad();
         if (m_layoutType == LayoutType::Vertical)
@@ -324,30 +214,7 @@ void Layout::Update()
 
 void Layout::SetRect(const NRectf& sz)
 {
-    auto rc = sz;
-
-    // Constrain this rectangle to the limits of the child widgets
-    /*
-    auto sizes = GetChildrenMinMaxSize();
-    if (sz.Width() > sizes.z)
-    {
-        rc.SetWidth(sizes.z);
-    }
-    if (sz.Height() > sizes.w)
-    {
-        rc.SetWidth(sizes.w);
-    }
-    if (sz.Width() < sizes.x)
-    {
-        rc.SetWidth(sizes.x);
-    }
-    if (sz.Height() < sizes.y)
-    {
-        rc.SetHeight(sizes.y);
-    }
-    */
-
-    Widget::SetRect(rc);
+    Widget::SetRect(sz);
 
     Update();
 }
@@ -474,6 +341,8 @@ void Layout::SetSpacing(float val)
     m_spacing = val;
 }
 
+// For the direct children of this layout, get the size hint.
+// This is the required size for the widgets
 void Layout::GetChildrenSizeHint(SizeHint& hint) const
 {
     for (auto& spChild : m_children)
