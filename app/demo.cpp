@@ -52,7 +52,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
 #if 1
         {
             auto spWidget = std::make_shared<Node>("Node 1");
-            spWidget->SetRect(NRectf(0.0f, -350.0f, 400.0f, 250.0f));
+            spWidget->SetRect(NRectf(0.0f, -350.0f, 400.0f, 300.0f));
             spCanvas->GetRootLayout()->AddChild(spWidget);
 
             // Child
@@ -66,7 +66,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         // Node 2
         {
             auto spWidget = std::make_shared<Node>("Node 2");
-            spWidget->SetRect(NRectf(0.0f, 0.0f, 400.0f, 250.0f));
+            spWidget->SetRect(NRectf(0.0f, 0.0f, 400.0f, 300.0f));
             spCanvas->GetRootLayout()->AddChild(spWidget);
 
             auto spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
