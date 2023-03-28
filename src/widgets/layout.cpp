@@ -484,7 +484,9 @@ void Layout::GetChildrenSizeHint(SizeHint& hint) const
         }
         else
         {
-            hint.hint = glm::max(spChild->GetSizeHint(), hint.hint);
+            auto pad = spChild->GetPadding();
+            auto padSize = glm::vec2(pad.x + pad.z, pad.y + pad.w);
+            hint.hint = glm::max(spChild->GetSizeHint() + padSize, hint.hint);
         }
     }
 }
