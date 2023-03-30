@@ -49,7 +49,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         spCanvas->SetWorldAtCenter(worldCenter);
 
 // Node 1
-#if 1
+#if 0
         {
             auto spWidget = std::make_shared<Node>("Node 1");
             spWidget->SetRect(NRectf(0.0f, -350.0f, 400.0f, 300.0f));
@@ -74,15 +74,18 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spRootLayout->SetSpacing(4.0f);
             spWidget->SetLayout(spRootLayout);
 
+            // Keep same height, expand the width
             auto spCustom = std::make_shared<Widget>("Custom");
-            spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Expanding));
-            spCustom->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+            spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Preferred));
+            spCustom->SetRect(NRectf(0.0f, 0.0f, 100.0f, 75.0f));
             spRootLayout->AddChild(spCustom);
 
             // Sliders
             #if 1
             {
                 auto spSliderLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+                spSliderLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+                spSliderLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 60.0f));
                 spSliderLayout->SetLabel("Slider Horizontal Layout");
                 spRootLayout->AddChild(spSliderLayout);
 
@@ -115,16 +118,19 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             #if 1
             {
                 auto spKnobLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+                spKnobLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Expanding));
                 spKnobLayout->SetLabel("Knob Horizontal Layout");
                 spRootLayout->AddChild(spKnobLayout);
 
                 auto spKnob = std::make_shared<Knob>("Attack");
                 spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 120.0f));
+                spKnob->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Expanding));
                 spKnob->SetPadding(glm::vec4(4.0f));
                 spKnobLayout->AddChild(spKnob);
                
                 spKnob = std::make_shared<Knob>("Decay");
                 spKnob->SetRect(NRectf(0.0f, 0.0f, 200.0f, 120.0f));
+                spKnob->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
                 spKnob->SetPadding(glm::vec4(4.0f));
                 spKnobLayout->AddChild(spKnob);
             }

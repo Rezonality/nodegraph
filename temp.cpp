@@ -84,7 +84,7 @@ void Layout::Update()
         switch (m_layoutType)
         {
         case LayoutType::Vertical:
-            if (constraints.y == LayoutConstraint::Preferred)
+            if (constraints.y == LayoutConstraint::Fixed)
             {
                 totalFixedSize += widgetRect.Height();
             }
@@ -94,7 +94,7 @@ void Layout::Update()
             }
             break;
         case LayoutType::Horizontal:
-            if (constraints.x == LayoutConstraint::Preferred)
+            if (constraints.x == LayoutConstraint::Fixed)
             {
                 totalFixedSize += widgetRect.Width();
             }
@@ -120,14 +120,14 @@ void Layout::Update()
     case LayoutType::Vertical:
         // Set size of owner
         // The 'upper' layout will have sorted us into even rects, but here is our chance to constrain around the found widgets.
-        if (m_constraints.y == LayoutConstraint::Preferred) // Expand to fill space vertically, or constrain?
+        if (m_constraints.y == LayoutConstraint::Fixed) // Expand to fill space vertically, or constrain?
         {
             layoutRect.SetSize(m_constraints.x == LayoutConstraint::Expanding ? hint.hint.x + contentMargins.x + contentMargins.z : layoutRect.Width(), layoutRect.Height());
         }
         availableSize = layoutRect.Height() - totalFixedSize - contentMargins.y - contentMargins.w;
         break;
     case LayoutType::Horizontal:
-        if (m_constraints.x == LayoutConstraint::Preferred)
+        if (m_constraints.x == LayoutConstraint::Fixed)
         {
             layoutRect.SetSize(layoutRect.Width(), m_constraints.y == LayoutConstraint::Expanding ? hint.hint.y + contentMargins.y + contentMargins.w : layoutRect.Height());
         }
@@ -142,18 +142,33 @@ void Layout::Update()
     // Layout rect is now the inner rect; in child rect coordinates
     layoutRect = NRectf(0.0f, 0.0f, layoutRect.Width(), layoutRect.Height());
     layoutRect.Adjust(contentMargins.x, contentMargins.y, -contentMargins.z, -contentMargins.w);
-    layoutRect.Validate();
+    //layoutRect.Validate();
 
     // Local World space
     m_innerRect = layoutRect.Adjusted(m_rect.TopLeft());
 
     // Resize all the widgets to fit
-    float expandingWidgetSize = (availableSize - spacingSize) / variableCount;
+    float expandingWidgetSize = (availableSize - totalFixedSize - spacingSize) / variableCount;
     for (int i = 0; i < layoutWidgets.size(); i++)
     {
         auto& pWidget = layoutWidgets[i];
 
         NRectf widgetRect = pWidget->GetRectWithPad();
+
+        // if this is a layout, make it fill the parent's minor axis
+        // Effectively it is expanding in this direction
+        if (auto pLayout = dynamic_cast<Layout*>(pWidget.get()))
+        {
+            switch (m_layoutType)
+            {
+            case LayoutType::Vertical:
+                widgetRect.SetSize(glm::vec2(layoutRect.Width(), pLayout->GetRect().Height()));
+                break;
+            case LayoutType::Horizontal:
+                widgetRect.SetSize(glm::vec2(pLayout->GetRect().Width(), layoutRect.Height()));
+                break;
+            }
+        }
 
         glm::uvec2 constraints = pWidget->GetConstraints();
         auto space = ((i == (layoutWidgets.size() - 1)) ? 0.0f : m_spacing);
@@ -174,6 +189,31 @@ void Layout::Update()
         }
         pWidget->SetRectWithPad(widgetRect);
     }
+
+    // Now the widgets might be too far apart; if we are stacking top->bottom
+    /*
+    float lastEdge = 0;
+    for (auto& pWidget : layoutWidgets)
+    {
+        auto rc = pWidget->GetRectWithPad();
+        if (m_layoutType == LayoutType::Vertical)
+        {
+            if (rc.Top() > (lastEdge + m_spacing))
+            {
+                pWidget->SetRectWithPad(rc.Moved(glm::vec2(rc.Left(), lastEdge + m_spacing)));
+            }
+            lastEdge = rc.Bottom();
+        }
+        else
+        {
+            if (rc.Left() > (lastEdge + m_spacing))
+            {
+                pWidget->SetRectWithPad(rc.Moved(glm::vec2(lastEdge + m_spacing, rc.Top())));
+            }
+            lastEdge = rc.Right();
+        }
+    }
+    */
 }
 
 void Layout::SetRect(const NRectf& sz)

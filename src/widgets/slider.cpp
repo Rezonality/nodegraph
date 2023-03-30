@@ -53,6 +53,7 @@ void Slider::Draw(Canvas& canvas)
     auto fontSize = rc.Height() - theme.GetFloat(s_sliderFontPad) * 2.0f - thumbPad * 2.0f;
     auto titlePanelRect = rc;
 
+
     // Our inside track is inside the thumb pad
     titlePanelRect.Adjust(thumbPad, thumbPad, -thumbPad, -thumbPad);
 
@@ -88,6 +89,8 @@ void Slider::Draw(Canvas& canvas)
         theme.GetVec4f(c_sliderThumbColor));
 
     // Text
+    auto bounds = canvas.TextBounds(glm::vec2(0.0f), fontSize, m_label.c_str(), nullptr);
+    fontSize = fontSize * (titlePanelRect.ShortSide() / bounds.LongSide());
     canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, glm::vec4(.9f, 0.9f, 0.9f, 1.0f), m_label.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
     if (canvas.GetInputState().m_pMouseCapture == this)

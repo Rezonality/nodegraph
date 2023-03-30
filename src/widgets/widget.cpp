@@ -188,11 +188,11 @@ glm::vec4 Widget::GetMinMaxSize() const
     const float maxSize = 100000.0f; // Arbitrary large (not max_float!)
     auto ret = glm::vec4(minSize, minSize, maxSize, maxSize);
 
-    if (m_constraints.x & LayoutConstraint::Fixed)
+    if (m_constraints.x & LayoutConstraint::Preferred)
     {
         ret.x = ret.z = m_rect.Width();
     }
-    if (m_constraints.y & LayoutConstraint::Fixed)
+    if (m_constraints.y & LayoutConstraint::Preferred)
     {
         ret.y = ret.w = m_rect.Height();
     }

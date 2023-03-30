@@ -42,6 +42,8 @@ void Knob::Draw(Canvas& canvas)
     KnobValue val;
     m_pCB->UpdateKnob(this, KnobOp::Get, val);
 
+    canvas.FilledCircle(rc.Center(), rc.ShortSide() * .5f - 2.0f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+
     for (auto& child : GetLayout()->GetBackToFront())
     {
         child->Draw(canvas);

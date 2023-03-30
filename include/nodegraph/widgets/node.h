@@ -12,6 +12,14 @@ public:
     virtual Widget* MouseDown(CanvasInputState& input) override;
     virtual void MouseUp(CanvasInputState& input) override;
     virtual bool MouseMove(CanvasInputState& input) override;
+
+protected:
+    enum class MoveType
+    {
+        Move,
+        Resize
+    };
+    MoveType m_moveType = MoveType::Move;
 };
 
 }

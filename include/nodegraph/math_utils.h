@@ -96,6 +96,18 @@ struct NRect
     {
         return bottomRightPx - topLeftPx;
     }
+    float ShortSide() const
+    {
+        return std::min(Width(), Height());
+    }
+    float LongSide() const
+    {
+        return std::max(Width(), Height());
+    }
+    float Ratio() const
+    {
+        return Width() / Height();
+    }
     bool Empty() const
     {
         return (Height() == 0.0f || Width() == 0.0f) ? true : false;
@@ -139,6 +151,17 @@ struct NRect
         SetSize(glm::vec2(x, y));
     }
 
+    void Validate()
+    {
+        if (Width() < 0)
+        {
+            SetWidth(2.0f);
+        }
+        if (Height() < 0)
+        {
+            SetHeight(2.0f);
+        }
+    }
     NRect<T>& Adjust(T x, T y, T z, T w)
     {
         topLeftPx.x += x;

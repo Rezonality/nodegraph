@@ -50,7 +50,7 @@ void Node::Draw(Canvas& canvas)
     auto layoutRect = NRectf(titlePanelRect.Left(), titlePanelRect.Bottom(), titlePanelRect.Width(), GetWorldRect().Bottom() - bottomGap - titlePanelRect.Bottom());
     layoutRect.Adjust(-GetWorldRect().Left(), -GetWorldRect().Top());
     GetLayout()->SetRectWithPad(layoutRect);
-    GetLayout()->SetConstraints(glm::uvec2(LayoutConstraint::Fixed, LayoutConstraint::Expanding));
+    GetLayout()->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
 
     GetLayout()->Draw(canvas);
 }
@@ -64,6 +64,18 @@ Widget* Node::MouseDown(CanvasInputState& input)
     
     if (input.buttonClicked[0])
     {
+        auto rcWorld = GetWorldRect();
+        auto moveSize = 50.0f;
+        auto sizeRect = NRectf(rcWorld.bottomRightPx.x - moveSize, rcWorld.bottomRightPx.y - moveSize, moveSize, moveSize);
+        if (sizeRect.Contains(input.lastWorldMouseClick[0]))
+        {
+            m_moveType = MoveType::Resize;
+        }
+        else
+        {
+            m_moveType = MoveType::Move;
+        }
+
         return this;
     }
     return nullptr;
@@ -75,10 +87,18 @@ void Node::MouseUp(CanvasInputState& input)
 
 bool Node::MouseMove(CanvasInputState& input)
 {
+
     // Only move top level
     if (input.m_pMouseCapture == this)
     {
-        m_rect.Adjust(input.worldMoveDelta);
+        if (m_moveType == MoveType::Resize)
+        {
+            m_rect.Adjust(0.0f, 0.0f, input.worldMoveDelta.x, input.worldMoveDelta.y);
+        }
+        else
+        {
+            m_rect.Adjust(input.worldMoveDelta);
+        }
         return true;
     }
     return false;

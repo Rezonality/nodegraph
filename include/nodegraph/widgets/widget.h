@@ -19,7 +19,7 @@ enum MouseButtons
 namespace LayoutConstraint {
 enum
 {
-    Fixed = (1 << 0),
+    Preferred = (1 << 0),
     Expanding = (1 << 1),
 };
 }
