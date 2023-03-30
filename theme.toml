@@ -1,5 +1,5 @@
 ['Default Setting']
-b_debugShowLayout = false
+b_debugShowLayout = true
 c_gridLines = [ 0.25, 0.25, 0.25, 1.0 ]
 c_nodeBorderColor = [ 0.42939484119415283, 0.42939484119415283, 0.42939484119415283, 1.0 ]
 c_nodeCenterColor = [ 0.3659942150115967, 0.36493948101997375, 0.36493948101997375, 1.0 ]

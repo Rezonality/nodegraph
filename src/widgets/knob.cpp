@@ -39,6 +39,9 @@ void Knob::Draw(Canvas& canvas)
             glm::vec4(0.2f, 0.4f, 0.6f, 1.0f));
     }
 
+    KnobValue val;
+    m_pCB->UpdateKnob(this, KnobOp::Get, val);
+
     for (auto& child : GetLayout()->GetBackToFront())
     {
         child->Draw(canvas);

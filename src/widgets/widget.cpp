@@ -58,6 +58,10 @@ NRectf Widget::GetWorldRect() const
 void Widget::Draw(Canvas& canvas)
 {
     auto& theme = ThemeManager::Instance();
+    if (theme.GetBool(b_debugShowLayout))
+    {
+        canvas.FillRect(ToWorldRect(m_rect), glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
+    }
 }
 
 Widget* Widget::MouseDown(CanvasInputState& input)

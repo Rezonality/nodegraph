@@ -74,6 +74,11 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spRootLayout->SetSpacing(4.0f);
             spWidget->SetLayout(spRootLayout);
 
+            auto spCustom = std::make_shared<Widget>("Custom");
+            spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Expanding));
+            spCustom->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+            spRootLayout->AddChild(spCustom);
+
             // Sliders
             #if 1
             {

@@ -170,18 +170,12 @@ void Layout::Update()
         {
         case LayoutType::Vertical:
             widgetRect.Move(glm::vec2(layoutRect.Left(), layoutRect.Top()));
-            if (constraints.y == LayoutConstraint::Expanding)
-            {
-                widgetRect.SetSize(widgetRect.Width(), expandingWidgetSize);
-            }
+            widgetRect.SetSize(constraints.x == LayoutConstraint::Expanding ? layoutRect.Width() : widgetRect.Width(), constraints.y == LayoutConstraint::Expanding ? expandingWidgetSize : widgetRect.Height());
             layoutRect.SetTop(widgetRect.Bottom() + space);
             break;
         case LayoutType::Horizontal:
             widgetRect.Move(glm::vec2(layoutRect.Left(), layoutRect.Top()));
-            if (constraints.x == LayoutConstraint::Expanding)
-            {
-                widgetRect.SetSize(expandingWidgetSize, widgetRect.Height());
-            }
+            widgetRect.SetSize(constraints.x == LayoutConstraint::Expanding ? expandingWidgetSize : widgetRect.Width(), constraints.y == LayoutConstraint::Expanding ? layoutRect.Height() : widgetRect.Height());
             layoutRect.SetLeft(widgetRect.Right() + space);
             break;
         }
