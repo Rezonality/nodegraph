@@ -19,9 +19,16 @@ enum class KnobType
     Mini
 };
 
+namespace KnobFlags {
+enum
+{
+    None = 0,
+    ReadOnly = (1)
+};
+}
 struct KnobValue
 {
-    //float step = 0.25f;
+    uint32_t flags = KnobFlags::None;
     float step = 0.01f;
     float value = 0.0f;
     std::string name;
@@ -49,10 +56,11 @@ public:
     // Internal
     virtual void ClampNormalized(KnobValue& value);
     virtual void Update(CanvasInputState& input);
-    //virtual float ThumbWorldSize(Canvas& canvas, float width) const;
+    // virtual float ThumbWorldSize(Canvas& canvas, float width) const;
 
 private:
     IKnobCB* m_pCB = nullptr;
+    bool m_mini = false;
     KnobValue m_value;
 };
 

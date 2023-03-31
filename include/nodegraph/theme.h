@@ -66,6 +66,22 @@ DECLARE_SETTING_VALUE(c_sliderTipCenterColor);
 DECLARE_SETTING_VALUE(c_sliderTipShadowColor);
 DECLARE_SETTING_VALUE(c_sliderTipFontColor);
 
+DECLARE_SETTING_VALUE(c_labelColor);
+DECLARE_SETTING_VALUE(c_knobChannelColor);
+DECLARE_SETTING_VALUE(c_knobShadowColor);
+DECLARE_SETTING_VALUE(c_knobChannelHLColor);
+DECLARE_SETTING_VALUE(c_knobMarkColor);
+DECLARE_SETTING_VALUE(c_knobMarkHLColor);
+DECLARE_SETTING_VALUE(c_knobFillColor);
+DECLARE_SETTING_VALUE(c_knobFillHLColor);
+DECLARE_SETTING_VALUE(c_knobTextColor);
+
+DECLARE_SETTING_VALUE(s_knobChannelWidth);
+DECLARE_SETTING_VALUE(s_knobChannelGap);
+DECLARE_SETTING_VALUE(s_knobShadowSize);
+DECLARE_SETTING_VALUE(s_knobTextSize);
+DECLARE_SETTING_VALUE(s_knobTextInset);
+
 DECLARE_SETTING_VALUE(b_debugShowLayout);
 
 } // namespace Nodegraph
