@@ -1,16 +1,18 @@
-#pragma warning(disable: 4005)
+#pragma warning(disable : 4005)
 #include <nodegraph/imgui_glm.h>
-#include <imgui_impl_sdl.h>
+
+#include <imgui_impl_sdl2.h>
 #include <imgui_impl_vulkan.h>
-#pragma warning(default: 4005)
-#include <stdio.h>          // printf, fprintf
-#include <stdlib.h>         // abort
+#include <nodegraph/imgui_glm.h>
+#pragma warning(default : 4005)
 #include <SDL.h>
 #include <SDL_vulkan.h>
+#include <stdio.h> // printf, fprintf
+#include <stdlib.h> // abort
 #include <vulkan/vulkan.h>
 
-#include <filesystem>
 #include "config_app.h"
+#include <filesystem>
 #include <fmt/format.h>
 
 #include "demo.h"
@@ -22,24 +24,24 @@
 namespace fs = std::filesystem;
 using namespace NodeGraph;
 
-//#define IMGUI_UNLIMITED_FRAME_RATE
+// #define IMGUI_UNLIMITED_FRAME_RATE
 #ifdef _DEBUG
 #define IMGUI_VULKAN_DEBUG_REPORT
 #endif
 
-static VkAllocationCallbacks*   g_Allocator = NULL;
-static VkInstance               g_Instance = VK_NULL_HANDLE;
-static VkPhysicalDevice         g_PhysicalDevice = VK_NULL_HANDLE;
-static VkDevice                 g_Device = VK_NULL_HANDLE;
-static uint32_t                 g_QueueFamily = (uint32_t)-1;
-static VkQueue                  g_Queue = VK_NULL_HANDLE;
+static VkAllocationCallbacks* g_Allocator = NULL;
+static VkInstance g_Instance = VK_NULL_HANDLE;
+static VkPhysicalDevice g_PhysicalDevice = VK_NULL_HANDLE;
+static VkDevice g_Device = VK_NULL_HANDLE;
+static uint32_t g_QueueFamily = (uint32_t)-1;
+static VkQueue g_Queue = VK_NULL_HANDLE;
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
-static VkPipelineCache          g_PipelineCache = VK_NULL_HANDLE;
-static VkDescriptorPool         g_DescriptorPool = VK_NULL_HANDLE;
+static VkPipelineCache g_PipelineCache = VK_NULL_HANDLE;
+static VkDescriptorPool g_DescriptorPool = VK_NULL_HANDLE;
 
 static ImGui_ImplVulkanH_Window g_MainWindowData;
-static uint32_t                 g_MinImageCount = 2;
-static bool                     g_SwapChainRebuild = false;
+static uint32_t g_MinImageCount = 2;
+static bool g_SwapChainRebuild = false;
 
 std::shared_ptr<NodeGraph::VulkanImGuiTexture> g_pFontTexture;
 
@@ -65,7 +67,12 @@ static void check_vk_result(VkResult err)
 #ifdef IMGUI_VULKAN_DEBUG_REPORT
 static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
 {
-    (void)flags; (void)object; (void)location; (void)messageCode; (void)pUserData; (void)pLayerPrefix; // Unused arguments
+    (void)flags;
+    (void)object;
+    (void)location;
+    (void)messageCode;
+    (void)pUserData;
+    (void)pLayerPrefix; // Unused arguments
     fprintf(stderr, "[vulkan] Debug report from ObjectType: %i\nMessage: %s\n\n", objectType, pMessage);
     return VK_FALSE;
 }
@@ -188,8 +195,7 @@ static void SetupVulkan(const char** extensions, uint32_t extensions_count)
 
     // Create Descriptor Pool
     {
-        VkDescriptorPoolSize pool_sizes[] =
-        {
+        VkDescriptorPoolSize pool_sizes[] = {
             { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
             { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
@@ -240,7 +246,7 @@ static void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface
     VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
 #endif
     wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(g_PhysicalDevice, wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
-    //printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
+    // printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
 
     // Create SwapChain, RenderPass, Framebuffer, etc.
     IM_ASSERT(g_MinImageCount >= 2);
@@ -270,7 +276,7 @@ static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
 {
     VkResult err;
 
-    VkSemaphore image_acquired_semaphore  = wd->FrameSemaphores[wd->SemaphoreIndex].ImageAcquiredSemaphore;
+    VkSemaphore image_acquired_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].ImageAcquiredSemaphore;
     VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
     err = vkAcquireNextImageKHR(g_Device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
     if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
@@ -282,7 +288,7 @@ static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
 
     ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
     {
-        err = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
+        err = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX); // wait indefinitely instead of periodically checking
         check_vk_result(err);
 
         err = vkResetFences(g_Device, 1, &fd->Fence);
@@ -367,7 +373,7 @@ int main(int, char**)
 
     auto& settings = GlobalSettingManager::Instance();
 
-   settings.Load(fs::path(NODEGRAPH_ROOT) / "settings.toml");
+    settings.Load(fs::path(NODEGRAPH_ROOT) / "settings.toml");
 
     auto windowSize = settings.GetVec2f(s_windowSize);
     if (windowSize.x == 0 || windowSize.y == 0)
@@ -417,16 +423,17 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
+    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
+    // ImGui::StyleColorsClassic();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
@@ -456,16 +463,16 @@ int main(int, char**)
     // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
     // - Read 'docs/FONTS.md' for more instructions and details.
     // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != NULL);
+    // io.Fonts->AddFontDefault();
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
+    // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+    // IM_ASSERT(font != NULL);
 
     // Note: Adjust font size as appropriate!
-	auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
+    auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
     io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), 26);
 
     // Upload Fonts
@@ -583,7 +590,6 @@ int main(int, char**)
         if (!main_is_minimized)
             FramePresent(wd);
     }
-
 
     // Cleanup
     err = vkDeviceWaitIdle(g_Device);
