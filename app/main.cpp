@@ -1,544 +1,617 @@
+#pragma warning(disable : 4005)
+#include <nodegraph/imgui_glm.h>
 
-#include <mutils/math/imgui_glm.h>
-#include <mutils/math/math_utils.h>
-#include <mutils/ui/fbo.h>
-#include <mutils/ui/sdl_imgui_starter.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_vulkan.h>
+#include <nodegraph/imgui_glm.h>
+#pragma warning(default : 4005)
+#include <SDL.h>
+#include <SDL_vulkan.h>
+#include <stdio.h> // printf, fprintf
+#include <stdlib.h> // abort
+#include <vulkan/vulkan.h>
 
 #include "config_app.h"
-#include <nodegraph/model/graph.h>
-#include <nodegraph/view/canvas_imgui.h>
-#include <nodegraph/view/canvas_vg.h>
-#include <nodegraph/view/graphview.h>
-#include <nodegraph/view/node_layout.h>
+#include <filesystem>
+#include <fmt/format.h>
 
-#include <yoga/Yoga.h>
+#include "demo.h"
 
-#include <GL/gl3w.h>
+#include <nodegraph/logger/logger.h>
+#include <nodegraph/setting.h>
+#include <nodegraph/vulkan/vulkan_imgui_texture.h>
 
-#define USE_VG
-#ifdef USE_VG
-#include <nanovg.h>
-#define NANOVG_GL3_IMPLEMENTATION
-#include <nanovg_gl.h>
-#endif
-
-using namespace MUtils;
+namespace fs = std::filesystem;
 using namespace NodeGraph;
 
-namespace {
-bool singleView = true;
-}
+// #define IMGUI_UNLIMITED_FRAME_RATE
+#ifdef _DEBUG
+#define IMGUI_VULKAN_DEBUG_REPORT
+#endif
+
+static VkAllocationCallbacks* g_Allocator = NULL;
+static VkInstance g_Instance = VK_NULL_HANDLE;
+static VkPhysicalDevice g_PhysicalDevice = VK_NULL_HANDLE;
+static VkDevice g_Device = VK_NULL_HANDLE;
+static uint32_t g_QueueFamily = (uint32_t)-1;
+static VkQueue g_Queue = VK_NULL_HANDLE;
+static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
+static VkPipelineCache g_PipelineCache = VK_NULL_HANDLE;
+static VkDescriptorPool g_DescriptorPool = VK_NULL_HANDLE;
+
+static ImGui_ImplVulkanH_Window g_MainWindowData;
+static uint32_t g_MinImageCount = 2;
+static bool g_SwapChainRebuild = false;
+
+std::shared_ptr<NodeGraph::VulkanImGuiTexture> g_pFontTexture;
+
+namespace NodeGraph {
 #undef ERROR
-class TestNode : public Node
-{
-public:
-    DECLARE_NODE(TestNode, test);
-
-    explicit TestNode(Graph& graph)
-        : Node(graph, "UI Test")
-    {
-        m_flags = NodeFlags::OwnerDraw;
-
-        pSum = AddOutput("Sumf", .0f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
-        pSum->GetAttributes().flags |= ParameterFlags::ReadOnly;
-
-        pValue2 = AddInput("0-1000f", 5.0f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1000.0f));
-        pValue2->GetAttributes().taper = 2;
-
-        pValue10 = AddInput("2048-4800", (int64_t)48000, ParameterAttributes(ParameterUI::Knob, (int64_t)2048, (int64_t)48000));
-        pValue10->GetAttributes().taper = 4.6f;
-        pValue10->GetAttributes().postFix = "Hz";
-
-        pValue3 = AddInput("-1->+1f", .001f, ParameterAttributes(ParameterUI::Knob, -1.0f, 1.0f));
-
-        pValue4 = AddInput("-10->+1f", .001f, ParameterAttributes(ParameterUI::Knob, -10.0f, 1.0f));
-
-        pValue5 = AddInput("Small", (int64_t)-10, ParameterAttributes(ParameterUI::Knob, (int64_t)-10, (int64_t)10));
-
-        pValue6 = AddInput("-10->10is", (int64_t)-10, ParameterAttributes(ParameterUI::Knob, (int64_t)-10, (int64_t)10));
-        pValue6->GetAttributes().step = (int64_t)4;
-
-        pValue7 = AddInput("0->1000ie", (int64_t)0, ParameterAttributes(ParameterUI::Knob, (int64_t)0, (int64_t)1000));
-        pValue7->GetAttributes().postFix = "dB";
-
-        pValue8 = AddInput("0->1%", 0.0f, ParameterAttributes(ParameterUI::Knob, (float)0.0f, (float)1.0f));
-        pValue8->GetAttributes().displayType = ParameterDisplayType::Percentage;
-
-        pSlider = AddInput("Variable A", 0.5f);
-        pButton = AddInput("Button", (int64_t)0);
-
-        pIntSlider = AddInput("Foobar 1,3,3", (int64_t)0);
-        pValue1 = AddInput("0-111f", .5f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1.0f));
-        pValue9 = AddInput("0-1f", .5f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1.0f));
-
-        ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
-        sliderAttrib.step = 0.25f;
-        sliderAttrib.thumb = 0.25f;
-        pSlider->SetAttributes(sliderAttrib);
-
-        ParameterAttributes sliderIntAttrib(ParameterUI::Slider, (int64_t)0, (int64_t)3);
-        sliderIntAttrib.step = (int64_t)1;
-        sliderIntAttrib.thumb = 1 / 4.0f;
-        pIntSlider->SetAttributes(sliderIntAttrib);
-
-        ParameterAttributes buttonAttrib(ParameterUI::Button, -1ll, 3ll);
-        buttonAttrib.labels = { "A", "B", "C" };
-        pButton->SetAttributes(buttonAttrib);
-
-        auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "Label"));
-        pDecorator->gridLocation = NRectf(6, 1, 1, 1);
-
-        const NVec2f KnobWidgetSize(70.0f, 90.0f);
-
-        auto pHLayout1 = new MUtils::HLayout();
-        pHLayout1->SetMargin(NVec4f(10.0f)); // Margin between controls
-        GetLayout().spContents->AddItem(pHLayout1);
-        pHLayout1->AddItem(pValue1, KnobWidgetSize);
-        pHLayout1->AddItem(pValue2, KnobWidgetSize);
-        pHLayout1->AddItem(pValue3, KnobWidgetSize);
-        pHLayout1->AddItem(pValue4, KnobWidgetSize);
-        pHLayout1->AddItem(pValue5, KnobWidgetSize);
-        pHLayout1->AddItem(pValue6, KnobWidgetSize);
-
-        auto pHLayout2 = new MUtils::HLayout();
-        GetLayout().spContents->AddItem(pHLayout2);
-        pHLayout2->AddItem(pValue7, KnobWidgetSize); // Set the height
-        pHLayout2->AddItem(pValue8, KnobWidgetSize);
-        pHLayout2->AddItem(pValue9, KnobWidgetSize);
-
-        auto pVLayout3 = new MUtils::VLayout();
-        pVLayout3->AddItem(pValue10, NVec2f(KnobWidgetSize.x, 0.0f));
-        pVLayout3->AddItem(pSum, NVec2f(KnobWidgetSize.x, 0.0f));
-
-        pHLayout2->AddItem(pVLayout3, KnobWidgetSize);
-        pHLayout2->AddItem(pButton, NVec2f(0.0f));
-
-        GetLayout().spRoot->UpdateLayout();
-    }
-
-    virtual void Compute() override
-    {
-        if (pSum)
-            pSum->Set(pValue1->To<float>() + pValue9->To<float>());
-    }
-
-    Pin* pSum = nullptr;
-    Pin* pValue1 = nullptr;
-    Pin* pValue2 = nullptr;
-    Pin* pValue3 = nullptr;
-    Pin* pValue4 = nullptr;
-    Pin* pValue5 = nullptr;
-    Pin* pValue6 = nullptr;
-    Pin* pValue7 = nullptr;
-    Pin* pValue8 = nullptr;
-    Pin* pValue9 = nullptr;
-    Pin* pValue10 = nullptr;
-    Pin* pButton = nullptr;
-    Pin* pSlider = nullptr;
-    Pin* pIntSlider = nullptr;
-};
-
-class TestDrawNode : public Node
-{
-public:
-    DECLARE_NODE(TestDrawNode, test);
-
-    explicit TestDrawNode(Graph& graph)
-        : Node(graph, "Test Draw")
-    {
-        m_flags |= NodeFlags::OwnerDraw;
-
-        pSum = AddOutput("Sumf", .5f, ParameterAttributes(ParameterUI::Knob, 0.0f, 1.0f));
-
-        pValue1 = AddInput("0-1000f", 5.0f, ParameterAttributes(ParameterUI::Knob, 0.01f, 1000.0f));
-        pValue1->GetAttributes().taper = 2;
-
-        pValue2 = AddInput("Foobar1", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        pValue2->GetAttributes().step = 0.25f;
-
-        pValue3 = AddInput("Amp", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        pValue3->GetAttributes().step = 0.01f;
-        pValue3->GetAttributes().taper = 4;
-
-        pValue4 = AddInput("Noise", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        pValue4->GetAttributes().step = 0.25f;
-
-        pValue5 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        pValue5->GetAttributes().step = 0.25f;
-        // ParameterAttributes sliderAttrib(ParameterUI::Slider, 0.0f, 1.0f);
-        pValue6 = AddInput("Slider", 0.5f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        pValue6->GetAttributes().step = 0.25f;
-        // sliderAttrib.step = 0.25f;
-        // sliderAttrib.thumb = 0.25f;
-        // pValue2->SetAttributes(sliderAttrib);
-
-        auto pLayout = new MUtils::HLayout();
-        GetLayout().spContents->AddItem(pLayout);
-
-        pLayout->AddItem(pSum, NVec2f(50.0f, 50.0f));
-        pLayout->AddItem(pValue1, NVec2f(100.0f, 100.0f));
-        // pLayout->AddItem(pValue2, NVec2f(200.0f, 200.0f));
-
-        auto pSliderLayout = new MUtils::VLayout();
-        pSliderLayout->SetMargin(NVec4f(1.0f));
-        pLayout->AddItem(pSliderLayout);
-        pSliderLayout->AddItem(pValue3, NVec2f(200.0f, 30.0f));
-        pSliderLayout->AddItem(pValue4, NVec2f(200.0f, 30.0f));
-        pSliderLayout->AddItem(pValue5, NVec2f(200.0f, 30.0f));
-        pSliderLayout->AddItem(pValue6, NVec2f(200.0f, 30.0f));
-
-        GetLayout().spRoot->UpdateLayout();
-    }
-
-    virtual void Compute() override
-    {
-    }
-
-    Pin* pSum = nullptr;
-    Pin* pValue1 = nullptr;
-    Pin* pValue2 = nullptr;
-    Pin* pValue3 = nullptr;
-    Pin* pValue4 = nullptr;
-    Pin* pValue5 = nullptr;
-    Pin* pValue6 = nullptr;
-    std::shared_ptr<NodeLayout> m_spNodeLayout;
-};
-
-class NumberNode : public Node
-{
-public:
-    DECLARE_NODE(NumberNode, test);
-
-    explicit NumberNode(Graph& graph)
-        : Node(graph, "Number")
-    {
-        m_flags |= NodeFlags::OwnerDraw;
-
-        pNumber = AddInput("Number", 1.0f, ParameterAttributes(ParameterUI::Slider, -1.0f, 1.0f));
-        pNumber->GetAttributes().step = 0.01f;
-
-        pOutput = AddOutputFlow("Output", new FlowData(FlowType_Data, ParameterType::Float));
-
-        auto pLayout = new MUtils::HLayout();
-        GetLayout().spContents->AddItem(pLayout);
-
-        pLayout->AddItem(pNumber, NVec2f(200.0f, 30.0f));
-        GetLayout().spRoot->UpdateLayout();
-    }
-
-    virtual void Compute() override
-    {
-        pOutput->GetFlowData()->From(*pNumber);
-    }
-
-    Pin* pNumber = nullptr;
-    Pin* pOutput = nullptr;
-    std::shared_ptr<NodeLayout> m_spNodeLayout;
-};
-
-class SinNode : public Node
-{
-public:
-    DECLARE_NODE(SinNode, test);
-
-    explicit SinNode(Graph& graph)
-        : Node(graph, "Sin")
-    {
-        m_flags |= NodeFlags::OwnerDraw;
-
-        pAmp = AddInput("Amp", 1.0f, ParameterAttributes(ParameterUI::Slider, 0.0f, 1.0f));
-        pAmp->GetAttributes().step = 0.01f;
-
-        pFreq = AddInput("Freq", 1.0f, ParameterAttributes(ParameterUI::Slider, 1.0f, 10.0f));
-        pFreq->GetAttributes().step = 0.1f;
-
-        pOutput = AddOutputFlow("Sin", new FlowData(FlowType_Data, ParameterType::Float));
-
-        auto pLayout = new MUtils::VLayout();
-        GetLayout().spContents->AddItem(pLayout);
-
-        pLayout->AddItem(pAmp, NVec2f(200.0f, 30.0f));
-        pLayout->AddItem(pFreq, NVec2f(200.0f, 30.0f));
-        GetLayout().spRoot->UpdateLayout();
-    }
-
-    virtual void Compute() override
-    {
-        pOutput->GetFlowData()->From(pAmp->To<float>() * (float)sin(pFreq->To<float>() * timer_get_elapsed_seconds(myTimer)));
-    }
-
-    MUtils::timer myTimer;
-    Pin* pFreq = nullptr;
-    Pin* pAmp = nullptr;
-    Pin* pOutput = nullptr;
-    std::shared_ptr<NodeLayout> m_spNodeLayout;
-};
-class SumNode : public Node
-{
-public:
-    DECLARE_NODE(SumNode, test);
-
-    explicit SumNode(Graph& graph)
-        : Node(graph, "Add")
-    {
-        m_flags |= NodeFlags::OwnerDraw;
-
-        pInput = AddInputFlow("Input", new FlowData(FlowType_Data, ParameterType::Float));
-        pSum = AddOutputFlow("Sum", new FlowData(FlowType_Data, ParameterType::Float));
-
-        auto pLayout = new MUtils::HLayout();
-        GetLayout().spContents->AddItem(pLayout);
-
-        // pLayout->AddItem(pNumber, NVec2f(200.0f, 30.0f));
-        GetLayout().spRoot->UpdateLayout();
-    }
-
-    virtual void Compute() override
-    {
-    }
-
-    Pin* pInput = nullptr;
-    Pin* pSum = nullptr;
-    std::shared_ptr<NodeLayout> m_spNodeLayout;
-};
-
-std::set<Node*> appNodes;
-
-struct GraphData
-{
-    GraphData(NodeGraph::Graph* pGraph, std::shared_ptr<Canvas> spCanvas)
-        : spGraphView(std::make_shared<GraphView>(pGraph, spCanvas))
-    {
-    }
-
-    std::shared_ptr<NodeGraph::GraphView> spGraphView;
-    MUtils::Fbo fbo;
-};
-
-class App : public IAppStarterClient
-{
-public:
-    App()
-    {
-        m_settings.flags |= AppStarterFlags::DockingEnable | AppStarterFlags::RefreshOnEvents; ///*AppStarterFlags::ShowDemoWindow | AppStarterFlags::RefreshOnEvents*/
-        m_settings.startSize = NVec2i(1680, 1000);
-        m_settings.clearColor = NVec4f(.2f, .2f, .2f, 1.0f);
-        m_settings.appName = "NodeGraph Test";
-    }
-
-    // Inherited via IAppStarterClient
-    virtual fs::path GetRootPath() const override
-    {
-        return fs::path(NODEGRAPH_ROOT);
-    }
-
-    virtual void AddFonts(float size_pixels, const ImFontConfig* pConfig, const ImWchar* pRanges) override
-    {
-        auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
-        m_pCanvasFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.string().c_str(), size_pixels, pConfig, pRanges);
-    }
-
-    virtual void InitBeforeDraw() override
-    {
-        GraphView::Init();
-    }
-    virtual void InitDuringDraw() override
-    {
-
-        m_spGraphA = std::make_shared<Graph>();
-        m_spGraphB = std::make_shared<Graph>();
-
-#ifdef USE_VG
-        auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
-        vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-        nvgCreateFont(vg, "sans", fontPath.string().c_str());
-        auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasVG>(vg));
-        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasVG>(vg));
+#ifdef _DEBUG
+Logger logger = { true, LT::DBG };
 #else
-        auto spGraphA = std::make_shared<GraphData>(m_spGraphA.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
-        auto spGraphB = std::make_shared<GraphData>(m_spGraphB.get(), std::make_shared<CanvasImGui>(m_pCanvasFont));
+Logger logger = { true, LT::INFO };
 #endif
+bool Log::disabled = false;
+}
 
-        auto fillGraph = [&](std::shared_ptr<GraphData> graphData, const std::string& name) {
-            auto pGraph = graphData->spGraphView->GetGraph();
-            pGraph->SetName(name);
-            auto pTestNode = pGraph->CreateNode<TestNode>();
-            auto pDrawNode = pGraph->CreateNode<TestDrawNode>();
-            auto pNumberNode1 = pGraph->CreateNode<NumberNode>();
-            auto pSinNode = pGraph->CreateNode<SinNode>();
-            auto pSum = pGraph->CreateNode<SumNode>();
+static void check_vk_result(VkResult err)
+{
+    if (err == 0)
+        return;
+    fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+    if (err < 0)
+        abort();
+}
 
-            pTestNode->SetPos(NVec2f(50.0f, 10.0f));
-            pDrawNode->SetPos(NVec2f(650.0f, 10.0f));
-            pNumberNode1->SetPos(NVec2f(400.0f, 250.0f));
-            pSinNode->SetPos(NVec2f(500.0f, 250.0f));
-            pSum->SetPos(NVec2f(450.0f, 400.0f));
+#ifdef IMGUI_VULKAN_DEBUG_REPORT
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
+{
+    (void)flags;
+    (void)object;
+    (void)location;
+    (void)messageCode;
+    (void)pUserData;
+    (void)pLayerPrefix; // Unused arguments
+    fprintf(stderr, "[vulkan] Debug report from ObjectType: %i\nMessage: %s\n\n", objectType, pMessage);
+    return VK_FALSE;
+}
+#endif // IMGUI_VULKAN_DEBUG_REPORT
 
-            pNumberNode1->ConnectTo(pSum, "Output", "Input");
-            pSinNode->ConnectTo(pNumberNode1, "Sin", "Number");
-            // pNumberNode2->ConnectTo(pSum, "Number", "Input");
-            for (auto pNode : pGraph->GetNodes())
+static void SetupVulkan(const char** extensions, uint32_t extensions_count)
+{
+    VkResult err;
+
+    // Create Vulkan Instance
+    {
+        VkInstanceCreateInfo create_info = {};
+        create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        create_info.enabledExtensionCount = extensions_count;
+        create_info.ppEnabledExtensionNames = extensions;
+#ifdef IMGUI_VULKAN_DEBUG_REPORT
+        // Enabling validation layers
+        const char* layers[] = { "VK_LAYER_KHRONOS_validation" };
+        create_info.enabledLayerCount = 1;
+        create_info.ppEnabledLayerNames = layers;
+
+        // Enable debug report extension (we need additional storage, so we duplicate the user array to add our new extension to it)
+        const char** extensions_ext = (const char**)malloc(sizeof(const char*) * (extensions_count + 1));
+        memcpy(extensions_ext, extensions, extensions_count * sizeof(const char*));
+        extensions_ext[extensions_count] = "VK_EXT_debug_report";
+        create_info.enabledExtensionCount = extensions_count + 1;
+        create_info.ppEnabledExtensionNames = extensions_ext;
+
+        // Create Vulkan Instance
+        err = vkCreateInstance(&create_info, g_Allocator, &g_Instance);
+        check_vk_result(err);
+        free(extensions_ext);
+
+        // Get the function pointer (required for any extensions)
+        auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(g_Instance, "vkCreateDebugReportCallbackEXT");
+        IM_ASSERT(vkCreateDebugReportCallbackEXT != NULL);
+
+        // Setup the debug report callback
+        VkDebugReportCallbackCreateInfoEXT debug_report_ci = {};
+        debug_report_ci.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+        debug_report_ci.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        debug_report_ci.pfnCallback = debug_report;
+        debug_report_ci.pUserData = NULL;
+        err = vkCreateDebugReportCallbackEXT(g_Instance, &debug_report_ci, g_Allocator, &g_DebugReport);
+        check_vk_result(err);
+#else
+        // Create Vulkan Instance without any debug feature
+        err = vkCreateInstance(&create_info, g_Allocator, &g_Instance);
+        check_vk_result(err);
+        IM_UNUSED(g_DebugReport);
+#endif
+    }
+
+    // Select GPU
+    {
+        uint32_t gpu_count;
+        err = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, NULL);
+        check_vk_result(err);
+        IM_ASSERT(gpu_count > 0);
+
+        VkPhysicalDevice* gpus = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * gpu_count);
+        err = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, gpus);
+        check_vk_result(err);
+
+        // If a number >1 of GPUs got reported, find discrete GPU if present, or use first one available. This covers
+        // most common cases (multi-gpu/integrated+dedicated graphics). Handling more complicated setups (multiple
+        // dedicated GPUs) is out of scope of this sample.
+        int use_gpu = 0;
+        for (int i = 0; i < (int)gpu_count; i++)
+        {
+            VkPhysicalDeviceProperties properties;
+            vkGetPhysicalDeviceProperties(gpus[i], &properties);
+            if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             {
-                appNodes.insert(pNode);
-            }
-            m_graphs.push_back(graphData);
-        };
-
-        fillGraph(spGraphA, "Graph A");
-        // fillGraph(spGraphB, "Graph B");
-    }
-
-    virtual void Update(float time, const NVec2i& displaySize) override
-    {
-        /*
-        m_settings.flags &= ~AppStarterFlags::HideCursor;
-        if (m_spGraphView)
-        {
-            if (m_spGraphView->HideCursor())
-            {
-                m_settings.flags |= AppStarterFlags::HideCursor;
-            }
-        }
-        */
-    }
-
-    virtual void Destroy() override
-    {
-        for (auto& spGraphData : m_graphs)
-        {
-            fbo_destroy(spGraphData->fbo);
-        }
-    }
-
-    virtual void Draw(const NVec2i& displaySize) override
-    {
-    }
-
-    void DrawGraph(GraphData& graphData)
-    {
-#ifdef USE_VG
-        if (graphData.fbo.fbo == 0)
-        {
-            graphData.fbo = fbo_create();
-        }
-        fbo_resize(graphData.fbo, graphData.spGraphView->GetCanvas()->GetPixelRect().Size());
-
-        fbo_bind(graphData.fbo);
-
-        // fbo_clear(m_settings.clearColor);
-#endif
-
-        graphData.spGraphView->Show(m_settings.clearColor);
-        graphData.spGraphView->GetGraph()->Compute(appNodes, 0);
-
-#ifdef USE_VG
-        fbo_unbind(graphData.fbo, m_displaySize);
-#endif
-    }
-
-    void BeginCanvas(Canvas& canvas, const NRectf& region)
-    {
-        canvas.SetPixelRect(NRectf(0.0f, 0.0f, region.Width(), region.Height()));
-
-        canvas_imgui_update_state(canvas, region, singleView);
-    }
-
-    void EndCanvas(Canvas& canvas)
-    {
-        canvas.HandleMouse();
-    }
-
-    virtual void DrawGUI(const NVec2i& displaySize) override
-    {
-        static bool p_open = true;
-        m_displaySize = displaySize;
-
-        static const bool opt_fullscreen = true;
-        static const bool opt_padding = false;
-
-        bool captured = false;
-        for (auto& spGraphData : m_graphs)
-        {
-            if (singleView)
-            {
-                auto list = ImGui::GetBackgroundDrawList();
-                ImVec2 pos = ImGui::GetWindowPos();
-                NRectf region = NRectf(0.0f, 0.0f, list->GetClipRectMax().x - list->GetClipRectMin().x, list->GetClipRectMax().y - list->GetClipRectMin().y);
-
-                ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(region.topLeftPx.x, region.topLeftPx.y), ImVec2(region.bottomRightPx.x, region.bottomRightPx.y), ImColor(.6f, .2f, .2f, 1.0f));
-
-                BeginCanvas(*spGraphData->spGraphView->GetCanvas(), region);
-
-                DrawGraph(*spGraphData);
-
-                EndCanvas(*spGraphData->spGraphView->GetCanvas());
-
-                if (spGraphData->spGraphView->GetCanvas()->GetInputState().captureState != CaptureState::None)
-                {
-                    captured = true;
-                }
-
-#ifdef USE_VG
-                ImGui::GetBackgroundDrawList()->AddImage(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.topLeftPx.x, region.topLeftPx.y), ImVec2(region.bottomRightPx.x, region.bottomRightPx.y), ImVec2(0, 1), ImVec2(1, 0));
-#endif
-                // Only the first graph
+                use_gpu = i;
                 break;
             }
-            else
+        }
+
+        g_PhysicalDevice = gpus[use_gpu];
+        free(gpus);
+    }
+
+    // Select graphics queue family
+    {
+        uint32_t count;
+        vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, NULL);
+        VkQueueFamilyProperties* queues = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * count);
+        vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, queues);
+        for (uint32_t i = 0; i < count; i++)
+            if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
-                if (ImGui::Begin(spGraphData->spGraphView->GetGraph()->Name().c_str()))
-                {
-                    ImVec2 pos = ImGui::GetCursorScreenPos();
-                    NRectf region = NRectf(pos.x, pos.y, ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+                g_QueueFamily = i;
+                break;
+            }
+        free(queues);
+        IM_ASSERT(g_QueueFamily != (uint32_t)-1);
+    }
 
-                    ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + region.Width(), pos.y + region.Height()), ImColor(.2f, .2f, .2f, 1.0f));
+    // Create Logical Device (with 1 queue)
+    {
+        int device_extension_count = 1;
+        const char* device_extensions[] = { "VK_KHR_swapchain" };
+        const float queue_priority[] = { 1.0f };
+        VkDeviceQueueCreateInfo queue_info[1] = {};
+        queue_info[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_info[0].queueFamilyIndex = g_QueueFamily;
+        queue_info[0].queueCount = 1;
+        queue_info[0].pQueuePriorities = queue_priority;
+        VkDeviceCreateInfo create_info = {};
+        create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        create_info.queueCreateInfoCount = sizeof(queue_info) / sizeof(queue_info[0]);
+        create_info.pQueueCreateInfos = queue_info;
+        create_info.enabledExtensionCount = device_extension_count;
+        create_info.ppEnabledExtensionNames = device_extensions;
+        err = vkCreateDevice(g_PhysicalDevice, &create_info, g_Allocator, &g_Device);
+        check_vk_result(err);
+        vkGetDeviceQueue(g_Device, g_QueueFamily, 0, &g_Queue);
+    }
 
-                    BeginCanvas(*spGraphData->spGraphView->GetCanvas(), region);
+    // Create Descriptor Pool
+    {
+        VkDescriptorPoolSize pool_sizes[] = {
+            { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+            { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+        };
+        VkDescriptorPoolCreateInfo pool_info = {};
+        pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
+        pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
+        pool_info.pPoolSizes = pool_sizes;
+        err = vkCreateDescriptorPool(g_Device, &pool_info, g_Allocator, &g_DescriptorPool);
+        check_vk_result(err);
+    }
+}
 
-                    DrawGraph(*spGraphData);
+// All the ImGui_ImplVulkanH_XXX structures/functions are optional helpers used by the demo.
+// Your real engine/app may not use them.
+static void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
+{
+    wd->Surface = surface;
 
-                    EndCanvas(*spGraphData->spGraphView->GetCanvas());
+    // Check for WSI support
+    VkBool32 res;
+    vkGetPhysicalDeviceSurfaceSupportKHR(g_PhysicalDevice, g_QueueFamily, wd->Surface, &res);
+    if (res != VK_TRUE)
+    {
+        fprintf(stderr, "Error no WSI support on physical device 0\n");
+        exit(-1);
+    }
 
-                    if (spGraphData->spGraphView->GetCanvas()->GetInputState().captureState != CaptureState::None)
-                    {
-                        captured = true;
-                    }
+    // Select Surface Format
+    const VkFormat requestSurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
+    const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+    wd->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(g_PhysicalDevice, wd->Surface, requestSurfaceImageFormat, (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
 
-#ifdef USE_VG
-                    ImGui::Image(*(ImTextureID*)&spGraphData->fbo.texture, ImVec2(region.Width(), region.Height()), ImVec2(0, 1), ImVec2(1, 0));
+    // Select Present Mode
+#ifdef IMGUI_UNLIMITED_FRAME_RATE
+    VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
+#else
+    VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
 #endif
-                }
-                ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
-                ImGui::PopStyleVar(1);
-                ImGui::End();
+    wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(g_PhysicalDevice, wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
+    // printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
+
+    // Create SwapChain, RenderPass, Framebuffer, etc.
+    IM_ASSERT(g_MinImageCount >= 2);
+    ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd, g_QueueFamily, g_Allocator, width, height, g_MinImageCount);
+}
+
+static void CleanupVulkan()
+{
+    vkDestroyDescriptorPool(g_Device, g_DescriptorPool, g_Allocator);
+
+#ifdef IMGUI_VULKAN_DEBUG_REPORT
+    // Remove the debug report callback
+    auto vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(g_Instance, "vkDestroyDebugReportCallbackEXT");
+    vkDestroyDebugReportCallbackEXT(g_Instance, g_DebugReport, g_Allocator);
+#endif // IMGUI_VULKAN_DEBUG_REPORT
+
+    vkDestroyDevice(g_Device, g_Allocator);
+    vkDestroyInstance(g_Instance, g_Allocator);
+}
+
+static void CleanupVulkanWindow()
+{
+    ImGui_ImplVulkanH_DestroyWindow(g_Instance, g_Device, &g_MainWindowData, g_Allocator);
+}
+
+static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
+{
+    VkResult err;
+
+    VkSemaphore image_acquired_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].ImageAcquiredSemaphore;
+    VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
+    err = vkAcquireNextImageKHR(g_Device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
+    if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+    {
+        g_SwapChainRebuild = true;
+        return;
+    }
+    check_vk_result(err);
+
+    ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
+    {
+        err = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX); // wait indefinitely instead of periodically checking
+        check_vk_result(err);
+
+        err = vkResetFences(g_Device, 1, &fd->Fence);
+        check_vk_result(err);
+    }
+    {
+        err = vkResetCommandPool(g_Device, fd->CommandPool, 0);
+        check_vk_result(err);
+        VkCommandBufferBeginInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        err = vkBeginCommandBuffer(fd->CommandBuffer, &info);
+        check_vk_result(err);
+    }
+    {
+        VkRenderPassBeginInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        info.renderPass = wd->RenderPass;
+        info.framebuffer = fd->Framebuffer;
+        info.renderArea.extent.width = wd->Width;
+        info.renderArea.extent.height = wd->Height;
+        info.clearValueCount = 1;
+        info.pClearValues = &wd->ClearValue;
+        vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    // Record dear imgui primitives into command buffer
+    ImGui_ImplVulkan_RenderDrawData(draw_data, fd->CommandBuffer);
+
+    // Submit command buffer
+    vkCmdEndRenderPass(fd->CommandBuffer);
+    {
+        VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        VkSubmitInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        info.waitSemaphoreCount = 1;
+        info.pWaitSemaphores = &image_acquired_semaphore;
+        info.pWaitDstStageMask = &wait_stage;
+        info.commandBufferCount = 1;
+        info.pCommandBuffers = &fd->CommandBuffer;
+        info.signalSemaphoreCount = 1;
+        info.pSignalSemaphores = &render_complete_semaphore;
+
+        err = vkEndCommandBuffer(fd->CommandBuffer);
+        check_vk_result(err);
+        err = vkQueueSubmit(g_Queue, 1, &info, fd->Fence);
+        check_vk_result(err);
+    }
+}
+
+static void FramePresent(ImGui_ImplVulkanH_Window* wd)
+{
+    if (g_SwapChainRebuild)
+        return;
+    VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
+    VkPresentInfoKHR info = {};
+    info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    info.waitSemaphoreCount = 1;
+    info.pWaitSemaphores = &render_complete_semaphore;
+    info.swapchainCount = 1;
+    info.pSwapchains = &wd->Swapchain;
+    info.pImageIndices = &wd->FrameIndex;
+    VkResult err = vkQueuePresentKHR(g_Queue, &info);
+    if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+    {
+        g_SwapChainRebuild = true;
+        return;
+    }
+    check_vk_result(err);
+    wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores
+}
+
+// A plain old vulkan window.  Just to get an IMGUI surface
+int main(int, char**)
+{
+    // Setup SDL
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+    {
+        printf("Error: %s\n", SDL_GetError());
+        return -1;
+    }
+
+    auto& settings = GlobalSettingManager::Instance();
+
+    settings.Load(fs::path(NODEGRAPH_ROOT) / "settings.toml");
+
+    auto windowSize = settings.GetVec2f(s_windowSize);
+    if (windowSize.x == 0 || windowSize.y == 0)
+    {
+        windowSize.x = 1280;
+        windowSize.y = 720;
+    }
+
+    bool max = settings.GetBool(b_windowMaximized);
+
+    // Setup window
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    if (max)
+    {
+        window_flags = SDL_WindowFlags(window_flags | SDL_WindowFlags::SDL_WINDOW_MAXIMIZED);
+    }
+
+    SDL_Window* window = SDL_CreateWindow("NodeGraph", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, int(windowSize.x), int(windowSize.y), window_flags);
+    if (!window)
+    {
+        printf("%s\n", SDL_GetError());
+    }
+
+    // Setup Vulkan
+    uint32_t extensions_count = 0;
+    SDL_Vulkan_GetInstanceExtensions(window, &extensions_count, NULL);
+    const char** extensions = new const char*[extensions_count];
+    SDL_Vulkan_GetInstanceExtensions(window, &extensions_count, extensions);
+    SetupVulkan(extensions, extensions_count);
+    delete[] extensions;
+
+    // Create Window Surface
+    VkSurfaceKHR surface;
+    VkResult err;
+    if (SDL_Vulkan_CreateSurface(window, g_Instance, &surface) == 0)
+    {
+        printf("Failed to create Vulkan surface.\n");
+        return 1;
+    }
+
+    // Create Framebuffers
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
+    SetupVulkanWindow(wd, surface, w, h);
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
+    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    // ImGui::StyleColorsClassic();
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplSDL2_InitForVulkan(window);
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    init_info.Instance = g_Instance;
+    init_info.PhysicalDevice = g_PhysicalDevice;
+    init_info.Device = g_Device;
+    init_info.QueueFamily = g_QueueFamily;
+    init_info.Queue = g_Queue;
+    init_info.PipelineCache = g_PipelineCache;
+    init_info.DescriptorPool = g_DescriptorPool;
+    init_info.Subpass = 0;
+    init_info.MinImageCount = g_MinImageCount;
+    init_info.ImageCount = wd->ImageCount;
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    init_info.Allocator = g_Allocator;
+    init_info.CheckVkResultFn = check_vk_result;
+    ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
+
+    // Load Fonts
+    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
+    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
+    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
+    // - Read 'docs/FONTS.md' for more instructions and details.
+    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+    // io.Fonts->AddFontDefault();
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
+    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
+    // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+    // IM_ASSERT(font != NULL);
+
+    // Note: Adjust font size as appropriate!
+    auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
+    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), 26);
+
+    // Upload Fonts
+    {
+        // Use any command queue
+        VkCommandPool command_pool = wd->Frames[wd->FrameIndex].CommandPool;
+        VkCommandBuffer command_buffer = wd->Frames[wd->FrameIndex].CommandBuffer;
+
+        err = vkResetCommandPool(g_Device, command_pool, 0);
+        check_vk_result(err);
+        VkCommandBufferBeginInfo begin_info = {};
+        begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        err = vkBeginCommandBuffer(command_buffer, &begin_info);
+        check_vk_result(err);
+
+        ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
+
+        VkSubmitInfo end_info = {};
+        end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        end_info.commandBufferCount = 1;
+        end_info.pCommandBuffers = &command_buffer;
+        err = vkEndCommandBuffer(command_buffer);
+        check_vk_result(err);
+        err = vkQueueSubmit(g_Queue, 1, &end_info, VK_NULL_HANDLE);
+        check_vk_result(err);
+
+        err = vkDeviceWaitIdle(g_Device);
+        check_vk_result(err);
+        ImGui_ImplVulkan_DestroyFontUploadObjects();
+    }
+
+    g_pFontTexture = std::make_shared<NodeGraph::VulkanImGuiTexture>(g_PhysicalDevice, g_Device, g_Queue, g_DescriptorPool);
+
+    // Our state
+    bool show_demo_window = true;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    // Main loop
+    bool done = false;
+    bool demo_init = true;
+    while (!done)
+    {
+        // Poll and handle events (inputs, window resize, etc.)
+        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
+        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
+        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            if (event.type == SDL_QUIT)
+                done = true;
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+                done = true;
+        }
+
+        // Resize swap chain?
+        if (g_SwapChainRebuild)
+        {
+            int width, height;
+            SDL_GetWindowSize(window, &width, &height);
+            if (width > 0 && height > 0)
+            {
+                ImGui_ImplVulkan_SetMinImageCount(g_MinImageCount);
+                ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, &g_MainWindowData, g_QueueFamily, g_Allocator, width, height, g_MinImageCount);
+                g_MainWindowData.FrameIndex = 0;
+                g_SwapChainRebuild = false;
             }
         }
+
+        // Start the Dear ImGui frame
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
+        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
+
+        ImGui::Begin("Font Maps");
+        auto textures = g_pFontTexture->GetTextures();
+        auto pDraw = ImGui::GetWindowDrawList();
+        auto min = pDraw->GetClipRectMin();
+        auto max = pDraw->GetClipRectMax();
+        auto step = (max.y - min.y) / float(textures.size());
+        auto current = min;
+        for (auto i = 0; i < textures.size(); i++)
+        {
+            auto name = fmt::format("FontMap: {}", i);
+            ImGui::GetWindowDrawList()->AddImage((ImTextureID)textures[i], current, ImVec2(max.x, current.y + step));
+            current.y += step;
+        }
+        ImGui::End();
+
+        ImGui::Begin("Canvas");
+        auto winSize = (glm::vec2)ImGui::GetContentRegionAvail();
+        demo_resize(winSize, g_pFontTexture.get());
+        demo_draw();
+        ImGui::End();
+
+        // Rendering
+        ImGui::Render();
+        ImDrawData* main_draw_data = ImGui::GetDrawData();
+        const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
+        wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+        wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+        wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+        wd->ClearValue.color.float32[3] = clear_color.w;
+        if (!main_is_minimized)
+            FrameRender(wd, main_draw_data);
+
+        // Present Main Platform Window
+        if (!main_is_minimized)
+            FramePresent(wd);
     }
 
-    virtual AppStarterSettings&
-    GetSettings() override
-    {
-        return m_settings;
-    }
+    // Cleanup
+    err = vkDeviceWaitIdle(g_Device);
+    check_vk_result(err);
 
-private:
-    std::vector<std::shared_ptr<GraphData>> m_graphs;
-    std::shared_ptr<Graph> m_spGraphA;
-    std::shared_ptr<Graph> m_spGraphB;
+    demo_cleanup();
 
-    AppStarterSettings m_settings;
-    NVGcontext* vg = nullptr;
-    NVec2i m_displaySize = 0;
-    ImFont* m_pCanvasFont = nullptr;
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 
-    CanvasInputState m_canvasInputState;
-};
+    CleanupVulkanWindow();
+    CleanupVulkan();
 
-App theApp;
+    SDL_GetWindowSize(window, &w, &h);
+    settings.Set(s_windowSize, glm::vec2(w, h));
+    settings.Set(b_windowMaximized, bool(SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED));
 
-// Main code
-int main(int args, char** ppArgs)
-{
-    return sdl_imgui_start(args, ppArgs, gsl::not_null<IAppStarterClient*>(&theApp));
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    GlobalSettingManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "settings.toml");
+
+    return 0;
 }

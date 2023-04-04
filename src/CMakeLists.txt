@@ -3,43 +3,49 @@ project(NodeGraph
     VERSION 0.5.0
 )
 
-#set_target_properties(SDL2::SDL2 PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
-#set_target_properties(MUtils::MUtils PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
+find_package(glm CONFIG REQUIRED)
+find_package(Vulkan REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(tomlplusplus CONFIG REQUIRED)
 
-set(NODEGRAPH_MODEL
-    ${NODEGRAPH_ROOT}/src/model/graph.cpp
-    ${NODEGRAPH_ROOT}/src/model/node.cpp
-    ${NODEGRAPH_ROOT}/src/model/pin.cpp
-    ${NODEGRAPH_ROOT}/src/model/parameter.cpp
-
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/graph.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/node.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/pin.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/model/parameter.h
-)
-
-set(NODEGRAPH_VIEW
-    ${NODEGRAPH_ROOT}/src/view/viewnode.cpp
-    ${NODEGRAPH_ROOT}/src/view/graphview.cpp
-    ${NODEGRAPH_ROOT}/src/view/node_layout.cpp
-    ${NODEGRAPH_ROOT}/src/view/canvas.cpp
-    ${NODEGRAPH_ROOT}/src/view/canvas_imgui.cpp
-    ${NODEGRAPH_ROOT}/src/view/canvas_vg.cpp
-    
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_imgui.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/canvas_vg.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/viewnode.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/graphview.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/layout.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/layout_control.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/view/node_layout.h
+set(NODEGRAPH_VULKAN_SOURCE
+    ${NODEGRAPH_ROOT}/src/vulkan/vulkan_imgui_texture.cpp
+    ${NODEGRAPH_ROOT}/include/nodegraph/vulkan/vulkan_imgui_texture.h
 )
 
 set(NODEGRAPH_SOURCE
+    ${NODEGRAPH_ROOT}/src/canvas.cpp
+    ${NODEGRAPH_ROOT}/src/fonts.cpp
+    ${NODEGRAPH_ROOT}/src/canvas_imgui.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/widget.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/node.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/slider.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/knob.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/layout.cpp
+    ${NODEGRAPH_ROOT}/src/setting.cpp
+    ${NODEGRAPH_ROOT}/project.natvis
+
+    ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/imgui_glm.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/math_utils.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/theme.h
+    
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/node.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/slider.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/knob.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/layout.h
+    
+    ${NODEGRAPH_ROOT}/src/string/string_utils.cpp
+    ${NODEGRAPH_ROOT}/include/nodegraph/string/string_utils.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/string/murmur_hash.h
+)
+
+set(NODEGRAPH_SOURCE
+    ${NODEGRAPH_SOURCE}
+    ${NODEGRAPH_VULKAN_SOURCE}
     ${NODEGRAPH_ROOT}/CMakeLists.txt
-    ${NODEGRAPH_MODEL}
-    ${NODEGRAPH_VIEW}
 )
 
 list(APPEND TEST_SOURCES
@@ -49,15 +55,21 @@ list(APPEND TEST_SOURCES
 add_library(NodeGraph STATIC ${NODEGRAPH_SOURCE})
 add_library(NodeGraph::NodeGraph ALIAS NodeGraph)
 
-target_link_libraries(NodeGraph 
+target_link_libraries(NodeGraph
+PRIVATE
+    tomlplusplus::tomlplusplus
 PUBLIC
-    MUtils::MUtils
+    fmt::fmt-header-only
+    glm::glm
+    Vulkan::Vulkan
 )
 
 target_include_directories(NodeGraph
 PRIVATE
-PUBLIC 
+    ${CMAKE_BINARY_DIR}
+PUBLIC
     $<BUILD_INTERFACE:${NODEGRAPH_ROOT}/include>
+    $<BUILD_INTERFACE:${NODEGRAPH_ROOT}/tomlplusplus/include>
     $<INSTALL_INTERFACE:include>
 )
 
@@ -82,6 +94,6 @@ install(DIRECTORY ${NODEGRAPH_ROOT}/include/nodegraph
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-source_group ("model" FILES ${NODEGRAPH_MODEL})
-source_group ("view" FILES ${NODEGRAPH_VIEW})
+source_group ("nodegraph" FILES ${NODEGRAPH_SOURCE})
+source_group ("vulkan" FILES ${NODEGRAPH_VULKAN_SOURCE})
 
