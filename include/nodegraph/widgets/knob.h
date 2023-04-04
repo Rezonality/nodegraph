@@ -29,7 +29,7 @@ enum
 struct KnobValue
 {
     uint32_t flags = KnobFlags::None;
-    float step = 0.01f;
+    float step = 0.25f;
     float value = 0.0f;
     std::string name;
     std::string tip;
@@ -62,6 +62,7 @@ private:
     IKnobCB* m_pCB = nullptr;
     bool m_mini = false;
     KnobValue m_value;
+    float m_startValue;
 };
 
 }

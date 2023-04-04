@@ -17,7 +17,7 @@ Knob::Knob(const std::string& label, IKnobCB* pCB)
     {
         m_pCB = this;
     }
-    m_value.step = 0.01f;
+    m_value.step = 0.2f;
 }
 
 void Knob::Draw(Canvas& canvas)
@@ -166,6 +166,7 @@ Widget* Knob::MouseDown(CanvasInputState& input)
 {
     if (input.buttonClicked[0])
     {
+        m_startValue = m_value.value;
         Update(input);
         return this;
     }
@@ -183,12 +184,12 @@ void Knob::Update(CanvasInputState& input)
 
     ClampNormalized(val);
 
-    //val.value = (input.worldMousePos.x - m_knobRangeArea.Left()) / m_knobRangeArea.Width();
+    auto dragDistanceWorld = 200.0f;
+
+    val.value = m_startValue + (-input.worldDragDelta.y / dragDistanceWorld);
 
     // Quantize
     val.value = int(val.value / val.step) * val.step;
-
-    val.value = 0.5f;
 
     ClampNormalized(val);
 
