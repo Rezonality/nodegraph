@@ -15,6 +15,8 @@ inline CanvasInputState& canvas_imgui_update_state(Canvas& canvas, const MUtils:
 
     auto mousePos = ImGui::GetIO().MousePos;
 
+    ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
+
     state.mousePos = MUtils::NVec2f(mousePos.x - region.Left(), mousePos.y - region.Top());
 
     for (uint32_t i = 0; i < MOUSE_MAX; i++)
