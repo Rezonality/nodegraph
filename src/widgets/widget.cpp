@@ -213,5 +213,18 @@ void Widget::SetRectWithPad(const NRectf& rc)
 {
     SetRect(rc.Adjusted(glm::vec4(m_padding.x, m_padding.y, -m_padding.z, -m_padding.w)));
 }
+    
+glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
+{
+    float luminance = color.r * 0.299f + color.g * 0.587f + color.b * 0.114f;
+    if (luminance > 0.5f)
+    {
+        return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    else
+    {
+        return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+}
 
 }

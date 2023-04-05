@@ -133,7 +133,7 @@ void Knob::Draw(Canvas& canvas)
 
     canvas.Arc(knobRegion.Center(), knobSize - channelWidth * .5f, channelWidth, channelHLColor, posArcBegin + arcOffset, posArc + arcOffset);
 
-    canvas.Text(textRect.Center(), textSize, theme.GetVec4f(c_knobTextColor), val.name.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
+    canvas.Text(textRect.Center(), textSize, TextColorForBackground(theme.GetVec4f(c_knobFillColor)), val.name.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
     //canvas.Text()
     /*
     if (fCurrentVal > (fMax + std::numeric_limits<float>::epsilon()))

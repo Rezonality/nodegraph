@@ -74,7 +74,7 @@ private:
     WidgetList m_children;
     WidgetList m_frontToBack;
     NRectf m_innerRect;
-    float m_spacing = 8.0f;
+    float m_spacing = 6.0f;
     glm::vec4 m_contentsMargins = glm::vec4(2.0f);
 };
 

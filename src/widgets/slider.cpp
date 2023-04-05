@@ -89,9 +89,12 @@ void Slider::Draw(Canvas& canvas)
         theme.GetVec4f(c_sliderThumbColor));
 
     // Text
-    auto bounds = canvas.TextBounds(glm::vec2(0.0f), fontSize, m_label.c_str(), nullptr);
-    fontSize = fontSize * (titlePanelRect.ShortSide() / bounds.LongSide());
-    canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, glm::vec4(.9f, 0.9f, 0.9f, 1.0f), m_label.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
+    //auto bounds = canvas.TextBounds(glm::vec2(0.0f), fontSize, m_label.c_str(), nullptr);
+    //fontSize = fontSize * (rc.ShortSide() / bounds.LongSide());
+    //auto pad = theme.GetFloat(s_sliderFontPad),
+    //fontSize = thumbRect.Height() - pad;
+
+    canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), val.tip.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
     if (canvas.GetInputState().m_pMouseCapture == this)
     {
@@ -114,9 +117,10 @@ void Slider::Draw(Canvas& canvas)
             theme.GetVec4f(c_sliderTipShadowColor),
             theme.GetFloat(s_sliderTipBorderSize),
             theme.GetVec4f(c_sliderTipBorderColor),
-            theme.GetVec4f(c_sliderTipCenterColor));
-
-        canvas.Text(glm::vec2(titlePanelRect.Center().x, titlePanelRect.Center().y), fontSize, theme.GetVec4f(c_sliderTipFontColor), val.tip.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
+            theme.GetVec4f(c_sliderTipCenterColor),
+            val.tip.c_str(),
+            4.0f,
+            TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)));
     }
 
     for (auto& child : GetLayout()->GetBackToFront())

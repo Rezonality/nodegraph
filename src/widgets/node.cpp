@@ -42,7 +42,8 @@ void Node::Draw(Canvas& canvas)
         theme.GetVec4f(c_nodeTitleBorderColor),
         theme.GetVec4f(c_nodeTitleCenterColor),
         m_label.c_str(),
-        theme.GetFloat(s_nodeTitleFontPad));
+        theme.GetFloat(s_nodeTitleFontPad),
+        TextColorForBackground(theme.GetVec4f(c_nodeTitleCenterColor)));
 
     auto bottomGap = theme.GetFloat(s_nodeBorderSize) + theme.GetFloat(s_nodeShadowSize);
     

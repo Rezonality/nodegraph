@@ -28,7 +28,7 @@ struct Setter : public ISliderCB
         myVal.step = 0.25f;
         if (op == SliderOp::Get)
         {
-            myVal.tip = fmt::format("My Val: {:1.2f}", myVal.value);
+            myVal.tip = fmt::format("{}: {:1.2f}", pSlider->GetLabel(), myVal.value);
             val = myVal;
         }
         else
@@ -37,7 +37,8 @@ struct Setter : public ISliderCB
         }
     }
 };
-Setter s;
+Setter s1;
+Setter s2;
 }
 
 void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
@@ -71,7 +72,6 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
 
             auto spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
             spRootLayout->SetLabel("Vertical Node 2");
-            spRootLayout->SetSpacing(4.0f);
             spWidget->SetLayout(spRootLayout);
 
             // Keep same height, expand the width
@@ -83,33 +83,37 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             // Sliders
             #if 1
             {
-                auto spSliderLayout = std::make_shared<Layout>(LayoutType::Horizontal);
-                spSliderLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
-                spSliderLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 60.0f));
-                spSliderLayout->SetLabel("Slider Horizontal Layout");
-                spRootLayout->AddChild(spSliderLayout);
-
-                auto spSlider = std::make_shared<Slider>("Amp", &s);
-                spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
-                spSliderLayout->AddChild(spSlider);
-
-                spSlider = std::make_shared<Slider>("Freq", &s);
-                spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
-                spSliderLayout->AddChild(spSlider);
-
+                for (int i = 0; i < 2; i++)
                 {
-                    auto spSubLayout = std::make_shared<Layout>(LayoutType::Horizontal);
-                    spSubLayout->SetLabel("Sub Layout");
-                    spSliderLayout->AddChild(spSubLayout);
+                    auto spSliderLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+                    spSliderLayout->SetContentsMargins(glm::vec4(0.0f));
+                    spSliderLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+                    spSliderLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+                    spSliderLayout->SetLabel("Slider Horizontal Layout");
+                    spRootLayout->AddChild(spSliderLayout);
 
-                    spSlider = std::make_shared<Slider>("A");
-                    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
-                    spSubLayout->AddChild(spSlider);
+                    auto spSlider = std::make_shared<Slider>("Amp", &s1);
+                    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+                    spSliderLayout->AddChild(spSlider);
 
-                    spSlider = std::make_shared<Slider>("B");
-                    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
-                    spSlider->SetPadding(glm::vec4(4.0f));
-                    spSubLayout->AddChild(spSlider);
+                    spSlider = std::make_shared<Slider>("Freq", &s2);
+                    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+                    spSliderLayout->AddChild(spSlider);
+
+                    {
+                        auto spSubLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+                        spSubLayout->SetLabel("Sub Layout");
+                        spSliderLayout->AddChild(spSubLayout);
+
+                        spSlider = std::make_shared<Slider>("A");
+                        spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
+                        spSubLayout->AddChild(spSlider);
+
+                        spSlider = std::make_shared<Slider>("B");
+                        spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 30.0f));
+                        spSlider->SetPadding(glm::vec4(4.0f));
+                        spSubLayout->AddChild(spSlider);
+                    }
                 }
             }
             #endif
