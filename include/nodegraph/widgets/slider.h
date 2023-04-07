@@ -19,13 +19,8 @@ enum class SliderType
     Magnitude
 };
 
-struct SliderValue
+struct SliderValue : WidgetValue
 {
-    //float step = 0.25f;
-    float step = 0.01f;
-    float value = 0.0f;
-    std::string name;
-    std::string tip;
     SliderType type = SliderType::Magnitude;
 };
 

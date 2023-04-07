@@ -1,4 +1,7 @@
 #include <functional>
+
+#include <fmt/format.h>
+
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
@@ -230,10 +233,12 @@ glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
     }
 }
 
-void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const std::string& tip)
+void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const WidgetValue& val)
 {
     if (canvas.GetInputState().m_pMouseCapture == this)
     {
+        std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
+
         auto& theme = ThemeManager::Instance();
 
         auto tipPad = theme.GetFloat(s_sliderTipFontPad);

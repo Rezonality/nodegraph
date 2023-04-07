@@ -28,7 +28,9 @@ struct Setter : public ISliderCB
         myVal.step = 0.25f;
         if (op == SliderOp::Get)
         {
-            myVal.tip = fmt::format("{}: {:1.2f}", pSlider->GetLabel(), myVal.value);
+            myVal.name = pSlider->GetLabel();
+            myVal.valueText = fmt::format("{:1.2f}",  myVal.value);
+            myVal.units = "dB";
             val = myVal;
         }
         else

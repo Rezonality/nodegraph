@@ -32,6 +32,15 @@ enum
 };
 };
 
+struct WidgetValue
+{
+    std::string name;
+    std::string valueText;
+    std::string units = "Hz";
+    float value = 0.0f;
+    float step = 0.01f;
+};
+
 class Layout;
 class Widget;
 using WidgetList = std::vector<std::shared_ptr<Widget>>;
@@ -81,7 +90,7 @@ public:
 
     virtual glm::vec4 TextColorForBackground(const glm::vec4& color);
 
-    virtual void DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const std::string& tip);
+    virtual void DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const WidgetValue& value);
 
 protected:
     NRectf m_rect;

@@ -93,9 +93,10 @@ void Slider::Draw(Canvas& canvas)
     //auto pad = theme.GetFloat(s_sliderFontPad),
     //fontSize = thumbRect.Height() - pad;
 
-    canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), val.tip.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
+    auto sliderText = fmt::format("{}: {:1.2f}", val.name, val.value);
+    canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), sliderText.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
-    DrawTip(canvas, glm::vec2(titlePanelRect.Center().x, titlePanelRect.Top()), val.tip);
+    DrawTip(canvas, glm::vec2(titlePanelRect.Center().x, titlePanelRect.Top()), val);
 
     for (auto& child : GetLayout()->GetBackToFront())
     {
@@ -162,7 +163,7 @@ void Slider::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
     }
     else
     {
-        m_value.tip = fmt::format("{}:{:1.2f}", m_value.name, m_value.value);
+        m_value.valueText = fmt::format("{:1.2f}", m_value.value);
         val = m_value;
     }
 }

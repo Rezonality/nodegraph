@@ -26,13 +26,9 @@ enum
     ReadOnly = (1)
 };
 }
-struct KnobValue
+struct KnobValue : WidgetValue
 {
     uint32_t flags = KnobFlags::None;
-    float step = 0.25f;
-    float value = 0.0f;
-    std::string name;
-    std::string tip;
     KnobType type = KnobType::Standard;
 };
 

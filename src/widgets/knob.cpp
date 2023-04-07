@@ -146,7 +146,7 @@ void Knob::Draw(Canvas& canvas)
     }
     */
 
-    DrawTip(canvas, glm::vec2(knobRegion.Center().x, knobRegion.Top()), val.tip);
+    DrawTip(canvas, glm::vec2(knobRegion.Center().x, knobRegion.Top()), val);
 
     for (auto& child : GetLayout()->GetBackToFront())
     {
@@ -216,7 +216,7 @@ void Knob::UpdateKnob(Knob* pKnob, KnobOp op, KnobValue& val)
     }
     else
     {
-        m_value.tip = fmt::format("{}:{:1.2f}", m_value.name, m_value.value);
+        m_value.valueText = fmt::format("{:1.2f}", m_value.value);
         val = m_value;
     }
 }
