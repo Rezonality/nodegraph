@@ -53,7 +53,6 @@ void Slider::Draw(Canvas& canvas)
     auto fontSize = rc.Height() - theme.GetFloat(s_sliderFontPad) * 2.0f - thumbPad * 2.0f;
     auto titlePanelRect = rc;
 
-
     // Our inside track is inside the thumb pad
     titlePanelRect.Adjust(thumbPad, thumbPad, -thumbPad, -thumbPad);
 
@@ -96,32 +95,7 @@ void Slider::Draw(Canvas& canvas)
 
     canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), val.tip.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
-    if (canvas.GetInputState().m_pMouseCapture == this)
-    {
-        titlePanelRect.Adjust(0.0f, -m_rect.Height(), 0.0f, 0.0f);
-
-        auto tipPad = theme.GetFloat(s_sliderTipFontPad);
-        auto fontSize = theme.GetFloat(s_sliderTipFontSize);
-
-        auto rcBounds = canvas.TextBounds(titlePanelRect.Center(), fontSize, val.tip.c_str(), nullptr, TEXT_ALIGN_CENTER | TEXT_ALIGN_MIDDLE);
-
-        titlePanelRect.SetSize(rcBounds.Width() + tipPad * 2.0f, fontSize + tipPad * 2.0f);
-
-        float szHalf = titlePanelRect.Width() / 2.0f;
-        titlePanelRect.Move(rc.Center().x - szHalf, titlePanelRect.Top());
-
-        rc = DrawSlab(canvas,
-            titlePanelRect,
-            theme.GetFloat(s_sliderTipBorderRadius),
-            theme.GetFloat(s_sliderTipShadowSize),
-            theme.GetVec4f(c_sliderTipShadowColor),
-            theme.GetFloat(s_sliderTipBorderSize),
-            theme.GetVec4f(c_sliderTipBorderColor),
-            theme.GetVec4f(c_sliderTipCenterColor),
-            val.tip.c_str(),
-            4.0f,
-            TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)));
-    }
+    DrawTip(canvas, glm::vec2(titlePanelRect.Center().x, titlePanelRect.Top()), val.tip);
 
     for (auto& child : GetLayout()->GetBackToFront())
     {

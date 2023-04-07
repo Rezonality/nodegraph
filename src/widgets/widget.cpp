@@ -112,7 +112,7 @@ void Widget::SetLabel(const char* pszLabel)
     m_label = pszLabel;
 }
 
-NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText, float fontPad, const glm::vec4& textColor)
+NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText, float fontPad, const glm::vec4& textColor, float fontSize)
 {
     NRectf rc = rect;
 
@@ -131,8 +131,11 @@ NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, 
 
     if (pszText)
     {
-        auto fontSize = rc.Height() - fontPad * 2.0f;
-        canvas.Text(glm::vec2(rc.Left() + fontPad, rc.Center().y + 1), fontSize, textColor, pszText, nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
+        if (fontSize == 0.0f)
+        {
+            fontSize = rc.Height() - fontPad * 2.0f;
+        }
+        canvas.Text(glm::vec2(rc.Center().x, rc.Center().y + 0.5f), fontSize, textColor, pszText, nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
     }
     return rc;
 }
@@ -213,7 +216,7 @@ void Widget::SetRectWithPad(const NRectf& rc)
 {
     SetRect(rc.Adjusted(glm::vec4(m_padding.x, m_padding.y, -m_padding.z, -m_padding.w)));
 }
-    
+
 glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
 {
     float luminance = color.r * 0.299f + color.g * 0.587f + color.b * 0.114f;
@@ -227,4 +230,32 @@ glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
     }
 }
 
+void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const std::string& tip)
+{
+    if (canvas.GetInputState().m_pMouseCapture == this)
+    {
+        auto& theme = ThemeManager::Instance();
+
+        auto tipPad = theme.GetFloat(s_sliderTipFontPad);
+        auto fontSize = theme.GetFloat(s_sliderTipFontSize);
+
+        auto rcBounds = canvas.TextBounds(widgetTopCenter, fontSize, tip.c_str(), nullptr, TEXT_ALIGN_CENTER | TEXT_ALIGN_MIDDLE);
+
+        NRectf panelRect = NRectf(widgetTopCenter.x - rcBounds.Width() / 2.0f - tipPad, widgetTopCenter.y - rcBounds.Height() * 3.0f, rcBounds.Width() + tipPad * 2.0f, rcBounds.Height() + tipPad * 2.0f);
+
+        auto rc = DrawSlab(canvas,
+            panelRect,
+            theme.GetFloat(s_sliderTipBorderRadius),
+            theme.GetFloat(s_sliderTipShadowSize),
+            theme.GetVec4f(c_sliderTipShadowColor),
+            theme.GetFloat(s_sliderTipBorderSize),
+            theme.GetVec4f(c_sliderTipBorderColor),
+            theme.GetVec4f(c_sliderTipCenterColor),
+            tip.c_str(),
+            4.0f,
+            TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)),
+            fontSize);
+    }
 }
+
+} // Nodegraph

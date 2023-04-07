@@ -145,7 +145,8 @@ void Knob::Draw(Canvas& canvas)
         m_spCanvas->Arc(knobRegion.Center(), knobSize - channelWidth * .5f, channelWidth, channelHighColor, startArc + arcOffset, startArc + 10 + arcOffset);
     }
     */
-    //canvas.FilledCircle(rc.Center(), rc.ShortSide() * .5f - 2.0f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+    DrawTip(canvas, glm::vec2(knobRegion.Center().x, knobRegion.Top()), val.tip);
 
     for (auto& child : GetLayout()->GetBackToFront())
     {
