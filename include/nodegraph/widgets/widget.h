@@ -32,6 +32,14 @@ enum
 };
 };
 
+namespace WidgetValueFlags {
+enum
+{
+    None,
+    ShowText
+};
+};
+
 struct WidgetValue
 {
     std::string name;
@@ -39,6 +47,7 @@ struct WidgetValue
     std::string units = "Hz";
     float value = 0.0f;
     float step = 0.01f;
+    uint32_t valueFlags = WidgetValueFlags::ShowText;
 };
 
 class Layout;
@@ -86,7 +95,7 @@ public:
     virtual void SetRectWithPad(const NRectf& rc);
 
     // Draw helpers 
-    NRectf DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText = nullptr, float fontPad = 2.0f, const glm::vec4& textColor = glm::vec4(1.0f), float fontSize = 0.0f);
+    NRectf DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText = nullptr, float fontPad = 2.0f, const glm::vec4& textColor = glm::vec4(1.0f), float fontSize = 0.0f, const char* pszFont = nullptr);
 
     virtual glm::vec4 TextColorForBackground(const glm::vec4& color);
 

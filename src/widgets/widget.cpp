@@ -115,7 +115,7 @@ void Widget::SetLabel(const char* pszLabel)
     m_label = pszLabel;
 }
 
-NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText, float fontPad, const glm::vec4& textColor, float fontSize)
+NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText, float fontPad, const glm::vec4& textColor, float fontSize, const char* pszFont)
 {
     NRectf rc = rect;
 
@@ -138,7 +138,7 @@ NRectf Widget::DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, 
         {
             fontSize = rc.Height() - fontPad * 2.0f;
         }
-        canvas.Text(glm::vec2(rc.Center().x, rc.Center().y + 0.5f), fontSize, textColor, pszText, nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
+        canvas.Text(glm::vec2(rc.Center().x, rc.Center().y + 0.5f), fontSize, textColor, pszText, pszFont, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
     }
     return rc;
 }

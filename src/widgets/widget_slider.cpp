@@ -1,10 +1,10 @@
 #include <algorithm>
 #include <fmt/format.h>
-#include <nodegraph/logger/logger.h>
 #include <nodegraph/canvas.h>
+#include <nodegraph/logger/logger.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
-#include <nodegraph/widgets/slider.h>
+#include <nodegraph/widgets/widget_slider.h>
 
 namespace NodeGraph {
 
@@ -19,7 +19,7 @@ Slider::Slider(const std::string& label, ISliderCB* pCB)
     }
     m_value.step = 0.01f;
 }
-    
+
 float Slider::ThumbWorldSize(Canvas& canvas, float width) const
 {
     auto& theme = ThemeManager::Instance();
@@ -40,6 +40,7 @@ void Slider::Draw(Canvas& canvas)
 
     auto rc = GetWorldRect();
 
+    // Draw the background area
     rc = DrawSlab(canvas,
         rc,
         theme.GetFloat(s_sliderBorderRadius),
@@ -48,6 +49,8 @@ void Slider::Draw(Canvas& canvas)
         theme.GetFloat(s_sliderBorderSize),
         theme.GetVec4f(c_sliderBorderColor),
         theme.GetVec4f(c_sliderCenterColor));
+
+    //canvas.FillRect(rc, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
     auto thumbPad = theme.GetFloat(s_sliderThumbPad);
     auto fontSize = rc.Height() - theme.GetFloat(s_sliderFontPad) * 2.0f - thumbPad * 2.0f;
@@ -73,7 +76,7 @@ void Slider::Draw(Canvas& canvas)
         thumbRect.SetSize(glm::vec2(thumbWorldSize, thumbRect.Height())); // Width
         thumbRect.Adjust(val.value * m_sliderRangeArea.Width(), 0.0f); // pos
     }
-    else // Mag 
+    else // Mag
     {
         thumbRect.SetSize(glm::vec2(std::max(thumbWorldSize, val.value * m_sliderRangeArea.Width() + thumbWorldSize), thumbRect.Height())); // Width
     }
@@ -87,21 +90,20 @@ void Slider::Draw(Canvas& canvas)
         glm::vec4(0.0f),
         theme.GetVec4f(c_sliderThumbColor));
 
-    // Text
-    //auto bounds = canvas.TextBounds(glm::vec2(0.0f), fontSize, m_label.c_str(), nullptr);
-    //fontSize = fontSize * (rc.ShortSide() / bounds.LongSide());
-    //auto pad = theme.GetFloat(s_sliderFontPad),
-    //fontSize = thumbRect.Height() - pad;
+    if (val.valueFlags & WidgetValueFlags::ShowText)
+    {
+        auto sliderText = fmt::format("{}: {:1.2f}", val.name, val.value);
+        canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), sliderText.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
-    auto sliderText = fmt::format("{}: {:1.2f}", val.name, val.value);
-    canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), sliderText.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
-
-    DrawTip(canvas, glm::vec2(titlePanelRect.Center().x, titlePanelRect.Top()), val);
+        DrawTip(canvas, glm::vec2(titlePanelRect.Center().x, titlePanelRect.Top()), val);
+    }
 
     for (auto& child : GetLayout()->GetBackToFront())
     {
         child->Draw(canvas);
     }
+
+    m_pCB->PostDraw(canvas, rc);
 }
 
 void Slider::ClampNormalized(SliderValue& value)
@@ -166,6 +168,11 @@ void Slider::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
         m_value.valueText = fmt::format("{:1.2f}", m_value.value);
         val = m_value;
     }
+}
+
+const NRectf& Slider::GetSliderRangeArea() const
+{
+    return m_sliderRangeArea;
 }
 
 }

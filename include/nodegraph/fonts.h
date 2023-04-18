@@ -83,6 +83,7 @@ void fonts_reset_fallback(FontContext& ctx, int baseFont);
 void fonts_reset_fallback(FontContext& ctx, const char* baseFont);
 
 void fonts_set_face(FontContext& ctx, const char* font);
+void fonts_set_face(FontContext& ctx, int fontId);
 void fonts_set_scale(FontContext& ctx, float scale);
 void fonts_set_align(FontContext& ctx, int align);
 void fonts_set_size(FontContext& ctx, float size);

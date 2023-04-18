@@ -6,6 +6,7 @@
 #include <nodegraph/fonts.h>
 #define FONTSTASH_IMPLEMENTATION
 #include <nodegraph/fontstash.h>
+#include <nodegraph/string/string_utils.h>
 
 #include <nodegraph/vulkan/vulkan_imgui_texture.h>
 
@@ -293,6 +294,12 @@ void fonts_set_face(FontContext& ctx, const char* font)
     ctx.fontId = fonsGetFontByName(ctx.fs, font);
 }
 
+void fonts_set_face(FontContext& ctx, int fontId)
+{
+    ctx.fontId = fontId;
+}
+
+
 void fonts_set_align(FontContext& ctx, int align)
 {
     ctx.textAlign = align;
@@ -349,7 +356,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, uint32_t color, const 
     int isFlipped = is_transform_flipped(ctx.xform);
 
     if (end == NULL)
-        end = string + strlen(string);
+        end = string + string_utf8_length(string);
 
     if (ctx.fontId == FONS_INVALID)
         return x;
@@ -468,7 +475,7 @@ int fonts_break_lines(FontContext& ctx, const char* string, const char* end, flo
         return 0;
 
     if (end == NULL)
-        end = string + strlen(string);
+        end = string + string_utf8_length(string);
 
     if (string == end)
         return 0;
@@ -707,7 +714,7 @@ int text_glyph_positions(FontContext& ctx, float x, float y, const char* string,
         return 0;
 
     if (end == NULL)
-        end = string + strlen(string);
+        end = string + string_utf8_length(string);
 
     if (string == end)
         return 0;

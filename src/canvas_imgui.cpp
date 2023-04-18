@@ -23,9 +23,12 @@ CanvasImGui::CanvasImGui(IFontTexture* pFontTexture, float worldScale, const glm
         m_pFont = ImGui::GetFont();
     }
 
+    //auto fapath1 = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "fa-regular-400.ttf";
+    auto fapath2 = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "fa-solid-900.ttf";
    // auto fontPath = this->GetRootPath() / "run_tree" / "fonts" / "Roboto-Regular.ttf";
     auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Roboto-Regular.ttf";
-    fonts_create(*spFontContext, "sans", fontPath.string().c_str());
+    m_defaultFont = fonts_create(*spFontContext, "sans", fontPath.string().c_str());
+    m_fontIcon = fonts_create(*spFontContext, "ficon", fapath2.string().c_str());
 }
 
 void CanvasImGui::Begin(const glm::vec4& clearColor)
@@ -160,6 +163,10 @@ NRectf CanvasImGui::TextBounds(const glm::vec2& pos, float size, const char* psz
     {
         fonts_set_face(*spFontContext, pszFace);
     }
+    else
+    {
+        fonts_set_face(*spFontContext, m_defaultFont);
+    }
 
     fonts_set_size(*spFontContext, size);
     fonts_set_align(*spFontContext, align);
@@ -179,6 +186,10 @@ void CanvasImGui::Text(const glm::vec2& pos, float size, const glm::vec4& color,
     {
         fonts_set_face(*spFontContext, pszFace);
     }
+    else
+    {
+        fonts_set_face(*spFontContext, m_defaultFont);
+    }
 
     auto packedColor = glm::packUnorm4x8(color);
 
@@ -196,6 +207,10 @@ void CanvasImGui::TextBox(const glm::vec2& pos, float size, float breakWidth, co
     if (pszFace != nullptr)
     {
         fonts_set_face(*spFontContext, pszFace);
+    }
+    else
+    {
+        fonts_set_face(*spFontContext, m_defaultFont);
     }
 
     fonts_set_size(*spFontContext, size);

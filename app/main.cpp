@@ -3,7 +3,9 @@
 
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_vulkan.h>
+#include <nodegraph/IconsFontAwesome5.h>
 #include <nodegraph/imgui_glm.h>
+
 #pragma warning(default : 4005)
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -472,8 +474,18 @@ int main(int, char**)
     // IM_ASSERT(font != NULL);
 
     // Note: Adjust font size as appropriate!
+
     auto fontPath = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "Cousine-Regular.ttf";
     io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), 26);
+
+    ImFontConfig config;
+    config.MergeMode = true;
+    config.GlyphMinAdvanceX = 13.0f; // Use if you want to make the icon monospaced
+    static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+    auto fapath1 = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "fa-regular-400.ttf";
+    auto fapath2 = fs::path(NODEGRAPH_ROOT) / "run_tree" / "fonts" / "fa-solid-900.ttf";
+    io.Fonts->AddFontFromFileTTF(fapath1.string().c_str(), 13.0f, &config, icon_ranges);
+    io.Fonts->AddFontFromFileTTF(fapath2.string().c_str(), 13.0f, &config, icon_ranges);
 
     // Upload Fonts
     {
@@ -568,6 +580,9 @@ int main(int, char**)
             current.y += step;
         }
         ImGui::End();
+
+        ImGui::Text("%s among %d items", ICON_FA_SEARCH, 4);
+        ImGui::Button(ICON_FA_SEARCH " Search");
 
         ImGui::Begin("Canvas");
         auto winSize = (glm::vec2)ImGui::GetContentRegionAvail();

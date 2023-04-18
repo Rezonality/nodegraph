@@ -111,5 +111,7 @@ private:
     float m_pathWidth;
     bool m_closePath = false;
     ImFont* m_pFont = nullptr;
+    int m_defaultFont = 0;
+    int m_fontIcon = 0;
 };
 } // namespace NodeGraph

@@ -4,7 +4,7 @@
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
-#include <nodegraph/widgets/knob.h>
+#include <nodegraph/widgets/widget_knob.h>
 
 namespace NodeGraph {
 
