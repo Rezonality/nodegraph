@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 #include <nodegraph/math_utils.h>
 
 namespace NodeGraph {
@@ -36,7 +37,8 @@ namespace WidgetValueFlags {
 enum
 {
     None,
-    ShowText
+    ShowText,
+    NoQuantization
 };
 };
 
@@ -54,13 +56,20 @@ class Layout;
 class Widget;
 using WidgetList = std::vector<std::shared_ptr<Widget>>;
 
+using fnPostDraw = std::function<void(Canvas& canvas, const NRectf& hintRect)>;
 class Widget
 {
 public:
-    Widget(const std::string& label = std::string());
+    Widget(const std::string& label);
+    
     virtual void Draw(Canvas& canvas);
+    virtual void PostDraw(Canvas& canvas, const NRectf& hintRect);
+
     virtual Widget* GetParent() const;
     virtual void SetParent(Widget* pParent);
+   
+    // Post Draw
+    virtual void AddPostDrawCB(const fnPostDraw& fnCB);
 
     virtual const NRectf& GetRect() const;
     virtual void SetRect(const NRectf& sz);
@@ -74,6 +83,7 @@ public:
     virtual bool MouseMove(CanvasInputState& input);
 
     virtual NRectf ToWorldRect(const NRectf& rc) const;
+    virtual NRectf ToLocalRect(const NRectf& rc) const;
     virtual NRectf GetWorldRect() const;
 
     virtual const std::string& GetLabel() const;
@@ -110,7 +120,7 @@ protected:
     std::shared_ptr<Layout> m_spLayout;
     uint64_t m_flags = 0;
     glm::vec2 m_sizeHint = glm::vec2(0.0f);
-   
+    fnPostDraw m_postDrawCB;
 };
 
 }

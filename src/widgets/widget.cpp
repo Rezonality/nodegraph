@@ -3,16 +3,21 @@
 #include <fmt/format.h>
 
 #include <nodegraph/canvas.h>
+#include <nodegraph/logger/logger.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
 #include <nodegraph/widgets/widget.h>
-#include <nodegraph/logger/logger.h>
 
 namespace NodeGraph {
 
 Widget::Widget(const std::string& label)
     : m_label(label)
 {
+}
+
+void Widget::AddPostDrawCB(const fnPostDraw& fnCB)
+{
+    m_postDrawCB = fnCB;
 }
 
 Widget* Widget::GetParent() const
@@ -42,6 +47,18 @@ void Widget::SetRect(const NRectf& sz)
     LOG(DBG, "Widget: " << GetLabel() << ": " << m_rect);
 }
 
+NRectf Widget::ToLocalRect(const NRectf& rc) const
+{
+    if (!m_pParent)
+    {
+        return rc;
+    }
+
+    auto rcNew = rc.Adjusted(-m_pParent->GetRect().TopLeft());
+    //return rcNew;
+    return m_pParent->ToLocalRect(rcNew);
+}
+
 NRectf Widget::ToWorldRect(const NRectf& rc) const
 {
     if (!m_pParent)
@@ -64,6 +81,16 @@ void Widget::Draw(Canvas& canvas)
     if (theme.GetBool(b_debugShowLayout))
     {
         canvas.FillRect(ToWorldRect(m_rect), glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
+    }
+
+    PostDraw(canvas, m_rect);
+}
+
+void Widget::PostDraw(Canvas& canvas, const NRectf& hintRect)
+{
+    if (m_postDrawCB)
+    {
+        m_postDrawCB(canvas, hintRect);
     }
 }
 
@@ -222,15 +249,7 @@ void Widget::SetRectWithPad(const NRectf& rc)
 
 glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
 {
-    float luminance = color.r * 0.299f + color.g * 0.587f + color.b * 0.114f;
-    if (luminance > 0.5f)
-    {
-        return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    }
-    else
-    {
-        return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    }
+    return ColorForBackground(color);
 }
 
 void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const WidgetValue& val)

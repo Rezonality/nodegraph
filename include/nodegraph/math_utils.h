@@ -388,4 +388,17 @@ inline float radToDeg(float rad)
     return rad / 3.1415926f * 180.0f;
 }
 
+inline glm::vec4 ColorForBackground(const glm::vec4& color)
+{
+    float luminance = color.r * 0.299f + color.g * 0.587f + color.b * 0.114f;
+    if (luminance > 0.5f)
+    {
+        return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    else
+    {
+        return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+}
+
 } // NodeGraph

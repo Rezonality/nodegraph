@@ -27,10 +27,9 @@ struct SliderValue : WidgetValue
 struct ISliderCB
 {
     virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val) = 0;
-    virtual void PostDraw(Canvas& canvas, const NRectf& sliderArea) = 0;
 };
 
-class Slider : public Widget, public ISliderCB
+class Slider : public Widget
 {
 public:
     Slider(const std::string& label, ISliderCB* pCB = nullptr);
@@ -39,16 +38,15 @@ public:
     virtual void MouseUp(CanvasInputState& input) override;
     virtual bool MouseMove(CanvasInputState& input) override;
 
-    // ISliderCB
-    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val) override;
-    virtual void PostDraw(Canvas& canvas, const NRectf& sliderArea) override {};
-
     // Internal
     virtual void ClampNormalized(SliderValue& value);
     virtual void Update(CanvasInputState& input);
     virtual float ThumbWorldSize(Canvas& canvas, float width) const;
 
     virtual const NRectf& GetSliderRangeArea() const;
+
+private:
+    void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val);
 
 private:
     ISliderCB* m_pCB = nullptr;

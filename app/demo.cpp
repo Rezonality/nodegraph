@@ -2,16 +2,18 @@
 #include <fmt/format.h>
 #include <memory>
 
+#include <nodegraph/IconsFontAwesome5.h>
 #include <nodegraph/canvas.h>
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/theme.h>
-#include <nodegraph/widgets/widget_knob.h>
 #include <nodegraph/widgets/layout.h>
 #include <nodegraph/widgets/node.h>
-#include <nodegraph/widgets/widget_slider.h>
-#include <nodegraph/widgets/widget_text.h>
 #include <nodegraph/widgets/widget.h>
-#include <nodegraph/IconsFontAwesome5.h>
+#include <nodegraph/widgets/widget_knob.h>
+#include <nodegraph/widgets/widget_label.h>
+#include <nodegraph/widgets/widget_slider.h>
+#include <nodegraph/widgets/widget_waveslider.h>
+#include <nodegraph/widgets/widget_socket.h>
 
 #include <config_app.h>
 using namespace NodeGraph;
@@ -27,13 +29,13 @@ struct Setter : public ISliderCB
     virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
     {
         myVal.type = SliderType::Mark;
-        myVal.step = 0.01f;
+        myVal.step = 0.33f;
         if (op == SliderOp::Get)
         {
             myVal.name = pSlider->GetLabel();
             myVal.valueText = fmt::format("{:1.2f}", myVal.value);
             myVal.units = "dB";
-            myVal.valueFlags = WidgetValueFlags::None;
+            myVal.valueFlags = WidgetValueFlags::NoQuantization;
             val = myVal;
         }
         else
@@ -41,111 +43,6 @@ struct Setter : public ISliderCB
             myVal = val;
         }
     }
-
-    virtual void PostDraw(Canvas& canvas, const NRectf& sliderArea)
-    {
-        enum class WaveType
-        {
-            Triangle,
-            Square,
-            PWM,
-            Saw
-        };
-        const float NumWaves = 4.0f;
-        const float waveWidth = sliderArea.Width() / float(NumWaves);
-        const float instep = 10.0f;
-        auto types = std::vector<WaveType>{ WaveType::Triangle, WaveType::Square, WaveType::PWM, WaveType::Saw };
-
-        float fVal = 0.0f;
-        canvas.SetLineCap(LineCap::ROUND);
-        for (uint32_t index = 0; index < types.size(); index++)
-        {
-            auto waveType = types[index];
-
-            NRectf waveRect = sliderArea;
-            waveRect.SetSize(glm::vec2(waveWidth, waveRect.Height()));
-            waveRect.Adjust(waveWidth * index, 0, waveWidth * index, 0);
-            waveRect.Adjust(instep, instep, -instep, -instep);
-
-            for (int y = 0; y < 2; y++)
-            {
-                float colorScale = std::max(0.0f, 1.0f - fabs((fVal * 3.0f) - float(index)));
-                colorScale = std::min(1.0f, colorScale);
-
-                float width;
-                glm::vec4 color;
-
-                // Shadow
-                if (y == 0)
-                {
-                    width = 5.0f;
-                    color = glm::vec4(0.0f, 0.0f, 0.0f, .5f);
-                }
-                else
-                {
-                    width = 3.0f;
-                    color = glm::vec4(1.0f * colorScale, 0.5f * colorScale, 0.0f, 1.0f);
-                }
-
-                if (waveType == WaveType::Triangle)
-                {
-                    canvas.BeginStroke(glm::vec2(waveRect.Left(), waveRect.Center().y), width, color);
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .25f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .5f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .75f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width(), waveRect.Center().y));
-                    canvas.EndStroke();
-                }
-                else if (waveType == WaveType::Square)
-                {
-                    canvas.BeginStroke(glm::vec2(waveRect.Left(), waveRect.Center().y), width, color);
-                    canvas.LineTo(glm::vec2(waveRect.Left(), waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .33f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .33f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .66f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .66f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width(), waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width(), waveRect.Center().y));
-                    canvas.EndStroke();
-                }
-                else if (waveType == WaveType::PWM)
-                {
-                    canvas.BeginStroke(glm::vec2(waveRect.Left() + waveRect.Width() * .1f, waveRect.Center().y), width, color);
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .1f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .3f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .3f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .6f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .6f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .8f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .8f, waveRect.Center().y));
-                    canvas.EndStroke();
-                }
-                else if (waveType == WaveType::PWM)
-                {
-                    canvas.BeginStroke(glm::vec2(waveRect.Left() + waveRect.Width() * .1f, waveRect.Center().y), width, color);
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .1f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .3f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .3f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .6f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .6f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .8f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .8f, waveRect.Center().y));
-                    canvas.EndStroke();
-                }
-                else if (waveType == WaveType::Saw)
-                {
-                    canvas.BeginStroke(glm::vec2(waveRect.Left(), waveRect.Center().y), width, color);
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .25f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .25f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .75f, waveRect.Top()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .75f, waveRect.Bottom()));
-                    canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width(), waveRect.Center().y));
-                    canvas.EndStroke();
-                }
-            }
-        }
-        canvas.SetLineCap(LineCap::BUTT);
-    };
 };
 
 Setter s1;
@@ -173,7 +70,6 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spNodeChild->SetFlags(WidgetFlags::DoNotLayout);
             spWidget->GetLayout()->AddChild(spNodeChild);
         }
-#endif
 
         // Node 2
         {
@@ -192,7 +88,6 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spRootLayout->AddChild(spCustom);
 
 // Sliders
-#if 1
             {
                 for (int i = 0; i < 2; i++)
                 {
@@ -203,10 +98,10 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                     spSliderLayout->SetLabel("Slider Horizontal Layout");
                     spRootLayout->AddChild(spSliderLayout);
 
-                    auto spText = std::make_shared<TextLabel>(ICON_FA_WAVE_SQUARE, "ficon");
-                    spText->SetRect(NRectf(0.0f, 0.0f, 60.0f, 50.0f));
-                    spText->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Preferred));
-                    spSliderLayout->AddChild(spText);
+                    auto spSocket = std::make_shared<Socket>("Freq");
+                    spSocket->SetRect(NRectf(0.0f, 0.0f, 30.0f, 30.0f));
+                    spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
+                    spSliderLayout->AddChild(spSocket);
 
                     auto spSlider = std::make_shared<Slider>("Amp", &s1);
                     spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
@@ -232,10 +127,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                     }
                 }
             }
-#endif
-
 // Knobs
-#if 1
             {
                 auto spKnobLayout = std::make_shared<Layout>(LayoutType::Horizontal);
                 spKnobLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Expanding));
@@ -254,8 +146,36 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
                 spKnob->SetPadding(glm::vec4(4.0f));
                 spKnobLayout->AddChild(spKnob);
             }
+            }
 #endif
-        }
+        auto spOsc = std::make_shared<Node>("Oscillator" ICON_FA_SEARCH);
+        spOsc->SetRect(NRectf(0.0f, 0.0f, 400.0f, 300.0f));
+        spCanvas->GetRootLayout()->AddChild(spOsc);
+
+        auto spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
+        spOsc->SetLayout(spRootLayout);
+
+        /*
+        auto spWaveLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+        spWaveLayout->SetContentsMargins(glm::vec4(0.0f));
+        spWaveLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+        spWaveLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+        spRootLayout->AddChild(spWaveLayout);*/
+
+        auto spWaveSlider = std::make_shared<WaveSlider>("Wave", &s1);
+        spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+        spWaveSlider->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+
+        spRootLayout->AddChild(spWaveSlider);
+
+        // Keep same height, expand the width
+        auto spCustom = std::make_shared<Widget>("Custom");
+        spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+        spCustom->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+        spCustom->AddPostDrawCB([=](Canvas& canvas, const NRectf& rect) {
+            spWaveSlider->DrawGeneratedWave(canvas, rect);
+        });
+        spRootLayout->AddChild(spCustom);
 
         ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     }

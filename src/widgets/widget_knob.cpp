@@ -13,10 +13,6 @@ Knob::Knob(const std::string& label, IKnobCB* pCB)
     , m_pCB(pCB)
 {
     m_value.name = label;
-    if (!m_pCB)
-    {
-        m_pCB = this;
-    }
     m_value.step = 0.2f;
 }
 
@@ -40,7 +36,14 @@ void Knob::Draw(Canvas& canvas)
     }
 
     KnobValue val;
-    m_pCB->UpdateKnob(this, KnobOp::Get, val);
+    if (m_pCB)
+    {
+        m_pCB->UpdateKnob(this, KnobOp::Get, val);
+    }
+    else
+    {
+        UpdateKnob(this, KnobOp::Get, val);
+    }
 
     auto textSize = theme.GetFloat(s_knobTextSize);
     auto pack = theme.GetFloat(s_knobTextInset);
@@ -181,7 +184,15 @@ void Knob::MouseUp(CanvasInputState& input)
 void Knob::Update(CanvasInputState& input)
 {
     KnobValue val;
-    m_pCB->UpdateKnob(this, KnobOp::Get, val);
+
+    if (m_pCB)
+    {
+        m_pCB->UpdateKnob(this, KnobOp::Get, val);
+    }
+    else
+    {
+        UpdateKnob(this, KnobOp::Get, val);
+    }
 
     ClampNormalized(val);
 
@@ -194,7 +205,14 @@ void Knob::Update(CanvasInputState& input)
 
     ClampNormalized(val);
 
-    m_pCB->UpdateKnob(this, KnobOp::Set, val);
+    if (m_pCB)
+    {
+        m_pCB->UpdateKnob(this, KnobOp::Set, val);
+    }
+    else
+    {
+        UpdateKnob(this, KnobOp::Set, val);
+    }
 }
 
 bool Knob::MouseMove(CanvasInputState& input)

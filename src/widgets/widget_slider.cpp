@@ -13,10 +13,6 @@ Slider::Slider(const std::string& label, ISliderCB* pCB)
     , m_pCB(pCB)
 {
     m_value.name = label;
-    if (!m_pCB)
-    {
-        m_pCB = this;
-    }
     m_value.step = 0.01f;
 }
 
@@ -36,7 +32,6 @@ float Slider::ThumbWorldSize(Canvas& canvas, float width) const
 void Slider::Draw(Canvas& canvas)
 {
     auto& theme = ThemeManager::Instance();
-    Widget::Draw(canvas);
 
     auto rc = GetWorldRect();
 
@@ -60,7 +55,14 @@ void Slider::Draw(Canvas& canvas)
     titlePanelRect.Adjust(thumbPad, thumbPad, -thumbPad, -thumbPad);
 
     SliderValue val;
-    m_pCB->UpdateSlider(this, SliderOp::Get, val);
+    if (m_pCB)
+    {
+        m_pCB->UpdateSlider(this, SliderOp::Get, val);
+    }
+    else
+    {
+        UpdateSlider(this, SliderOp::Get, val);
+    }
 
     ClampNormalized(val);
 
@@ -103,7 +105,7 @@ void Slider::Draw(Canvas& canvas)
         child->Draw(canvas);
     }
 
-    m_pCB->PostDraw(canvas, rc);
+    PostDraw(canvas, ToLocalRect(titlePanelRect));
 }
 
 void Slider::ClampNormalized(SliderValue& value)
@@ -137,9 +139,13 @@ void Slider::Update(CanvasInputState& input)
     ClampNormalized(val);
 
     val.value = (input.worldMousePos.x - m_sliderRangeArea.Left()) / m_sliderRangeArea.Width();
+    val.value -= (val.step * 0.5f);
 
     // Quantize
-    val.value = int(val.value / val.step) * val.step;
+    if (!(val.valueFlags & WidgetValueFlags::NoQuantization))
+    {
+        val.value = int(val.value / val.step) * val.step;
+    }
 
     ClampNormalized(val);
 

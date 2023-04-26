@@ -84,5 +84,8 @@ DECLARE_SETTING_VALUE(s_knobTextInset);
 
 DECLARE_SETTING_VALUE(b_debugShowLayout);
 
+DECLARE_SETTING_VALUE(c_socketColor);
+DECLARE_SETTING_VALUE(c_socketShadowColor);
+
 } // namespace Nodegraph
 

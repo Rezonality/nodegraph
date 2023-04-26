@@ -20,8 +20,10 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/widgets/widget.cpp
     ${NODEGRAPH_ROOT}/src/widgets/node.cpp
     ${NODEGRAPH_ROOT}/src/widgets/widget_slider.cpp
-    ${NODEGRAPH_ROOT}/src/widgets/widget_text.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/widget_waveslider.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/widget_label.cpp
     ${NODEGRAPH_ROOT}/src/widgets/widget_knob.cpp
+    ${NODEGRAPH_ROOT}/src/widgets/widget_socket.cpp
     ${NODEGRAPH_ROOT}/src/widgets/layout.cpp
     ${NODEGRAPH_ROOT}/src/setting.cpp
     ${NODEGRAPH_ROOT}/project.natvis
@@ -35,8 +37,10 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/node.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_slider.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_text.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_waveslider.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_label.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_knob.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_socket.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/layout.h
     
     ${NODEGRAPH_ROOT}/src/string/string_utils.cpp

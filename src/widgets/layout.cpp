@@ -7,6 +7,7 @@
 namespace NodeGraph {
 
 Layout::Layout(LayoutType type)
+    : Widget("Layout")
 {
     m_layoutType = type;
 }
