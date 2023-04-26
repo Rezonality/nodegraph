@@ -29,7 +29,6 @@ enum
 struct SocketValue : WidgetValue
 {
     uint32_t flags = SocketFlags::None;
-    SocketType type = SocketType::Left;
 };
 
 struct ISocketCB
@@ -40,7 +39,7 @@ struct ISocketCB
 class Socket : public Widget, public ISocketCB
 {
 public:
-    Socket(const std::string& label, ISocketCB* pCB = nullptr);
+    Socket(const std::string& label, SocketType type, ISocketCB* pCB = nullptr);
     virtual void Draw(Canvas& canvas) override;
     virtual Widget* MouseDown(CanvasInputState& input) override;
     virtual void MouseUp(CanvasInputState& input) override;
@@ -56,6 +55,7 @@ public:
 private:
     ISocketCB* m_pCB = nullptr;
     SocketValue m_value;
+    SocketType m_type = SocketType::Left;
 };
 
 }

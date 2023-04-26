@@ -8,9 +8,10 @@
 
 namespace NodeGraph {
 
-Socket::Socket(const std::string& label, ISocketCB* pCB)
+Socket::Socket(const std::string& label, SocketType type, ISocketCB* pCB)
     : Widget(label)
     , m_pCB(pCB)
+    , m_type(type)
 {
     m_value.name = label;
     if (!m_pCB)
@@ -37,10 +38,17 @@ void Socket::Draw(Canvas& canvas)
     canvas.FilledCircle(rc.Center(), socketSize, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     canvas.FilledCircle(rc.Center(), innerSize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-    if (val.type == SocketType::Left)
+    if (m_type == SocketType::Left)
     {
         auto start = rc.Center() - glm::vec2(socketSize, 0.0f);
-        auto end = start - glm::vec2(socketRadius * 2.0f, 0.0f);
+        auto end = start - glm::vec2(socketRadius * 1.5f, 0.0f);
+
+        canvas.DrawLine(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), socketRadius);
+    }
+    else
+    {
+        auto start = rc.Center() + glm::vec2(socketSize, 0.0f);
+        auto end = start + glm::vec2(socketRadius * 1.5f, 0.0f);
 
         canvas.DrawLine(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), socketRadius);
     }

@@ -134,7 +134,14 @@ void Slider::MouseUp(CanvasInputState& input)
 void Slider::Update(CanvasInputState& input)
 {
     SliderValue val;
-    m_pCB->UpdateSlider(this, SliderOp::Get, val);
+    if (m_pCB)
+    {
+        m_pCB->UpdateSlider(this, SliderOp::Get, val);
+    }
+    else
+    {
+        UpdateSlider(this, SliderOp::Get, val);
+    }
 
     ClampNormalized(val);
 
@@ -149,7 +156,14 @@ void Slider::Update(CanvasInputState& input)
 
     ClampNormalized(val);
 
-    m_pCB->UpdateSlider(this, SliderOp::Set, val);
+    if (m_pCB)
+    {
+        m_pCB->UpdateSlider(this, SliderOp::Set, val);
+    }
+    else
+    {
+        UpdateSlider(this, SliderOp::Set, val);
+    }
 }
 
 bool Slider::MouseMove(CanvasInputState& input)

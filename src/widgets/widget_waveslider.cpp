@@ -119,7 +119,38 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
     
 void WaveSlider::DrawGeneratedWave(Canvas& canvas, const NRectf& rc)
 {
-    canvas.FillRect(ToWorldRect(rc), glm::vec4(0.5f, 0.5, 0.5f, 1.0f));
+    std::vector<float> wave;
+    wave.resize(1000);
+    for (int i = 0; i < wave.size(); ++i)
+    {
+        wave[i] = std::sin(float((i * 8.0 * glm::pi<float>()) / wave.size()));
+    }
+
+    auto rcWorld = ToWorldRect(rc);
+    
+    auto& theme = ThemeManager::Instance();
+
+    // Draw the background area
+    rcWorld = DrawSlab(canvas,
+        rcWorld,
+        theme.GetFloat(s_sliderBorderRadius),
+        theme.GetFloat(s_sliderShadowSize),
+        theme.GetVec4f(c_sliderShadowColor),
+        theme.GetFloat(s_sliderBorderSize),
+        theme.GetVec4f(c_sliderBorderColor),
+        theme.GetVec4f(c_sliderCenterColor));
+
+    auto waveColor = theme.GetVec4f(c_sliderThumbColor);
+  
+    rcWorld.Adjust(8, 8, -8, -8);
+    canvas.BeginStroke(glm::vec2(rcWorld.Left(), rcWorld.Center().y), 4.0f, waveColor);
+    for (uint32_t x = 1; x < rcWorld.Width(); x++)
+    {
+        auto y = wave[x * wave.size() / rc.Width()];
+        canvas.LineTo(glm::vec2(rcWorld.Left() + x, rcWorld.Center().y + y * rcWorld.Height() * 0.5f));
+    }
+    canvas.EndStroke();
+    //canvas.FillRect(rcWorld, glm::vec4(0.5f, 0.5, 0.5f, 1.0f));
 }
 
 } // Nodegraph

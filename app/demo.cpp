@@ -12,8 +12,8 @@
 #include <nodegraph/widgets/widget_knob.h>
 #include <nodegraph/widgets/widget_label.h>
 #include <nodegraph/widgets/widget_slider.h>
-#include <nodegraph/widgets/widget_waveslider.h>
 #include <nodegraph/widgets/widget_socket.h>
+#include <nodegraph/widgets/widget_waveslider.h>
 
 #include <config_app.h>
 using namespace NodeGraph;
@@ -23,7 +23,7 @@ namespace {
 std::unique_ptr<CanvasImGui> spCanvas;
 const glm::vec2 worldCenter = glm::vec2(0.0f);
 
-struct Setter : public ISliderCB
+struct SetterWave : public ISliderCB
 {
     SliderValue myVal;
     virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
@@ -45,8 +45,31 @@ struct Setter : public ISliderCB
     }
 };
 
+SetterWave swave;
+
+struct Setter : public ISliderCB
+{
+    SliderValue myVal;
+    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
+    {
+        myVal.type = SliderType::Mark;
+        myVal.step = 0.2f;
+        if (op == SliderOp::Get)
+        {
+            myVal.name = pSlider->GetLabel();
+            myVal.valueText = fmt::format("{:1.2f}", myVal.value);
+            myVal.units = "dB";
+            val = myVal;
+        }
+        else
+        {
+            myVal = val;
+        }
+    }
+};
 Setter s1;
 Setter s2;
+
 }
 
 void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
@@ -155,14 +178,7 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         auto spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
         spOsc->SetLayout(spRootLayout);
 
-        /*
-        auto spWaveLayout = std::make_shared<Layout>(LayoutType::Horizontal);
-        spWaveLayout->SetContentsMargins(glm::vec4(0.0f));
-        spWaveLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
-        spWaveLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
-        spRootLayout->AddChild(spWaveLayout);*/
-
-        auto spWaveSlider = std::make_shared<WaveSlider>("Wave", &s1);
+        auto spWaveSlider = std::make_shared<WaveSlider>("Wave", &swave);
         spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
         spWaveSlider->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
 
@@ -176,6 +192,31 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
             spWaveSlider->DrawGeneratedWave(canvas, rect);
         });
         spRootLayout->AddChild(spCustom);
+
+        // Sliders
+        auto spHorzLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+        spHorzLayout->SetContentsMargins(glm::vec4(0.0f));
+        spHorzLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+        spHorzLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+        spRootLayout->AddChild(spHorzLayout);
+
+        auto spSocket = std::make_shared<Socket>("Freq", SocketType::Left);
+        spSocket->SetRect(NRectf(0.0f, 0.0f, 30.0f, 30.0f));
+        spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
+        spHorzLayout->AddChild(spSocket);
+
+        auto spSlider = std::make_shared<Slider>("Amp", &s1);
+        spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+        spHorzLayout->AddChild(spSlider);
+
+        spSlider = std::make_shared<Slider>("Freq", &s2);
+        spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+        spHorzLayout->AddChild(spSlider);
+
+        spSocket = std::make_shared<Socket>("Amp", SocketType::Right);
+        spSocket->SetRect(NRectf(0.0f, 0.0f, 30.0f, 30.0f));
+        spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
+        spHorzLayout->AddChild(spSocket);
 
         ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     }
