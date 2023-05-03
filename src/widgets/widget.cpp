@@ -106,7 +106,7 @@ Widget* Widget::MouseDown(CanvasInputState& input)
             }
         }
     }
-    return nullptr;
+    return this;
 }
 
 void Widget::MouseUp(CanvasInputState& input)
@@ -116,8 +116,24 @@ void Widget::MouseUp(CanvasInputState& input)
         if (child->GetWorldRect().Contains(input.worldMousePos))
         {
             child->MouseUp(input);
+            return;
         }
     }
+}
+
+Widget* Widget::MouseHover(CanvasInputState& input)
+{
+    for (auto& child : GetLayout()->GetFrontToBack())
+    {
+        if (child->GetWorldRect().Contains(input.worldMousePos))
+        {
+            if (auto pCapture = child->MouseHover(input))
+            {
+                return pCapture;
+            }
+        }
+    }
+    return this;
 }
 
 bool Widget::MouseMove(CanvasInputState& input)
@@ -252,6 +268,24 @@ glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
     return ColorForBackground(color);
 }
 
+bool Widget::IsMouseHover(Canvas& canvas)
+{
+    if (canvas.GetInputState().m_pHoverCapture == this && timer_get_elapsed_seconds(canvas.GetInputState().hoverTimer) > 0.5f)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool Widget::IsMouseCapture(Canvas& canvas)
+{
+    if (canvas.GetInputState().m_pMouseCapture == this)
+    {
+        return true;
+    }
+    return false;
+}
+
 bool Widget::IsMouseOver(Canvas& canvas)
 {
     auto& state = canvas.GetInputState();
@@ -278,7 +312,7 @@ bool Widget::IsMouseOver(Canvas& canvas)
 
 void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const WidgetValue& val)
 {
-    if (IsMouseOver(canvas))
+    if (IsMouseHover(canvas) || IsMouseCapture(canvas))
     {
         std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
 

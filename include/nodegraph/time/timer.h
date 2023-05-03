@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <date/date.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -8,11 +9,36 @@
 #include <mutex>
 #include <vector>
 
-namespace MUtils
+namespace NodeGraph
 {
 
 // Useful chrono stuff
 using TimeSpan = std::chrono::seconds;
+
+// A second timer, based on system clock and therefore UTC epoch correct
+using DateTime = std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>;
+using DaysAsSeconds = std::chrono::duration<int, std::ratio<24 * 3600>>;
+
+const auto HalfDaySeconds = std::chrono::seconds(date::days(1)).count() / 2;
+const auto FullDaySeconds = std::chrono::seconds(date::days(1)).count();
+const int64_t YearDays = date::floor<date::days>(date::years(1)).count();
+const int64_t MonthDays = date::floor<date::days>(date::months(1)).count();
+const int64_t WeekDays = date::floor<date::days>(date::weeks(1)).count();
+const double DaysToYears = 1 / double(YearDays);
+
+DateTime datetime_now();
+DateTime datetime_from_seconds(uint64_t t);
+DateTime datetime_from_seconds(std::chrono::seconds s);
+
+date::sys_time<std::chrono::milliseconds> sys_time_from_iso_8601(const std::string& str);
+DateTime datetime_from_iso_8601(const std::string& str);
+std::string datetime_to_iso_8601(DateTime dt);
+
+enum class TimerSample : uint32_t
+{
+    None,
+    Restart
+};
 
 template<typename tClock = std::chrono::high_resolution_clock>
 struct timerT
@@ -22,7 +48,7 @@ struct timerT
 };
 
 using timer = timerT<>;
-extern timer globalTimer;
+using utc_timer = timerT<std::chrono::system_clock>;
 
 template<class T>
 uint64_t timer_get_time_now(timerT<T>& timer)
@@ -52,6 +78,15 @@ uint64_t timer_get_elapsed(const timerT<T>& timer)
     return now - timer.startTime;
 }
 
+template<class T>
+uint64_t timer_to_epoch_utc_seconds(const timerT<T>& timer)
+{
+    auto nowSeconds = std::chrono::duration_cast<std::chrono::seconds>(timer.clock.now().time_since_epoch());
+    auto utcNow = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch());
+    auto diff = utcNow - nowSeconds;
+
+    return (timer.startTime / 1000000000) + diff.count();
+}
 
 double timer_to_seconds(uint64_t value);
 double timer_to_ms(uint64_t value);
@@ -119,4 +154,4 @@ enum class DateTimeFormat
 std::string timerange_to_string(TimeRange r, DateTimeFormat format);
 std::string datetime_to_string(DateTime d, DateTimeFormat format);
 
-} // namespace MUtils
+} // namespace NodeGraph

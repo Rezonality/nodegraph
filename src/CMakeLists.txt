@@ -7,6 +7,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
+find_package(date CONFIG REQUIRED)
 
 set(NODEGRAPH_VULKAN_SOURCE
     ${NODEGRAPH_ROOT}/src/vulkan/vulkan_imgui_texture.cpp
@@ -26,6 +27,7 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/widgets/widget_socket.cpp
     ${NODEGRAPH_ROOT}/src/widgets/layout.cpp
     ${NODEGRAPH_ROOT}/src/setting.cpp
+    ${NODEGRAPH_ROOT}/src/time/timer.cpp
     ${NODEGRAPH_ROOT}/project.natvis
 
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
@@ -46,6 +48,7 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/string/string_utils.cpp
     ${NODEGRAPH_ROOT}/include/nodegraph/string/string_utils.h
     ${NODEGRAPH_ROOT}/include/nodegraph/string/murmur_hash.h
+    ${NODEGRAPH_ROOT}/include/nodegraph/time/timer.h
 )
 
 set(NODEGRAPH_SOURCE
@@ -68,7 +71,8 @@ PUBLIC
     fmt::fmt-header-only
     glm::glm
     Vulkan::Vulkan
-)
+    date::date
+    date::date-tz)
 
 target_include_directories(NodeGraph
 PRIVATE

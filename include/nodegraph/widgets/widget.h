@@ -81,6 +81,7 @@ public:
     virtual Widget* MouseDown(CanvasInputState& input);
     virtual void MouseUp(CanvasInputState& input);
     virtual bool MouseMove(CanvasInputState& input);
+    virtual Widget* MouseHover(CanvasInputState& input);
 
     virtual NRectf ToWorldRect(const NRectf& rc) const;
     virtual NRectf ToLocalRect(const NRectf& rc) const;
@@ -112,6 +113,8 @@ public:
     virtual void DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const WidgetValue& value);
 
     virtual bool IsMouseOver(Canvas& canvas);
+    virtual bool IsMouseHover(Canvas& canvas);
+    virtual bool IsMouseCapture(Canvas& canvas);
 
 protected:
     NRectf m_rect;

@@ -2,6 +2,7 @@
 #include <nodegraph/canvas.h>
 #include <nodegraph/fonts.h>
 #include <nodegraph/widgets/layout.h>
+#include <nodegraph/time/timer.h>
 
 #define DECLARE_SETTINGS
 #include <algorithm>
@@ -293,6 +294,8 @@ void Canvas::HandleMouseUp(CanvasInputState& input)
     if (input.m_pMouseCapture)
     {
         input.m_pMouseCapture->MouseUp(input);
+        input.m_pHoverCapture = input.m_pMouseCapture;
+        input.hoverTimer.startTime = 0;
         input.m_pMouseCapture = nullptr;
         return;
     }
@@ -300,6 +303,21 @@ void Canvas::HandleMouseUp(CanvasInputState& input)
 
 void Canvas::HandleMouseMove(CanvasInputState& input)
 {
+    input.m_pHoverCapture = nullptr;
+    const auto& search = GetRootLayout()->GetFrontToBack();
+    for (auto& pWidget : search)
+    {
+        if (pWidget->GetWorldRect().Contains(input.worldMousePos))
+        {
+            if (auto pCapture = pWidget->MouseHover(input))
+            {
+                input.m_pHoverCapture = pCapture;
+                timer_restart(input.hoverTimer);
+                break;
+            }
+        }
+    }
+
     if (input.m_pMouseCapture)
     {
         input.m_pMouseCapture->MouseMove(input);
