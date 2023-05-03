@@ -55,7 +55,7 @@ NRectf Widget::ToLocalRect(const NRectf& rc) const
     }
 
     auto rcNew = rc.Adjusted(-m_pParent->GetRect().TopLeft());
-    //return rcNew;
+    // return rcNew;
     return m_pParent->ToLocalRect(rcNew);
 }
 
@@ -252,9 +252,33 @@ glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
     return ColorForBackground(color);
 }
 
+bool Widget::IsMouseOver(Canvas& canvas)
+{
+    auto& state = canvas.GetInputState();
+    if (state.m_pMouseCapture == this)
+    {
+        return true;
+    }
+
+    for (auto& child : GetLayout()->GetFrontToBack())
+    {
+        if (child->GetWorldRect().Contains(state.worldMousePos))
+        {
+            return false;
+        }
+    }
+
+    if (GetWorldRect().Contains(state.worldMousePos))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const WidgetValue& val)
 {
-    if (canvas.GetInputState().m_pMouseCapture == this)
+    if (IsMouseOver(canvas))
     {
         std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
 

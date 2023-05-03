@@ -3,6 +3,7 @@
 #include <cassert>
 #include <vector>
 #include <memory>
+#include <chrono>
 
 #include <nodegraph/math_utils.h>
 #include <nodegraph/widgets/widget.h>
@@ -56,6 +57,7 @@ struct CanvasInputState
 
     glm::vec2 lastWorldMouseClick[MouseButtons::MOUSE_MAX]; // Mouse down in world coordinates
 
+
     // Button states
     bool buttonDown[MouseButtons::MOUSE_MAX];
     bool buttonClicked[MouseButtons::MOUSE_MAX];
@@ -65,6 +67,8 @@ struct CanvasInputState
     bool canCapture = false;
     CaptureState captureState = CaptureState::None;
     Widget* m_pMouseCapture = nullptr;
+    Widget* m_pHoverCapture = nullptr;
+
 };
 
 class Canvas

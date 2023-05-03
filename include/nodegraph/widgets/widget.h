@@ -111,6 +111,8 @@ public:
 
     virtual void DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const WidgetValue& value);
 
+    virtual bool IsMouseOver(Canvas& canvas);
+
 protected:
     NRectf m_rect;
     Widget* m_pParent = nullptr;
