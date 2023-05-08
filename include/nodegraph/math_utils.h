@@ -401,4 +401,9 @@ inline glm::vec4 ColorForBackground(const glm::vec4& color)
     }
 }
 
+inline glm::vec4 ModifyAlpha(const glm::vec4& val, float alpha)
+{
+    return glm::vec4(val.x, val.y, val.z, alpha);
+}
+
 } // NodeGraph

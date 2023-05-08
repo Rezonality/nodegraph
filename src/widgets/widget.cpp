@@ -44,7 +44,7 @@ void Widget::SetRect(const NRectf& sz)
         m_sizeHint = sz.Size();
     }
     m_rect = sz;
-    LOG(DBG, "Widget: " << GetLabel() << ": " << m_rect);
+    // LOG(DBG, "Widget: " << GetLabel() << ": " << m_rect);
 }
 
 NRectf Widget::ToLocalRect(const NRectf& rc) const
@@ -268,12 +268,35 @@ glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
     return ColorForBackground(color);
 }
 
+WidgetEventTimer* Widget::GetCurrentTimer(Canvas& canvas)
+{
+    auto& state = canvas.GetInputState();
+    if (state.m_hoverTimer.m_pWidget == this)
+    {
+        return &state.m_hoverTimer;
+    }
+    else if (state.m_hoverOldTimer.m_pWidget == this)
+    {
+        return &state.m_hoverOldTimer;
+    }
+    return nullptr;
+}
+
 bool Widget::IsMouseHover(Canvas& canvas)
 {
-    if (canvas.GetInputState().m_pHoverCapture == this && timer_get_elapsed_seconds(canvas.GetInputState().hoverTimer) > 0.5f)
+    auto& state = canvas.GetInputState();
+    if (state.m_hoverTimer.m_pWidget == this &&
+        (state.m_hoverTimer.m_state == WidgetEventTimer::State::Wait|| 
+        state.m_hoverTimer.m_state == WidgetEventTimer::State::Trigger))
     {
         return true;
     }
+
+    if (state.m_hoverOldTimer.Decay(this))
+    {
+        return true;
+    }
+
     return false;
 }
 
@@ -314,6 +337,12 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
 {
     if (IsMouseHover(canvas) || IsMouseCapture(canvas))
     {
+        auto pTimer = GetCurrentTimer(canvas);
+        float alpha = 1.0f;
+        if (pTimer)
+        {
+            alpha = pTimer->Alpha();
+        }
         std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
 
         auto& theme = ThemeManager::Instance();
@@ -321,21 +350,24 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
         auto tipPad = theme.GetFloat(s_sliderTipFontPad);
         auto fontSize = theme.GetFloat(s_sliderTipFontSize);
 
-        auto rcBounds = canvas.TextBounds(widgetTopCenter, fontSize, tip.c_str(), nullptr, TEXT_ALIGN_CENTER | TEXT_ALIGN_MIDDLE);
+        auto rcBounds = canvas.TextBounds(widgetTopCenter, fontSize, tip.c_str(), nullptr, TEXT_ALIGN_TOP | TEXT_ALIGN_LEFT);
+        rcBounds.SetHeight(fontSize);
 
-        NRectf panelRect = NRectf(widgetTopCenter.x - rcBounds.Width() / 2.0f - tipPad, widgetTopCenter.y - rcBounds.Height() * 3.0f, rcBounds.Width() + tipPad * 2.0f, rcBounds.Height() + tipPad * 2.0f);
+        auto step = fontSize * 2.1f; //(rcBounds.Height()) * 3.0f);
+
+        NRectf panelRect = NRectf(widgetTopCenter.x - rcBounds.Width() / 2.0f - tipPad, widgetTopCenter.y - step, rcBounds.Width() + tipPad * 2.0f, rcBounds.Height() + tipPad * 2.0f);
 
         auto rc = DrawSlab(canvas,
             panelRect,
             theme.GetFloat(s_sliderTipBorderRadius),
             theme.GetFloat(s_sliderTipShadowSize),
-            theme.GetVec4f(c_sliderTipShadowColor),
+            ModifyAlpha(theme.GetVec4f(c_sliderTipShadowColor), alpha),
             theme.GetFloat(s_sliderTipBorderSize),
-            theme.GetVec4f(c_sliderTipBorderColor),
-            theme.GetVec4f(c_sliderTipCenterColor),
+            ModifyAlpha(theme.GetVec4f(c_sliderTipBorderColor), alpha),
+            ModifyAlpha(theme.GetVec4f(c_sliderTipCenterColor), alpha),
             tip.c_str(),
             4.0f,
-            TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)),
+            ModifyAlpha(TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)), alpha),
             fontSize);
     }
 }

@@ -1,13 +1,13 @@
 #pragma once
 
 #include <cassert>
-#include <vector>
-#include <memory>
 #include <chrono>
+#include <memory>
+#include <vector>
 
 #include <nodegraph/math_utils.h>
-#include <nodegraph/widgets/widget.h>
 #include <nodegraph/time/timer.h>
+#include <nodegraph/widgets/widget.h>
 
 // #include "nodegraph/model/graph.h"
 
@@ -29,7 +29,7 @@ enum TextAlign
     TEXT_ALIGN_LEFT = 1 << 0, // Default, align text horizontally to left.
     TEXT_ALIGN_CENTER = 1 << 1, // Align text horizontally to center.
     TEXT_ALIGN_RIGHT = 1 << 2, // Align text horizontally to right.
-    // Vertical align
+                               // Vertical align
     TEXT_ALIGN_TOP = 1 << 3, // Align text vertically to top.
     TEXT_ALIGN_MIDDLE = 1 << 4, // Align text vertically to middle.
     TEXT_ALIGN_BOTTOM = 1 << 5, // Align text vertically to bottom.
@@ -42,6 +42,114 @@ enum class CaptureState
     MoveCanvas, // Moving Canvas
     MoveNode, // Moving a Node
     Parameter // Tweaking a parameter
+};
+
+struct WidgetEventTimer
+{
+    WidgetEventTimer()
+    {
+    }
+
+    WidgetEventTimer(Widget* pWidget, float secondsIn)
+        : m_pWidget(pWidget)
+        , m_in(secondsIn)
+        , m_state(State::Wait)
+    {
+        timer_restart(m_time);
+    }
+
+    enum class State
+    {
+        Wait,
+        Trigger,
+        Decay,
+        Off
+    };
+
+    State Update()
+    {
+        switch (m_state)
+        {
+        case State::Wait:
+        {
+            if (m_pWidget && (timer_get_elapsed_seconds(m_time) > m_in))
+            {
+                m_state = State::Trigger;
+            }
+        }
+        break;
+        case State::Decay:
+        {
+            if (m_pWidget && (timer_get_elapsed_seconds(m_time) > m_in))
+            {
+                m_state = State::Off;
+            }
+        }
+        break;
+        }
+        return m_state;
+    }
+
+    float Alpha() const
+    {
+        auto elapsed = float(timer_get_elapsed_seconds(m_time));
+        if (m_state == State::Decay)
+        {
+            if (elapsed > m_in)
+            {
+                return 0.0f;
+            }
+            return ((m_in - elapsed) / m_in);
+        }
+        else if (m_state == State::Wait || m_state == State::Trigger)
+        {
+            if (elapsed > m_in)
+            {
+                return 1.0f;
+            }
+            return 1.0f - ((m_in - elapsed) / m_in);
+        }
+        return 0.0f;
+    }
+    void SetState(State s)
+    {
+        m_state = s;
+        timer_restart(m_time);
+    }
+
+    bool Decay(Widget* pWidget)
+    {
+        Update();
+        return (m_pWidget == pWidget) && (m_state == State::Decay);
+    }
+
+    bool Triggered(Widget* pWidget)
+    {
+        Update();
+        return (m_pWidget == pWidget) && (m_state == State::Trigger);
+    }
+    
+    bool Triggered()
+    {
+        Update();
+        return (m_state == State::Trigger);
+    }
+    
+    bool Decay()
+    {
+        Update();
+        return (m_state == State::Decay);
+    }
+
+    bool IsThisWidget(Widget* pWidget) const
+    {
+        return m_pWidget == pWidget;
+    }
+
+    Widget* m_pWidget = nullptr;
+    float m_in = 0.0f;
+    timer m_time;
+    State m_state = State::Wait;
 };
 
 // Represents the current interaction state with the canvas; used for
@@ -68,8 +176,8 @@ struct CanvasInputState
     CaptureState captureState = CaptureState::None;
     Widget* m_pMouseCapture = nullptr;
 
-    Widget* m_pHoverCapture = nullptr;
-    timer hoverTimer;
+    WidgetEventTimer m_hoverTimer;
+    WidgetEventTimer m_hoverOldTimer;
 };
 
 class Canvas
@@ -150,7 +258,6 @@ protected:
     std::vector<glm::vec2> pointStorage;
     std::shared_ptr<FontContext> spFontContext;
     std::shared_ptr<Layout> m_spRootLayout;
-    
 };
 
 } // namespace NodeGraph

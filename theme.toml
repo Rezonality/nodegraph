@@ -50,6 +50,6 @@ s_sliderThumbRadius = 4.0
 s_sliderThumbShadowSize = 1.0
 s_sliderTipBorderRadius = 16.0
 s_sliderTipBorderSize = 0.0
-s_sliderTipFontPad = 14.0
+s_sliderTipFontPad = 7.0
 s_sliderTipFontSize = 36.0
 s_sliderTipShadowSize = 4.0

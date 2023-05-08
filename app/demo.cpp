@@ -72,6 +72,11 @@ Setter s2;
 
 }
 
+NodeGraph::Canvas* demo_get_canvas()
+{
+    return spCanvas.get();
+}
+
 void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
 {
     if (!spCanvas)

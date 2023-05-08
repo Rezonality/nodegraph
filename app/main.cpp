@@ -5,6 +5,7 @@
 #include <imgui_impl_vulkan.h>
 #include <nodegraph/IconsFontAwesome5.h>
 #include <nodegraph/imgui_glm.h>
+#include <nodegraph/canvas.h>
 
 #pragma warning(default : 4005)
 #include <SDL.h>
@@ -581,8 +582,15 @@ int main(int, char**)
         }
         ImGui::End();
 
-        ImGui::Text("%s among %d items", ICON_FA_SEARCH, 4);
-        ImGui::Button(ICON_FA_SEARCH " Search");
+        auto pCanvas = demo_get_canvas();
+        if (pCanvas)
+        {
+            auto& in = pCanvas->GetInputState();
+            ImGui::Begin("Debug");
+            ImGui::Text("%d capture", in.m_pMouseCapture);
+            ImGui::Text("%d in hover, %d capture", in.m_hoverTimer.m_state, in.m_pMouseCapture);
+            ImGui::End();
+        }
 
         ImGui::Begin("Canvas");
         auto winSize = (glm::vec2)ImGui::GetContentRegionAvail();

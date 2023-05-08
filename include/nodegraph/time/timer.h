@@ -66,6 +66,12 @@ void timer_start(timerT<T>& timer)
 }
 
 template<class T>
+void timer_set_earliest(timerT<T>& timer)
+{
+    timer.startTime = 0;
+}
+
+template<class T>
 void timer_restart(timerT<T>& timer)
 {
     timer.startTime = std::chrono::duration_cast<std::chrono::nanoseconds>(timer.clock.now().time_since_epoch()).count();

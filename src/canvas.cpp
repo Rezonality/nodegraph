@@ -1,8 +1,9 @@
 #include <algorithm>
 #include <nodegraph/canvas.h>
 #include <nodegraph/fonts.h>
-#include <nodegraph/widgets/layout.h>
+#include <nodegraph/logger/logger.h>
 #include <nodegraph/time/timer.h>
+#include <nodegraph/widgets/layout.h>
 
 #define DECLARE_SETTINGS
 #include <algorithm>
@@ -280,6 +281,7 @@ void Canvas::HandleMouseDown(CanvasInputState& input)
             if (auto pCapture = pWidget->MouseDown(input))
             {
                 input.m_pMouseCapture = pCapture;
+                input.m_hoverTimer = WidgetEventTimer();
 
                 // Draw the recently clicked one last
                 GetRootLayout()->MoveChildToBack(pWidget);
@@ -293,9 +295,12 @@ void Canvas::HandleMouseUp(CanvasInputState& input)
 {
     if (input.m_pMouseCapture)
     {
+        // Setup the hover event
         input.m_pMouseCapture->MouseUp(input);
-        input.m_pHoverCapture = input.m_pMouseCapture;
-        input.hoverTimer.startTime = 0;
+        if (input.m_hoverTimer.Triggered())
+        {
+            input.m_hoverTimer.SetState(WidgetEventTimer::State::Decay);
+        }
         input.m_pMouseCapture = nullptr;
         return;
     }
@@ -303,36 +308,55 @@ void Canvas::HandleMouseUp(CanvasInputState& input)
 
 void Canvas::HandleMouseMove(CanvasInputState& input)
 {
-    input.m_pHoverCapture = nullptr;
-    const auto& search = GetRootLayout()->GetFrontToBack();
-    for (auto& pWidget : search)
+    bool found = false;
+
+    if (!input.m_pMouseCapture)
     {
-        if (pWidget->GetWorldRect().Contains(input.worldMousePos))
+        const auto& search = GetRootLayout()->GetFrontToBack();
+        for (auto& pWidget : search)
         {
-            if (auto pCapture = pWidget->MouseHover(input))
+            if (pWidget->GetWorldRect().Contains(input.worldMousePos))
             {
-                input.m_pHoverCapture = pCapture;
-                timer_restart(input.hoverTimer);
-                break;
+                if (auto pCapture = pWidget->MouseHover(input))
+                {
+                    // We moved to a different widget, so we reset
+                    if (!input.m_hoverTimer.IsThisWidget(pCapture))
+                    {
+                        input.m_hoverOldTimer = input.m_hoverTimer;
+                        input.m_hoverOldTimer.SetState(WidgetEventTimer::State::Decay);
+
+                        input.m_hoverTimer = WidgetEventTimer(pCapture, 0.15f);
+                    }
+                    found = true;
+                }
+            }
+        }
+
+        if (!found && input.m_hoverTimer.m_pWidget)
+        {
+            input.m_hoverOldTimer = input.m_hoverTimer;
+            input.m_hoverOldTimer.SetState(WidgetEventTimer::State::Decay);
+            input.m_hoverTimer = WidgetEventTimer();
+        }
+
+        for (auto& pWidget : m_spRootLayout->GetFrontToBack())
+        {
+            if (pWidget->GetWorldRect().Contains(input.worldMousePos))
+            {
+                if (pWidget->MouseMove(input))
+                {
+                    return;
+                }
             }
         }
     }
-
-    if (input.m_pMouseCapture)
+    else
     {
+        input.m_hoverOldTimer = WidgetEventTimer();
+        input.m_hoverTimer = WidgetEventTimer();
+
         input.m_pMouseCapture->MouseMove(input);
         return;
-    }
-
-    for (auto& pWidget : m_spRootLayout->GetFrontToBack())
-    {
-        if (pWidget->GetWorldRect().Contains(input.worldMousePos))
-        {
-            if (pWidget->MouseMove(input))
-            {
-                return;
-            }
-        }
     }
 }
 

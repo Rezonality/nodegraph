@@ -8,6 +8,7 @@ namespace NodeGraph {
 
 class Canvas;
 struct CanvasInputState;
+struct WidgetEventTimer;
 
 enum MouseButtons
 {
@@ -115,6 +116,8 @@ public:
     virtual bool IsMouseOver(Canvas& canvas);
     virtual bool IsMouseHover(Canvas& canvas);
     virtual bool IsMouseCapture(Canvas& canvas);
+
+    WidgetEventTimer* GetCurrentTimer(Canvas& canvas);
 
 protected:
     NRectf m_rect;
