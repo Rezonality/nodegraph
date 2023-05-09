@@ -588,6 +588,7 @@ int main(int, char**)
             auto& in = pCanvas->GetInputState();
             ImGui::Begin("Debug");
             ImGui::Text("%d capture", in.m_pMouseCapture);
+            ImGui::Text("%d tips", TipTimer::ActiveTips.size());
             ImGui::End();
         }
 

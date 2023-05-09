@@ -320,18 +320,17 @@ void Canvas::HandleMouseMove(CanvasInputState& input)
             }
         }
         
-        for (auto& pWidget : search)
+        for (auto& [pWidget, pTip] : TipTimer::ActiveTips)
         {
-            pWidget->Visit([=](auto pVisit) {
-                if (pVisit != pHoverWidget)
-                {
-                    pVisit->GetTipTimer().Stop();
-                }
-                else
-                {
-                    pVisit->GetTipTimer().Start();
-                }
-            });
+            if (pWidget != pHoverWidget)
+            {
+                pWidget->GetTipTimer().Stop();
+            }
+        }
+
+        if (pHoverWidget)
+        {
+            pHoverWidget->GetTipTimer().Start();
         }
 
         for (auto& pWidget : m_spRootLayout->GetFrontToBack())

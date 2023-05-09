@@ -61,19 +61,28 @@ enum class TipState
     Off
 };
 
+class Widget;
 class TipTimer
 {
 public:
-    TipTimer(float secondsIn, float secondsOut)
+    static std::unordered_map<Widget*, TipTimer*> ActiveTips;
+
+    TipTimer(Widget* pOwner, float secondsIn, float secondsOut)
         : m_in(secondsIn)
         , m_out(secondsOut)
         , m_state(TipState::Off)
+        , m_pOwner(pOwner)
     {
         m_decayTime = m_out;
     }
 
+    ~TipTimer()
+    {
+        ActiveTips.erase(m_pOwner);
+    }
     TipState Update()
     {
+        // Wait or decay over time
         switch (m_state)
         {
         case TipState::Wait:
@@ -89,6 +98,7 @@ public:
             if (timer_get_elapsed_seconds(m_time) > m_in)
             {
                 m_state = TipState::Off;
+                ActiveTips.erase(m_pOwner);
             }
         }
         break;
@@ -120,6 +130,7 @@ public:
 
     void Stop()
     {
+        // If waiting, reverse to a decay for the remaining alpha
         if (m_state == TipState::Wait)
         {
             auto a = Alpha();
@@ -129,12 +140,14 @@ public:
         }
         else
         {
-            if (m_state == TipState::On || m_state == TipState::Decay || m_state == TipState::Wait)
+            // If on, switch to decay
+            if (m_state == TipState::On || m_state == TipState::Decay)
             {
                 SetState(TipState::Decay);
             }
             else
             {
+                // Othwerise directly off
                 SetState(TipState::Off);
             }
         }
@@ -158,6 +171,15 @@ public:
         m_decayTime = m_out;
         timer_restart(m_time);
         Update();
+
+        if (s != TipState::Off)
+        {
+            ActiveTips[m_pOwner] = this;
+        }
+        else
+        {
+            ActiveTips.erase(m_pOwner);
+        }
     }
 
     TipState GetState()
@@ -173,6 +195,7 @@ private:
     bool on = false;
     timer m_time;
     TipState m_state = TipState::Wait;
+    Widget* m_pOwner;
 };
 
 class Layout;

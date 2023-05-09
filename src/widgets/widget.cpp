@@ -10,9 +10,11 @@
 
 namespace NodeGraph {
 
+std::unordered_map<Widget*, TipTimer*> TipTimer::ActiveTips;
+
 Widget::Widget(const std::string& label)
     : m_label(label), 
-    m_tipTimer(.25f, 0.25f)
+    m_tipTimer(this, .25f, 0.25f)
 {
 }
 
