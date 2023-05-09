@@ -94,8 +94,7 @@ void Slider::Draw(Canvas& canvas)
 
     if (val.valueFlags & WidgetValueFlags::ShowText)
     {
-        auto sliderText = fmt::format("{}: {:1.2f}", val.name, val.value);
-        canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), sliderText.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
+        canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), val.name.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
         DrawTip(canvas, glm::vec2(titlePanelRect.Center().x, titlePanelRect.Top()), val);
     }
@@ -146,12 +145,15 @@ void Slider::Update(CanvasInputState& input)
     ClampNormalized(val);
 
     val.value = (input.worldMousePos.x - m_sliderRangeArea.Left()) / m_sliderRangeArea.Width();
-    val.value -= (val.step * 0.5f);
 
     // Quantize
     if (!(val.valueFlags & WidgetValueFlags::NoQuantization))
     {
         val.value = int(val.value / val.step) * val.step;
+    }
+    else
+    {
+        val.value -= (val.step * 0.5f);
     }
 
     ClampNormalized(val);

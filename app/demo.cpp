@@ -50,6 +50,11 @@ SetterWave swave;
 struct Setter : public ISliderCB
 {
     SliderValue myVal;
+    std::string m_units;
+    Setter(std::string units)
+        : m_units(units) 
+    {
+    }
     virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
     {
         myVal.type = SliderType::Mark;
@@ -58,7 +63,7 @@ struct Setter : public ISliderCB
         {
             myVal.name = pSlider->GetLabel();
             myVal.valueText = fmt::format("{:1.2f}", myVal.value);
-            myVal.units = "dB";
+            myVal.units = m_units;
             val = myVal;
         }
         else
@@ -67,8 +72,8 @@ struct Setter : public ISliderCB
         }
     }
 };
-Setter s1;
-Setter s2;
+Setter s1 = Setter("dB");
+Setter s2 = Setter("Hz");
 
 }
 

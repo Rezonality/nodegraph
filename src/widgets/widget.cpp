@@ -14,7 +14,7 @@ std::unordered_map<Widget*, TipTimer*> TipTimer::ActiveTips;
 
 Widget::Widget(const std::string& label)
     : m_label(label), 
-    m_tipTimer(this, .25f, 0.25f)
+    m_tipTimer(this, 0.5f, 0.25f, 0.25f)
 {
 }
 
@@ -345,7 +345,8 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
         {
             return;
         }
-        std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
+        //std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
+        std::string tip = fmt::format("{} {}", val.valueText, val.units);
 
         auto& theme = ThemeManager::Instance();
 
@@ -355,7 +356,7 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
         auto rcBounds = canvas.TextBounds(widgetTopCenter, fontSize, tip.c_str(), nullptr, TEXT_ALIGN_TOP | TEXT_ALIGN_LEFT);
         rcBounds.SetHeight(fontSize);
 
-        auto step = fontSize * 2.1f; //(rcBounds.Height()) * 3.0f);
+        auto step = fontSize * 1.5f; //(rcBounds.Height()) * 3.0f);
 
         NRectf panelRect = NRectf(widgetTopCenter.x - rcBounds.Width() / 2.0f - tipPad, widgetTopCenter.y - step, rcBounds.Width() + tipPad * 2.0f, rcBounds.Height() + tipPad * 2.0f);
 

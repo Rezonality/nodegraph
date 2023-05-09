@@ -56,6 +56,7 @@ struct WidgetValue
 enum class TipState
 {
     Wait,
+    Ramp,
     On,
     Decay,
     Off
@@ -67,9 +68,10 @@ class TipTimer
 public:
     static std::unordered_map<Widget*, TipTimer*> ActiveTips;
 
-    TipTimer(Widget* pOwner, float secondsIn, float secondsOut)
+    TipTimer(Widget* pOwner, float wait, float secondsIn, float secondsOut)
         : m_in(secondsIn)
         , m_out(secondsOut)
+        , m_wait(wait)
         , m_state(TipState::Off)
         , m_pOwner(pOwner)
     {
@@ -87,9 +89,17 @@ public:
         {
         case TipState::Wait:
         {
+            if (timer_get_elapsed_seconds(m_time) > m_wait)
+            {
+                SetState(TipState::Ramp);
+            }
+        }
+        break;
+        case TipState::Ramp:
+        {
             if (timer_get_elapsed_seconds(m_time) > m_in)
             {
-                m_state = TipState::On;
+                SetState(TipState::On);
             }
         }
         break;
@@ -97,8 +107,7 @@ public:
         {
             if (timer_get_elapsed_seconds(m_time) > m_in)
             {
-                m_state = TipState::Off;
-                ActiveTips.erase(m_pOwner);
+                SetState(TipState::Off);
             }
         }
         break;
@@ -117,7 +126,7 @@ public:
             }
             return ((m_decayTime - elapsed) / m_out);
         }
-        else if (m_state == TipState::Wait || m_state == TipState::On)
+        else if (m_state == TipState::Ramp || m_state == TipState::On)
         {
             if (elapsed > m_in)
             {
@@ -131,7 +140,7 @@ public:
     void Stop()
     {
         // If waiting, reverse to a decay for the remaining alpha
-        if (m_state == TipState::Wait)
+        if (m_state == TipState::Ramp)
         {
             auto a = Alpha();
             m_state = TipState::Decay;
@@ -155,7 +164,7 @@ public:
 
     void Start()
     {
-        if (m_state != TipState::On)
+        if (m_state != TipState::On && m_state != TipState::Ramp)
         {
             SetState(TipState::Wait);
         }
@@ -189,12 +198,13 @@ public:
     }
 
 private:
-    float m_in = 0.0f;
-    float m_out = 0.0f;
+    float m_wait = 0.5f;
+    float m_in = 0.25f;
+    float m_out = 0.25f;
     float m_decayTime = 0.0f;
     bool on = false;
     timer m_time;
-    TipState m_state = TipState::Wait;
+    TipState m_state = TipState::Off;
     Widget* m_pOwner;
 };
 

@@ -21,7 +21,16 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
     const float instep = 10.0f;
     auto types = std::vector<WaveType>{ WaveType::Triangle, WaveType::Square, WaveType::PWM, WaveType::Saw };
 
-    float fVal = 0.0f;
+    SliderValue val;
+    if (m_pCB)
+    {
+        m_pCB->UpdateSlider(this, SliderOp::Get, val);
+    }
+    else
+    {
+        UpdateSlider(this, SliderOp::Get, val);
+    }
+
     canvas.SetLineCap(LineCap::ROUND);
     for (uint32_t index = 0; index < types.size(); index++)
     {
@@ -34,13 +43,20 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
             waveRect.Adjust(waveWidth * index, 0, waveWidth * index, 0);
             waveRect.Adjust(instep, instep, -instep, -instep);
 
-            float colorScale = std::max(0.0f, 1.0f - fabs((fVal * 3.0f) - float(index)));
-            colorScale = std::min(1.0f, colorScale);
+            float valIndex = val.value * (types.size() - 1);
+            float diff = std::fabs(valIndex - float(index));// *types.size(); 
+            //diff /= types.size();
+            diff = std::clamp(diff, 0.0f, 1.0f);
+            diff = 1.0f - diff;
+
+            float colorScale = std::clamp(diff, 0.0f, 1.0f);
 
             float width;
             glm::vec4 color;
 
-            auto waveColor = glm::vec4(1.0f * colorScale, 0.5f * colorScale, 0.0f, 1.0f);
+            auto& theme = ThemeManager::Instance();
+            auto thumbColor = theme.GetVec4f(c_sliderThumbColor);
+            auto waveColor = glm::vec4(thumbColor.x * colorScale, thumbColor.y * colorScale, thumbColor.z * colorScale, 1.0f);
             // Shadow
             if (y == 0)
             {
@@ -70,15 +86,19 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
             }
             else if (waveType == WaveType::Square)
             {
-                canvas.BeginStroke(glm::vec2(waveRect.Left(), waveRect.Center().y), width, color);
+                auto start = glm::vec2(waveRect.Left(), waveRect.Center().y);
+                auto end = glm::vec2(waveRect.Left() + waveRect.Width(), waveRect.Center().y);
+                canvas.FilledCircle(start, width * .5f, color);
+                canvas.BeginStroke(start, width, color);
                 canvas.LineTo(glm::vec2(waveRect.Left(), waveRect.Top()));
                 canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .33f, waveRect.Top()));
                 canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .33f, waveRect.Bottom()));
                 canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .66f, waveRect.Bottom()));
                 canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width() * .66f, waveRect.Top()));
                 canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width(), waveRect.Top()));
-                canvas.LineTo(glm::vec2(waveRect.Left() + waveRect.Width(), waveRect.Center().y));
+                canvas.LineTo(end);
                 canvas.EndStroke();
+                canvas.FilledCircle(end, width * .5f, color);
             }
             else if (waveType == WaveType::PWM)
             {

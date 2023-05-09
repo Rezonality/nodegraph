@@ -281,7 +281,7 @@ void Canvas::HandleMouseDown(CanvasInputState& input)
             if (auto pCapture = pWidget->MouseDown(input))
             {
                 input.m_pMouseCapture = pCapture;
-                pCapture->GetTipTimer().Start();
+                pCapture->GetTipTimer().SetState(TipState::On);
 
                 // Draw the recently clicked one last
                 GetRootLayout()->MoveChildToBack(pWidget);
@@ -319,8 +319,9 @@ void Canvas::HandleMouseMove(CanvasInputState& input)
                 }
             }
         }
-        
-        for (auto& [pWidget, pTip] : TipTimer::ActiveTips)
+       
+        auto active = TipTimer::ActiveTips;
+        for (auto& [pWidget, pTip] : active)
         {
             if (pWidget != pHoverWidget)
             {

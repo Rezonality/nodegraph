@@ -45,10 +45,10 @@ public:
 
     virtual const NRectf& GetSliderRangeArea() const;
 
-private:
+protected:
     void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val);
 
-private:
+protected:
     ISliderCB* m_pCB = nullptr;
     SliderValue m_value;
     NRectf m_sliderRangeArea;
