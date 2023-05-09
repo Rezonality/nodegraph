@@ -11,7 +11,8 @@
 namespace NodeGraph {
 
 Widget::Widget(const std::string& label)
-    : m_label(label)
+    : m_label(label), 
+    m_tipTimer(.25f, 0.25f)
 {
 }
 
@@ -118,6 +119,15 @@ void Widget::MouseUp(CanvasInputState& input)
             child->MouseUp(input);
             return;
         }
+    }
+}
+
+void Widget::Visit(const std::function<void(Widget*)>& fnVisit)
+{
+    fnVisit(this);
+    for (auto& child : GetLayout()->GetFrontToBack())
+    {
+        child->Visit(fnVisit);
     }
 }
 
@@ -268,36 +278,25 @@ glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
     return ColorForBackground(color);
 }
 
-WidgetEventTimer* Widget::GetCurrentTimer(Canvas& canvas)
+TipTimer& Widget::GetTipTimer()
 {
-    auto& state = canvas.GetInputState();
-    if (state.m_hoverTimer.m_pWidget == this)
-    {
-        return &state.m_hoverTimer;
-    }
-    else if (state.m_hoverOldTimer.m_pWidget == this)
-    {
-        return &state.m_hoverOldTimer;
-    }
-    return nullptr;
+    return m_tipTimer;
 }
 
 bool Widget::IsMouseHover(Canvas& canvas)
 {
-    auto& state = canvas.GetInputState();
-    if (state.m_hoverTimer.m_pWidget == this &&
-        (state.m_hoverTimer.m_state == WidgetEventTimer::State::Wait|| 
-        state.m_hoverTimer.m_state == WidgetEventTimer::State::Trigger))
-    {
-        return true;
-    }
+    auto state = m_tipTimer.GetState();
 
-    if (state.m_hoverOldTimer.Decay(this))
+    switch (state)
     {
+    case TipState::On:
+    case TipState::Wait:
+    case TipState::Decay:
         return true;
+    default:
+        return false;
+        break;
     }
-
-    return false;
 }
 
 bool Widget::IsMouseCapture(Canvas& canvas)
@@ -337,11 +336,12 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
 {
     if (IsMouseHover(canvas) || IsMouseCapture(canvas))
     {
-        auto pTimer = GetCurrentTimer(canvas);
+        auto& tipTimer = GetTipTimer();
         float alpha = 1.0f;
-        if (pTimer)
+        alpha = tipTimer.Alpha();
+        if (alpha == 0.0f)
         {
-            alpha = pTimer->Alpha();
+            return;
         }
         std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
 

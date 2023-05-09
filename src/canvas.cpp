@@ -281,7 +281,7 @@ void Canvas::HandleMouseDown(CanvasInputState& input)
             if (auto pCapture = pWidget->MouseDown(input))
             {
                 input.m_pMouseCapture = pCapture;
-                input.m_hoverTimer = WidgetEventTimer();
+                pCapture->GetTipTimer().Start();
 
                 // Draw the recently clicked one last
                 GetRootLayout()->MoveChildToBack(pWidget);
@@ -297,10 +297,6 @@ void Canvas::HandleMouseUp(CanvasInputState& input)
     {
         // Setup the hover event
         input.m_pMouseCapture->MouseUp(input);
-        if (input.m_hoverTimer.Triggered())
-        {
-            input.m_hoverTimer.SetState(WidgetEventTimer::State::Decay);
-        }
         input.m_pMouseCapture = nullptr;
         return;
     }
@@ -308,35 +304,34 @@ void Canvas::HandleMouseUp(CanvasInputState& input)
 
 void Canvas::HandleMouseMove(CanvasInputState& input)
 {
-    bool found = false;
-
     if (!input.m_pMouseCapture)
     {
         const auto& search = GetRootLayout()->GetFrontToBack();
+        Widget* pHoverWidget = nullptr;
         for (auto& pWidget : search)
         {
             if (pWidget->GetWorldRect().Contains(input.worldMousePos))
             {
                 if (auto pCapture = pWidget->MouseHover(input))
                 {
-                    // We moved to a different widget, so we reset
-                    if (!input.m_hoverTimer.IsThisWidget(pCapture))
-                    {
-                        input.m_hoverOldTimer = input.m_hoverTimer;
-                        input.m_hoverOldTimer.SetState(WidgetEventTimer::State::Decay);
-
-                        input.m_hoverTimer = WidgetEventTimer(pCapture, 0.15f);
-                    }
-                    found = true;
+                    pHoverWidget = pCapture;
+                    break;
                 }
             }
         }
-
-        if (!found && input.m_hoverTimer.m_pWidget)
+        
+        for (auto& pWidget : search)
         {
-            input.m_hoverOldTimer = input.m_hoverTimer;
-            input.m_hoverOldTimer.SetState(WidgetEventTimer::State::Decay);
-            input.m_hoverTimer = WidgetEventTimer();
+            pWidget->Visit([=](auto pVisit) {
+                if (pVisit != pHoverWidget)
+                {
+                    pVisit->GetTipTimer().Stop();
+                }
+                else
+                {
+                    pVisit->GetTipTimer().Start();
+                }
+            });
         }
 
         for (auto& pWidget : m_spRootLayout->GetFrontToBack())
@@ -352,11 +347,7 @@ void Canvas::HandleMouseMove(CanvasInputState& input)
     }
     else
     {
-        input.m_hoverOldTimer = WidgetEventTimer();
-        input.m_hoverTimer = WidgetEventTimer();
-
         input.m_pMouseCapture->MouseMove(input);
-        return;
     }
 }
 

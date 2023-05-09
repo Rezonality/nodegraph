@@ -9,8 +9,6 @@
 #include <nodegraph/time/timer.h>
 #include <nodegraph/widgets/widget.h>
 
-// #include "nodegraph/model/graph.h"
-
 namespace NodeGraph {
 
 struct FontContext;
@@ -44,114 +42,6 @@ enum class CaptureState
     Parameter // Tweaking a parameter
 };
 
-struct WidgetEventTimer
-{
-    WidgetEventTimer()
-    {
-    }
-
-    WidgetEventTimer(Widget* pWidget, float secondsIn)
-        : m_pWidget(pWidget)
-        , m_in(secondsIn)
-        , m_state(State::Wait)
-    {
-        timer_restart(m_time);
-    }
-
-    enum class State
-    {
-        Wait,
-        Trigger,
-        Decay,
-        Off
-    };
-
-    State Update()
-    {
-        switch (m_state)
-        {
-        case State::Wait:
-        {
-            if (m_pWidget && (timer_get_elapsed_seconds(m_time) > m_in))
-            {
-                m_state = State::Trigger;
-            }
-        }
-        break;
-        case State::Decay:
-        {
-            if (m_pWidget && (timer_get_elapsed_seconds(m_time) > m_in))
-            {
-                m_state = State::Off;
-            }
-        }
-        break;
-        }
-        return m_state;
-    }
-
-    float Alpha() const
-    {
-        auto elapsed = float(timer_get_elapsed_seconds(m_time));
-        if (m_state == State::Decay)
-        {
-            if (elapsed > m_in)
-            {
-                return 0.0f;
-            }
-            return ((m_in - elapsed) / m_in);
-        }
-        else if (m_state == State::Wait || m_state == State::Trigger)
-        {
-            if (elapsed > m_in)
-            {
-                return 1.0f;
-            }
-            return 1.0f - ((m_in - elapsed) / m_in);
-        }
-        return 0.0f;
-    }
-    void SetState(State s)
-    {
-        m_state = s;
-        timer_restart(m_time);
-    }
-
-    bool Decay(Widget* pWidget)
-    {
-        Update();
-        return (m_pWidget == pWidget) && (m_state == State::Decay);
-    }
-
-    bool Triggered(Widget* pWidget)
-    {
-        Update();
-        return (m_pWidget == pWidget) && (m_state == State::Trigger);
-    }
-    
-    bool Triggered()
-    {
-        Update();
-        return (m_state == State::Trigger);
-    }
-    
-    bool Decay()
-    {
-        Update();
-        return (m_state == State::Decay);
-    }
-
-    bool IsThisWidget(Widget* pWidget) const
-    {
-        return m_pWidget == pWidget;
-    }
-
-    Widget* m_pWidget = nullptr;
-    float m_in = 0.0f;
-    timer m_time;
-    State m_state = State::Wait;
-};
-
 // Represents the current interaction state with the canvas; used for
 // tracking mouse manipulation
 struct CanvasInputState
@@ -175,9 +65,6 @@ struct CanvasInputState
     bool canCapture = false;
     CaptureState captureState = CaptureState::None;
     Widget* m_pMouseCapture = nullptr;
-
-    WidgetEventTimer m_hoverTimer;
-    WidgetEventTimer m_hoverOldTimer;
 };
 
 class Canvas

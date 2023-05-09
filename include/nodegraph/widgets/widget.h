@@ -8,7 +8,7 @@ namespace NodeGraph {
 
 class Canvas;
 struct CanvasInputState;
-struct WidgetEventTimer;
+class TipTimer;
 
 enum MouseButtons
 {
@@ -51,6 +51,128 @@ struct WidgetValue
     float value = 0.0f;
     float step = 0.01f;
     uint32_t valueFlags = WidgetValueFlags::ShowText;
+};
+
+enum class TipState
+{
+    Wait,
+    On,
+    Decay,
+    Off
+};
+
+class TipTimer
+{
+public:
+    TipTimer(float secondsIn, float secondsOut)
+        : m_in(secondsIn)
+        , m_out(secondsOut)
+        , m_state(TipState::Off)
+    {
+        m_decayTime = m_out;
+    }
+
+    TipState Update()
+    {
+        switch (m_state)
+        {
+        case TipState::Wait:
+        {
+            if (timer_get_elapsed_seconds(m_time) > m_in)
+            {
+                m_state = TipState::On;
+            }
+        }
+        break;
+        case TipState::Decay:
+        {
+            if (timer_get_elapsed_seconds(m_time) > m_in)
+            {
+                m_state = TipState::Off;
+            }
+        }
+        break;
+        }
+        return m_state;
+    }
+
+    float Alpha() const
+    {
+        auto elapsed = float(timer_get_elapsed_seconds(m_time));
+        if (m_state == TipState::Decay)
+        {
+            if (elapsed > m_decayTime)
+            {
+                return 0.0f;
+            }
+            return ((m_decayTime - elapsed) / m_out);
+        }
+        else if (m_state == TipState::Wait || m_state == TipState::On)
+        {
+            if (elapsed > m_in)
+            {
+                return 1.0f;
+            }
+            return 1.0f - ((m_in - elapsed) / m_in);
+        }
+        return 0.0f;
+    }
+
+    void Stop()
+    {
+        if (m_state == TipState::Wait)
+        {
+            auto a = Alpha();
+            m_state = TipState::Decay;
+            timer_restart(m_time);
+            m_decayTime = m_out - (m_out * a);
+        }
+        else
+        {
+            if (m_state == TipState::On || m_state == TipState::Decay || m_state == TipState::Wait)
+            {
+                SetState(TipState::Decay);
+            }
+            else
+            {
+                SetState(TipState::Off);
+            }
+        }
+    }
+
+    void Start()
+    {
+        if (m_state != TipState::On)
+        {
+            SetState(TipState::Wait);
+        }
+    }
+
+    void SetState(TipState s)
+    {
+        if (s == m_state)
+        {
+            return;
+        }
+        m_state = s;
+        m_decayTime = m_out;
+        timer_restart(m_time);
+        Update();
+    }
+
+    TipState GetState()
+    {
+        Update();
+        return m_state;
+    }
+
+private:
+    float m_in = 0.0f;
+    float m_out = 0.0f;
+    float m_decayTime = 0.0f;
+    bool on = false;
+    timer m_time;
+    TipState m_state = TipState::Wait;
 };
 
 class Layout;
@@ -117,7 +239,9 @@ public:
     virtual bool IsMouseHover(Canvas& canvas);
     virtual bool IsMouseCapture(Canvas& canvas);
 
-    WidgetEventTimer* GetCurrentTimer(Canvas& canvas);
+    TipTimer& GetTipTimer();
+
+    void Visit(const std::function<void(Widget*)>& fnVisit);
 
 protected:
     NRectf m_rect;
@@ -129,6 +253,7 @@ protected:
     uint64_t m_flags = 0;
     glm::vec2 m_sizeHint = glm::vec2(0.0f);
     fnPostDraw m_postDrawCB;
+    TipTimer m_tipTimer;
 };
 
 }

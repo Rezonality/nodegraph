@@ -588,7 +588,6 @@ int main(int, char**)
             auto& in = pCanvas->GetInputState();
             ImGui::Begin("Debug");
             ImGui::Text("%d capture", in.m_pMouseCapture);
-            ImGui::Text("%d in hover, %d capture", in.m_hoverTimer.m_state, in.m_pMouseCapture);
             ImGui::End();
         }
 
