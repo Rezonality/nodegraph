@@ -24,8 +24,10 @@ list (REMOVE_ITEM SOUNDPIPE_SOURCE "${SOUNDPIPE_DIR}/modules/diskin.c")
 LIST(APPEND SOUNDPIPE_SOURCE
     ${SOUNDPIPE_DIR}/lib/dr_wav/dr_wav.c
     ${SOUNDPIPE_DIR}/lib/spa/spa.c
-    #${SOUNDPIPE_DIR}/lib/kissfft/kiss_fftr.c
-    #${SOUNDPIPE_DIR}/lib/fft/sp_fft.c
+    ${SOUNDPIPE_DIR}/lib/fft/fft.c
+    ${SOUNDPIPE_DIR}/lib/kissfft/kiss_fft.c
+    ${SOUNDPIPE_DIR}/lib/kissfft/kiss_fftr.c
+    ${SOUNDPIPE_DIR}/lib/openlpc/openlpc.c
     ${SOUNDPIPE_DIR}/lib/inih/ini.c
     ${SOUNDPIPE_EXTENSIONS_DIR}/modules/oscmorph2d.c)
 
@@ -33,7 +35,7 @@ if (WIN32)
     # Sound pipe plays fast and loose with float/double conversions and other things.
     # To be fair, this is probably its inherited Csound code.
     # Certainly on windows there are a few compile warnings which I'm ignoring for now
-    set_source_files_properties(${SOUNDPIPE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4305 /wd4005 /wd4273 /wd4018 /wd4267 /wd4129")
+    set_source_files_properties(${SOUNDPIPE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4101 /wd4334 /wd4305 /wd4005 /wd4273 /wd4018 /wd4267 /wd4129")
 endif()
 
 SET(EARLEVEL_DIR ${CMAKE_CURRENT_LIST_DIR}/libs/earlevel)
@@ -45,6 +47,10 @@ set(NODEGRAPH_APP_SOURCE
     ${APP_ROOT}/main.cpp
     ${APP_ROOT}/demo.cpp
     ${APP_ROOT}/CMakeLists.txt
+    ${APP_ROOT}/nodes/node_oscillator.cpp
+    ${APP_ROOT}/nodes/node_oscillator.h
+    ${APP_ROOT}/utils/wavetable.cpp
+    ${APP_ROOT}/utils/wavetable.h
     )
 
 set(RESOURCE_FOLDER ${CMAKE_CURRENT_LIST_DIR}/res)

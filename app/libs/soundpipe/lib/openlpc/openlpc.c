@@ -101,7 +101,7 @@
 #define M_PI (3.1415926535897932384626433832795)
 #endif
 
-static float my_fs = 11025.0;
+#define my_fs 11025.0
 #define LPC_FILTORDER		10
 #define FS		my_fs /* Sampling rate */
 #define MAXWINDOW	1000	/* Max analysis window length */
@@ -752,7 +752,7 @@ void destroy_openlpc_decoder_state(openlpc_decoder_state *st)
 
 void openlpc_sr(float sr)
 {
-    my_fs = sr;
+    //my_fs = sr;
 }
 
 size_t openlpc_get_encoder_state_size(void)
