@@ -16,10 +16,10 @@
 #include <nodegraph/widgets/widget_waveslider.h>
 
 extern "C" {
-#include "libs/soundpipe/h/soundpipe.h"
+#include "libs/zing/libs/soundpipe/h/soundpipe.h"
 }
 
-#include <config_app.h>
+#include <config_nodegraph_app.h>
 using namespace NodeGraph;
 namespace fs = std::filesystem;
 

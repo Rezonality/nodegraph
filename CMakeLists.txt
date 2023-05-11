@@ -35,7 +35,7 @@ set(NODEGRAPH_ROOT ${CMAKE_CURRENT_LIST_DIR})
 set(M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)
 set(NODEGRAPH_INCLUDE_DIR include/)
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/config_app.h.cmake ${CMAKE_BINARY_DIR}/config_app.h)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/config_nodegraph_app.h.cmake ${CMAKE_BINARY_DIR}/config_nodegraph_app.h)
 
 include(GNUInstallDirs)
 

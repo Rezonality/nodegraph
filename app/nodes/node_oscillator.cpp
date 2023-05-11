@@ -4,8 +4,8 @@
 
 #include <nodegraph/logger/logger.h>
 
-#include <libs/earlevel/el_wavetable.h>
-#include <libs/earlevel/el_wavetable_utils.h>
+#include <libs/zing/libs/earlevel/el_wavetable.h>
+#include <libs/zing/libs/earlevel/el_wavetable_utils.h>
 
 namespace
 {

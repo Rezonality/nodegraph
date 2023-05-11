@@ -1,6 +1,6 @@
 if(BUILD_TESTS)
 
-project(unittests
+project(nodegraph_unittests
     LANGUAGES CXX C
     VERSION 0.5.0
 )
@@ -25,15 +25,15 @@ set (TEST_SOURCES
     ${TEST_SOURCES}
     )
 
-add_executable(unittests ${TEST_SOURCES})
+add_executable(nodegraph_unittests ${TEST_SOURCES})
 
-target_include_directories(unittests PRIVATE
+target_include_directories(nodegraph_unittests PRIVATE
     ${M3RDPARTY_DIR}
     ${CMAKE_BINARY_DIR}
     include
     )
 
-target_link_libraries(unittests
+target_link_libraries(nodegraph_unittests
     PRIVATE
         NodeGraph::NodeGraph
         Catch2::Catch2
@@ -41,9 +41,9 @@ target_link_libraries(unittests
         ${PLATFORM_LINKLIBS}
         ${CMAKE_THREAD_LIBS_INIT})
 
-add_test(unittests unittests)
+add_test(nodegraph_unittests nodegraph_unittests)
 
-install(TARGETS unittests
+install(TARGETS nodegraph_unittests
     EXPORT mutils-targets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

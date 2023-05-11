@@ -14,7 +14,7 @@
 #include <stdlib.h> // abort
 #include <vulkan/vulkan.h>
 
-#include "config_app.h"
+#include "config_nodegraph_app.h"
 #include <filesystem>
 #include <fmt/format.h>
 
