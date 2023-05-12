@@ -14,7 +14,7 @@ find_package(portaudio CONFIG REQUIRED)
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_LIST_DIR}/cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/demo_common.cmake)
 
-SET(ZING_DIR ${CMAKE_CURRENT_LIST_DIR}/libs/zing)
+SET(ZING_DIR ${CMAKE_CURRENT_LIST_DIR}/../libs/zing)
 SET(ZING_LIBRARY_ONLY 1)
 add_subdirectory(${ZING_DIR})
 

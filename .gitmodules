@@ -2,5 +2,5 @@
 	path = vcpkg
 	url = https://github.com/Microsoft/vcpkg
 [submodule "app/libs/zing"]
-	path = app/libs/zing
+	path = libs/zing
 	url = https://github.com/Rezonality/zing

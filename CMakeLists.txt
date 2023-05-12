@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.2)
 
 message(STATUS " CMakeLists: NodeGraph")
 
-option(BUILD_TESTS "Build Tests" ON)
+option(BUILD_NODEGRAPH_TESTS "Build Tests" ON)
+option(BUILD_NODEGRAPH_APP "Build APP" ON)
 
 # Global Settings
 set(CMAKE_CXX_STANDARD 17)
@@ -42,9 +43,22 @@ include(GNUInstallDirs)
 enable_testing()
 
 include(cmake/all.cmake)
+
+# Library
 add_subdirectory(src)
+
+# Support library and app
+if (BUILD_NODEGRAPH_APP)
+SET(ZING_DIR ${CMAKE_CURRENT_LIST_DIR}/libs/zing)
+SET(ZING_LIBRARY_ONLY 1)
+add_subdirectory(${ZING_DIR})
 add_subdirectory(app)
+endif()
+
+# Tests
+if (BUILD_NODEGRAPH_TESTS)
 add_subdirectory(tests)
+endif()
 
 # Make the CMake bits that ensure find_package does the right thing
 install(EXPORT nodegraph-targets
