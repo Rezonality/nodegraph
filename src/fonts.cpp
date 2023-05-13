@@ -1,7 +1,8 @@
 #include <algorithm>
-#include <imgui.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <zest/math/imgui_glm.h>
 
 #include <nodegraph/fonts.h>
 #define FONTSTASH_IMPLEMENTATION

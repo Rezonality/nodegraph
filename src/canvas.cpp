@@ -7,8 +7,9 @@
 #include <nodegraph/fonts.h>
 #include <nodegraph/widgets/layout.h>
 
-#define DECLARE_SETTINGS
 #include <algorithm>
+
+#define DECLARE_THEME_SETTINGS
 #include <nodegraph/theme.h>
 
 // #include "mutils/logger/logger.h"

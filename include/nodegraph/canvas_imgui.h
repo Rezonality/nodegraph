@@ -1,6 +1,5 @@
 
 #include <zest/math/imgui_glm.h>
-#include <imgui.h>
 
 #include <zest/logger/logger.h>
 
