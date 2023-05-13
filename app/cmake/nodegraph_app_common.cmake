@@ -21,10 +21,10 @@ set(RESOURCE_DEPLOY_FILES ${RESOURCE_DEPLOY_FILES}
     ${NODEGRAPH_ROOT}/run_tree/fonts/Roboto-Medium.ttf)
 
 if (WIN32)
-    configure_file("${APP_ROOT}/cmake/windows_metafile.rc.in"
+    configure_file("${NODEGRAPH_APP_ROOT}/cmake/windows_metafile.rc.in"
       "windows_metafile.rc"
     )
-set(RES_FILES windows_metafile.rc ${APP_ROOT}/res/app.manifest)
+set(RES_FILES windows_metafile.rc ${NODEGRAPH_APP_ROOT}/res/app.manifest)
 endif()
 
 if (APPLE)

@@ -2,8 +2,9 @@
 
 #include <fmt/format.h>
 
+#include <zest/logger/logger.h>
+
 #include <nodegraph/canvas.h>
-#include <nodegraph/logger/logger.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
 #include <nodegraph/widgets/widget.h>
@@ -277,7 +278,7 @@ void Widget::SetRectWithPad(const NRectf& rc)
 
 glm::vec4 Widget::TextColorForBackground(const glm::vec4& color)
 {
-    return ColorForBackground(color);
+    return Zest::ColorForBackground(color);
 }
 
 TipTimer& Widget::GetTipTimer()
@@ -364,13 +365,13 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
             panelRect,
             theme.GetFloat(s_sliderTipBorderRadius),
             theme.GetFloat(s_sliderTipShadowSize),
-            ModifyAlpha(theme.GetVec4f(c_sliderTipShadowColor), alpha),
+            Zest::ModifyAlpha(theme.GetVec4f(c_sliderTipShadowColor), alpha),
             theme.GetFloat(s_sliderTipBorderSize),
-            ModifyAlpha(theme.GetVec4f(c_sliderTipBorderColor), alpha),
-            ModifyAlpha(theme.GetVec4f(c_sliderTipCenterColor), alpha),
+            Zest::ModifyAlpha(theme.GetVec4f(c_sliderTipBorderColor), alpha),
+            Zest::ModifyAlpha(theme.GetVec4f(c_sliderTipCenterColor), alpha),
             tip.c_str(),
             4.0f,
-            ModifyAlpha(TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)), alpha),
+            Zest::ModifyAlpha(TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)), alpha),
             fontSize);
     }
 }

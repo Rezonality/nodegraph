@@ -15,12 +15,15 @@
 #include <nodegraph/widgets/widget_socket.h>
 #include <nodegraph/widgets/widget_waveslider.h>
 
+#include <zing/audio/audio.h>
+
 extern "C" {
-#include "libs/zing/libs/soundpipe/h/soundpipe.h"
+#include <soundpipe.h>
 }
 
 #include <config_nodegraph_app.h>
 using namespace NodeGraph;
+using namespace Zest;
 namespace fs = std::filesystem;
 
 namespace {
@@ -90,6 +93,8 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
 {
     if (!spCanvas)
     {
+        Zing::audio_init(nullptr);
+
         spCanvas = std::make_unique<CanvasImGui>(pFontTexture, 1.0f, glm::vec2(0.1f, 20.0f));
         spCanvas->SetPixelRegionSize(size);
         spCanvas->SetWorldAtCenter(worldCenter);
@@ -290,7 +295,7 @@ void demo_theme_editor()
     if (ImGui::Begin("Theme"))
     {
         auto& theme = ThemeManager::Instance();
-        std::vector<StringId> themeNames;
+        std::vector<Zest::StringId> themeNames;
 
         for (auto& [mstr, val] : theme.m_themes[theme.m_currentSetting])
         {
@@ -360,6 +365,7 @@ void demo_draw()
 
     demo_theme_editor();
     demo_hierarchy_editor();
+    Zing::audio_show_gui();
 
     ImGui::End();
 
@@ -391,6 +397,7 @@ void demo_draw()
 
 void demo_cleanup()
 {
+    Zing::audio_destroy();
     ThemeManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     spCanvas.reset();
 }

@@ -6,7 +6,8 @@
 #include <nodegraph/fonts.h>
 #define FONTSTASH_IMPLEMENTATION
 #include <nodegraph/fontstash.h>
-#include <nodegraph/string/string_utils.h>
+
+#include <zest/string/string_utils.h>
 
 #include <nodegraph/vulkan/vulkan_imgui_texture.h>
 
@@ -356,7 +357,7 @@ float fonts_draw_text(FontContext& ctx, float x, float y, uint32_t color, const 
     int isFlipped = is_transform_flipped(ctx.xform);
 
     if (end == NULL)
-        end = string + string_utf8_length(string);
+        end = string + Zest::string_utf8_length(string);
 
     if (ctx.fontId == FONS_INVALID)
         return x;
@@ -475,7 +476,7 @@ int fonts_break_lines(FontContext& ctx, const char* string, const char* end, flo
         return 0;
 
     if (end == NULL)
-        end = string + string_utf8_length(string);
+        end = string + Zest::string_utf8_length(string);
 
     if (string == end)
         return 0;
@@ -714,7 +715,7 @@ int text_glyph_positions(FontContext& ctx, float x, float y, const char* string,
         return 0;
 
     if (end == NULL)
-        end = string + string_utf8_length(string);
+        end = string + Zest::string_utf8_length(string);
 
     if (string == end)
         return 0;

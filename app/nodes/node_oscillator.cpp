@@ -2,10 +2,10 @@
 #include <nodes/node_oscillator.h>
 #include <utils/wavetable.h>
 
-#include <nodegraph/logger/logger.h>
+#include <zest/logger/logger.h>
 
-#include <libs/zing/libs/earlevel/el_wavetable.h>
-#include <libs/zing/libs/earlevel/el_wavetable_utils.h>
+#include <earlevel/el_wavetable.h>
+#include <earlevel/el_wavetable_utils.h>
 
 namespace
 {
@@ -92,10 +92,10 @@ Oscillator::Oscillator( const std::string& strName, WaveTableType t, float f, fl
     auto pDecorator = AddDecorator(new NodeDecorator(DecoratorType::Label, "LFO Modulators"));
 
     {
-        /*NVec2f knobSize(1.0f, 1.0f);
+        /*glm::vec2 knobSize(1.0f, 1.0f);
         //GridLayout layout(this);
         //layout.BeginSection();
-        layout.AddItem(m_pWave, NVec2f(2.0f, .5f));
+        layout.AddItem(m_pWave, glm::vec2(2.0f, .5f));
 
         //layout.BeginSection();
 
@@ -107,21 +107,21 @@ Oscillator::Oscillator( const std::string& strName, WaveTableType t, float f, fl
         layout.AddItem(m_pAmplitude, knobSize);
 
         //layout.BeginSection(true);
-        layout.AddDecorator(pLineDecorator, NVec2f(knobSize.x, .125f));
+        layout.AddDecorator(pLineDecorator, glm::vec2(knobSize.x, .125f));
 
         //layout.BeginSection(true);
-        layout.AddDecorator(pDecorator, NVec2f(ButtonGridWidthForString("LFO Modulators"), .333f));
+        layout.AddDecorator(pDecorator, glm::vec2(ButtonGridWidthForString("LFO Modulators"), .333f));
 
         //layout.BeginSection(true);
-        layout.AddItem(m_pEnablePitchMod, NVec2f(buttonSize, .5f));
+        layout.AddItem(m_pEnablePitchMod, glm::vec2(buttonSize, .5f));
 
         //layout.BeginSection(true);
-        layout.AddItem(m_pEnableDetuneMod, NVec2f(buttonSize, .5f));
+        layout.AddItem(m_pEnableDetuneMod, glm::vec2(buttonSize, .5f));
         */
 
     /*
-        auto sliderSize = NVec2f(200.0f, 30.0f);
-        auto buttonSize = NVec2f(200.0f, 50.0f);
+        auto sliderSize = glm::vec2(200.0f, 30.0f);
+        auto buttonSize = glm::vec2(200.0f, 50.0f);
 
         auto pHLayout = new HLayout();
         auto pVLayout1 = new VLayout();

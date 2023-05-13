@@ -26,14 +26,10 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/src/widgets/widget_knob.cpp
     ${NODEGRAPH_ROOT}/src/widgets/widget_socket.cpp
     ${NODEGRAPH_ROOT}/src/widgets/layout.cpp
-    ${NODEGRAPH_ROOT}/src/setting.cpp
-    ${NODEGRAPH_ROOT}/src/time/timer.cpp
     ${NODEGRAPH_ROOT}/project.natvis
 
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas.h
     ${NODEGRAPH_ROOT}/include/nodegraph/canvas_imgui.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/imgui_glm.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/math_utils.h
     ${NODEGRAPH_ROOT}/include/nodegraph/theme.h
     
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget.h
@@ -44,11 +40,6 @@ set(NODEGRAPH_SOURCE
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_knob.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/widget_socket.h
     ${NODEGRAPH_ROOT}/include/nodegraph/widgets/layout.h
-    
-    ${NODEGRAPH_ROOT}/src/string/string_utils.cpp
-    ${NODEGRAPH_ROOT}/include/nodegraph/string/string_utils.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/string/murmur_hash.h
-    ${NODEGRAPH_ROOT}/include/nodegraph/time/timer.h
 )
 
 set(NODEGRAPH_SOURCE
@@ -68,6 +59,7 @@ target_link_libraries(NodeGraph
 PRIVATE
     tomlplusplus::tomlplusplus
 PUBLIC
+    Zing::Zing
     fmt::fmt-header-only
     glm::glm
     Vulkan::Vulkan

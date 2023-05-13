@@ -1,11 +1,8 @@
 #pragma warning(disable : 4005)
-#include <nodegraph/imgui_glm.h>
+#include <zest/math/imgui_glm.h>
 
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_vulkan.h>
-#include <nodegraph/IconsFontAwesome5.h>
-#include <nodegraph/imgui_glm.h>
-#include <nodegraph/canvas.h>
 
 #pragma warning(default : 4005)
 #include <SDL.h>
@@ -20,9 +17,13 @@
 
 #include "demo.h"
 
-#include <nodegraph/logger/logger.h>
-#include <nodegraph/setting.h>
+#include <zest/logger/logger.h>
+#include <zest/settings/settings.h>
+
 #include <nodegraph/vulkan/vulkan_imgui_texture.h>
+#include <nodegraph/IconsFontAwesome5.h>
+#include <nodegraph/canvas.h>
+
 
 namespace fs = std::filesystem;
 using namespace NodeGraph;
@@ -48,14 +49,14 @@ static bool g_SwapChainRebuild = false;
 
 std::shared_ptr<NodeGraph::VulkanImGuiTexture> g_pFontTexture;
 
-namespace NodeGraph {
+namespace Zest {
 #undef ERROR
 #ifdef _DEBUG
 Logger logger = { true, LT::DBG };
 #else
 Logger logger = { true, LT::INFO };
 #endif
-bool Log::disabled = false;
+bool Zest::Log::disabled = false;
 }
 
 static void check_vk_result(VkResult err)
@@ -374,18 +375,18 @@ int main(int, char**)
         return -1;
     }
 
-    auto& settings = GlobalSettingManager::Instance();
+    auto& settings = Zest::GlobalSettingManager::Instance();
 
     settings.Load(fs::path(NODEGRAPH_ROOT) / "settings.toml");
 
-    auto windowSize = settings.GetVec2f(s_windowSize);
+    auto windowSize = settings.GetVec2f(Zest::s_windowSize);
     if (windowSize.x == 0 || windowSize.y == 0)
     {
         windowSize.x = 1280;
         windowSize.y = 720;
     }
 
-    bool max = settings.GetBool(b_windowMaximized);
+    bool max = settings.GetBool(Zest::b_windowMaximized);
 
     // Setup window
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
@@ -628,13 +629,13 @@ int main(int, char**)
     CleanupVulkan();
 
     SDL_GetWindowSize(window, &w, &h);
-    settings.Set(s_windowSize, glm::vec2(w, h));
-    settings.Set(b_windowMaximized, bool(SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED));
+    settings.Set(Zest::s_windowSize, glm::vec2(w, h));
+    settings.Set(Zest::b_windowMaximized, bool(SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED));
 
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    GlobalSettingManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "settings.toml");
+    Zest::GlobalSettingManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "settings.toml");
 
     return 0;
 }

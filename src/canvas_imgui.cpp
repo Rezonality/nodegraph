@@ -1,4 +1,7 @@
 #include <filesystem>
+
+#include <zest/math/math_utils.h>
+
 #include <nodegraph/canvas_imgui.h>
 #include <nodegraph/fonts.h>
 #include <nodegraph/nodegraph.h>
@@ -229,7 +232,7 @@ void CanvasImGui::Arc(const glm::vec2& pos, float radius, float width, const glm
 
     auto pDraw = ImGui::GetWindowDrawList();
     pDraw->PathClear();
-    pDraw->PathArcTo(worldPos, worldRadius, degToRad(startAngle), degToRad(endAngle), ArcSegments);
+    pDraw->PathArcTo(worldPos, worldRadius, Zest::degToRad(startAngle), Zest::degToRad(endAngle), ArcSegments);
     pDraw->PathStroke(ToImColor(color), false, worldWidth);
 }
 

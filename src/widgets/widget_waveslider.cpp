@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <fmt/format.h>
+
+#include <zest/logger/logger.h>
+
 #include <nodegraph/canvas.h>
-#include <nodegraph/logger/logger.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
 #include <nodegraph/widgets/widget_waveslider.h>
@@ -62,7 +64,7 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
             {
                 width = 7.0f;
                 color = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-                color = ColorForBackground(waveColor);
+                color = Zest::ColorForBackground(waveColor);
             }
             else
             {
@@ -166,7 +168,7 @@ void WaveSlider::DrawGeneratedWave(Canvas& canvas, const NRectf& rc)
     canvas.BeginStroke(glm::vec2(rcWorld.Left(), rcWorld.Center().y), 4.0f, waveColor);
     for (uint32_t x = 1; x < rcWorld.Width(); x++)
     {
-        auto y = wave[x * wave.size() / rc.Width()];
+        auto y = wave[size_t(x * wave.size() / rc.Width())];
         canvas.LineTo(glm::vec2(rcWorld.Left() + x, rcWorld.Center().y + y * rcWorld.Height() * 0.5f));
     }
     canvas.EndStroke();

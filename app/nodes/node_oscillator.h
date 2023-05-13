@@ -9,7 +9,7 @@
 
 extern "C"
 {
-#include <libs/zing/libs/soundpipe_extensions/soundpipeextension.h>
+#include <soundpipe_extensions/soundpipeextension.h>
 }
 
 namespace Nodegraph

@@ -1,8 +1,11 @@
-#include <nodegraph/imgui_glm.h>
+
+#include <zest/math/imgui_glm.h>
+#include <imgui.h>
+
+#include <zest/logger/logger.h>
+
 #include <nodegraph/canvas.h>
 
-#include <imgui.h>
-#include <nodegraph/logger/logger.h>
 
 namespace NodeGraph
 {

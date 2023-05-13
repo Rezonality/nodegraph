@@ -1,8 +1,11 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include <vector>
 #include <functional>
-#include <nodegraph/math_utils.h>
+
+#include <zest/math/math_utils.h>
+#include <zest/time/timer.h>
 
 namespace NodeGraph {
 
@@ -203,7 +206,7 @@ private:
     float m_out = 0.25f;
     float m_decayTime = 0.0f;
     bool on = false;
-    timer m_time;
+    Zest::timer m_time;
     TipState m_state = TipState::Off;
     Widget* m_pOwner;
 };
@@ -212,14 +215,14 @@ class Layout;
 class Widget;
 using WidgetList = std::vector<std::shared_ptr<Widget>>;
 
-using fnPostDraw = std::function<void(Canvas& canvas, const NRectf& hintRect)>;
+using fnPostDraw = std::function<void(Canvas& canvas, const Zest::NRectf& hintRect)>;
 class Widget
 {
 public:
     Widget(const std::string& label);
     
     virtual void Draw(Canvas& canvas);
-    virtual void PostDraw(Canvas& canvas, const NRectf& hintRect);
+    virtual void PostDraw(Canvas& canvas, const Zest::NRectf& hintRect);
 
     virtual Widget* GetParent() const;
     virtual void SetParent(Widget* pParent);
@@ -227,8 +230,8 @@ public:
     // Post Draw
     virtual void AddPostDrawCB(const fnPostDraw& fnCB);
 
-    virtual const NRectf& GetRect() const;
-    virtual void SetRect(const NRectf& sz);
+    virtual const Zest::NRectf& GetRect() const;
+    virtual void SetRect(const Zest::NRectf& sz);
     virtual const glm::uvec2& GetConstraints() const;
     virtual void SetConstraints(const glm::uvec2& constraints);
     virtual const glm::vec4& GetPadding() const;
@@ -239,9 +242,9 @@ public:
     virtual bool MouseMove(CanvasInputState& input);
     virtual Widget* MouseHover(CanvasInputState& input);
 
-    virtual NRectf ToWorldRect(const NRectf& rc) const;
-    virtual NRectf ToLocalRect(const NRectf& rc) const;
-    virtual NRectf GetWorldRect() const;
+    virtual Zest::NRectf ToWorldRect(const Zest::NRectf& rc) const;
+    virtual Zest::NRectf ToLocalRect(const Zest::NRectf& rc) const;
+    virtual Zest::NRectf GetWorldRect() const;
 
     virtual const std::string& GetLabel() const;
     virtual void SetLabel(const char* pszLabel);
@@ -258,11 +261,11 @@ public:
     // The size this widget would like to be.
     virtual glm::vec2 GetSizeHint() const;
 
-    virtual NRectf GetRectWithPad() const;
-    virtual void SetRectWithPad(const NRectf& rc);
+    virtual Zest::NRectf GetRectWithPad() const;
+    virtual void SetRectWithPad(const Zest::NRectf& rc);
 
     // Draw helpers 
-    NRectf DrawSlab(Canvas& canvas, const NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText = nullptr, float fontPad = 2.0f, const glm::vec4& textColor = glm::vec4(1.0f), float fontSize = 0.0f, const char* pszFont = nullptr);
+    Zest::NRectf DrawSlab(Canvas& canvas, const Zest::NRectf& rect, float borderRadius, float shadowSize, const glm::vec4& shadowColor, float borderSize, const glm::vec4& borderColor, const glm::vec4& centerColor, const char* pszText = nullptr, float fontPad = 2.0f, const glm::vec4& textColor = glm::vec4(1.0f), float fontSize = 0.0f, const char* pszFont = nullptr);
 
     virtual glm::vec4 TextColorForBackground(const glm::vec4& color);
 
@@ -277,7 +280,7 @@ public:
     void Visit(const std::function<void(Widget*)>& fnVisit);
 
 protected:
-    NRectf m_rect;
+    Zest::NRectf m_rect;
     Widget* m_pParent = nullptr;
     std::string m_label;
     glm::uvec2 m_constraints = glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Expanding);

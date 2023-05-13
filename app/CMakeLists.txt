@@ -7,23 +7,19 @@ set(COMPANY "NodeGraph")
 set(COPYRIGHT "Copyright (c) 2019 Chris Maughan. All rights reserved.")
 set(IDENTIFIER "com.nodegraph")
 
-set(APP_ROOT ${CMAKE_CURRENT_LIST_DIR})
+set(NODEGRAPH_APP_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 find_package(portaudio CONFIG REQUIRED)
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_LIST_DIR}/cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/demo_common.cmake)
-
-SET(ZING_DIR ${CMAKE_CURRENT_LIST_DIR}/../libs/zing)
-SET(ZING_LIBRARY_ONLY 1)
-add_subdirectory(${ZING_DIR})
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/nodegraph_app_common.cmake)
 
 set(NODEGRAPH_APP_SOURCE
-    ${APP_ROOT}/main.cpp
-    ${APP_ROOT}/demo.cpp
-    ${APP_ROOT}/CMakeLists.txt
-    ${APP_ROOT}/nodes/node_oscillator.cpp
-    ${APP_ROOT}/nodes/node_oscillator.h
+    ${NODEGRAPH_APP_ROOT}/main.cpp
+    ${NODEGRAPH_APP_ROOT}/demo.cpp
+    ${NODEGRAPH_APP_ROOT}/CMakeLists.txt
+    ${NODEGRAPH_APP_ROOT}/nodes/node_oscillator.cpp
+    ${NODEGRAPH_APP_ROOT}/nodes/node_oscillator.h
     )
 
 set(RESOURCE_FOLDER ${CMAKE_CURRENT_LIST_DIR}/res)
@@ -37,6 +33,8 @@ add_executable (${APP_NAME}
 
 target_include_directories(${APP_NAME}
     PRIVATE
+    #${ZING_DIR}/libs
+    #${ZING_DIR}/include
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_BINARY_DIR}
     )

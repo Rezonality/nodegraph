@@ -1,6 +1,8 @@
 #include <fmt/format.h>
+
+#include <zest/logger/logger.h>
+
 #include <nodegraph/canvas.h>
-#include <nodegraph/logger/logger.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
 

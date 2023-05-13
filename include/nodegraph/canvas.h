@@ -5,8 +5,9 @@
 #include <memory>
 #include <vector>
 
-#include <nodegraph/math_utils.h>
-#include <nodegraph/time/timer.h>
+#include <zest/math/math_utils.h>
+#include <zest/time/timer.h>
+
 #include <nodegraph/widgets/widget.h>
 
 namespace NodeGraph {
@@ -67,6 +68,8 @@ struct CanvasInputState
     Widget* m_pMouseCapture = nullptr;
 };
 
+using Zest::NRectf;
+
 class Canvas
 {
 public:
@@ -79,7 +82,7 @@ public:
     const float PixelSizeToWorldSize(const float size) const;
 
     virtual glm::vec2 WorldToPixels(const glm::vec2& pos) const;
-    virtual NRectf WorldToPixels(const NRectf& rc) const;
+    virtual Zest::NRectf WorldToPixels(const Zest::NRectf& rc) const;
     virtual float WorldSizeToPixelSize(float size) const;
     virtual glm::vec2 WorldSizeToPixelSize(const glm::vec2& size) const;
 

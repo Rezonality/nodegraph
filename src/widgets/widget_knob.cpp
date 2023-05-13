@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <fmt/format.h>
-#include <nodegraph/logger/logger.h>
+
+#include <zest/logger/logger.h>
+
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/layout.h>
@@ -115,7 +117,7 @@ void Knob::Draw(Canvas& canvas)
         canvas.FilledGradientCircle(knobRegion.Center(), innerSize, NRectf(knobRegion.Center().x, knobRegion.Center().y - innerSize, 0, innerSize * 1.5f), colorHL, color);
 
         // the notch on the button/indicator
-        auto markerAngle = degToRad(posArc + arcOffset);
+        auto markerAngle = Zest::degToRad(posArc + arcOffset);
         auto markVector = glm::vec2(std::cos(markerAngle), std::sin(markerAngle));
         canvas.Stroke(knobRegion.Center() + markVector * (markerInset - shadowSize), knobRegion.Center() + markVector * (innerSize - shadowSize), channelWidth, shadowColor);
         canvas.Stroke(knobRegion.Center() + markVector * markerInset, knobRegion.Center() + markVector * (innerSize - shadowSize * 2), channelWidth - shadowSize, markColor);

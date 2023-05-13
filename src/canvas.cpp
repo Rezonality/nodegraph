@@ -1,8 +1,10 @@
 #include <algorithm>
+
+#include <zest/logger/logger.h>
+#include <zest/time/timer.h>
+
 #include <nodegraph/canvas.h>
 #include <nodegraph/fonts.h>
-#include <nodegraph/logger/logger.h>
-#include <nodegraph/time/timer.h>
 #include <nodegraph/widgets/layout.h>
 
 #define DECLARE_SETTINGS

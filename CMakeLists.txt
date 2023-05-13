@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 message(STATUS " CMakeLists: NodeGraph")
 
-option(BUILD_NODEGRAPH_TESTS "Build Tests" ON)
+option(BUILD_NODEGRAPH_TESTS "Build Tests" OFF)
 option(BUILD_NODEGRAPH_APP "Build APP" ON)
 
 # Global Settings
@@ -40,8 +40,6 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/config_nodegraph_app.h.cmake ${CM
 
 include(GNUInstallDirs)
 
-enable_testing()
-
 include(cmake/all.cmake)
 
 # Library
@@ -57,6 +55,7 @@ endif()
 
 # Tests
 if (BUILD_NODEGRAPH_TESTS)
+enable_testing()
 add_subdirectory(tests)
 endif()
 

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <nodegraph/setting.h>
+#include <zest/settings/settings.h>
 
 namespace NodeGraph
 {
 
-class ThemeManager : public SettingManager
+class ThemeManager : public Zest::SettingManager
 {
 public:
     static ThemeManager& Instance()
