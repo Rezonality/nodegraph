@@ -60,11 +60,11 @@ add_subdirectory(tests)
 endif()
 
 # Make the CMake bits that ensure find_package does the right thing
-install(EXPORT nodegraph-targets
-    FILE nodegraph-targets.cmake
-    NAMESPACE NodeGraph::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nodegraph
-)
+#install(EXPORT nodegraph-targets
+#    FILE nodegraph-targets.cmake
+#    NAMESPACE NodeGraph::
+#    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nodegraph
+#)
 
 include(CMakePackageConfigHelpers)
 
