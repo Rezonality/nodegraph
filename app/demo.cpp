@@ -62,6 +62,7 @@ struct Setter : public ISliderCB
         : m_units(units) 
     {
     }
+
     virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
     {
         myVal.type = SliderType::Mark;
@@ -79,6 +80,7 @@ struct Setter : public ISliderCB
         }
     }
 };
+
 Setter s1 = Setter("dB");
 Setter s2 = Setter("Hz");
 

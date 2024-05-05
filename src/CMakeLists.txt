@@ -6,8 +6,10 @@ project(NodeGraph
 find_package(glm CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(fmt CONFIG REQUIRED)
-find_package(tomlplusplus CONFIG REQUIRED)
+ find_package(PkgConfig REQUIRED)
 find_package(date CONFIG REQUIRED)
+ 
+pkg_check_modules(tomlplusplus REQUIRED IMPORTED_TARGET tomlplusplus)
 
 set(NODEGRAPH_VULKAN_SOURCE
     ${NODEGRAPH_ROOT}/src/vulkan/vulkan_imgui_texture.cpp
@@ -57,7 +59,7 @@ add_library(NodeGraph::NodeGraph ALIAS NodeGraph)
 
 target_link_libraries(NodeGraph
 PRIVATE
-    tomlplusplus::tomlplusplus
+    PkgConfig::tomlplusplus
 PUBLIC
     Zing::Zing
     fmt::fmt-header-only
