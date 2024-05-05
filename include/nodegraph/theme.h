@@ -5,7 +5,7 @@
 namespace NodeGraph
 {
 
-class ThemeManager : public Zest::SettingManager
+class ThemeManager : public Zest::SettingsManager
 {
 public:
     static ThemeManager& Instance()
