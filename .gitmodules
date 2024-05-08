@@ -1,6 +1,9 @@
 [submodule "vcpkg"]
 	path = vcpkg
 	url = https://github.com/Microsoft/vcpkg
+	branch = master
 [submodule "app/libs/zing"]
 	path = libs/zing
 	url = https://github.com/Rezonality/zing
+[submodule "zing"]
+	branch = main
