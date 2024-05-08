@@ -81,8 +81,10 @@ NRectf Widget::GetWorldRect() const
 
 void Widget::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance();
-    if (theme.GetBool(b_debugShowLayout))
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
+
+    if (settings.GetBool(theme, b_debugShowLayout))
     {
         canvas.FillRect(ToWorldRect(m_rect), glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
     }
@@ -349,10 +351,11 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
         //std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
         std::string tip = fmt::format("{} {}", val.valueText, val.units);
 
-        auto& theme = ThemeManager::Instance();
+        auto& settings = Zest::GlobalSettingsManager::Instance();
+        auto theme = settings.GetCurrentTheme();
 
-        auto tipPad = theme.GetFloat(s_sliderTipFontPad);
-        auto fontSize = theme.GetFloat(s_sliderTipFontSize);
+        auto tipPad = settings.GetFloat(theme, s_sliderTipFontPad);
+        auto fontSize = settings.GetFloat(theme, s_sliderTipFontSize);
 
         auto rcBounds = canvas.TextBounds(widgetTopCenter, fontSize, tip.c_str(), nullptr, TEXT_ALIGN_TOP | TEXT_ALIGN_LEFT);
         rcBounds.SetHeight(fontSize);
@@ -363,15 +366,15 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
 
         auto rc = DrawSlab(canvas,
             panelRect,
-            theme.GetFloat(s_sliderTipBorderRadius),
-            theme.GetFloat(s_sliderTipShadowSize),
-            Zest::ModifyAlpha(theme.GetVec4f(c_sliderTipShadowColor), alpha),
-            theme.GetFloat(s_sliderTipBorderSize),
-            Zest::ModifyAlpha(theme.GetVec4f(c_sliderTipBorderColor), alpha),
-            Zest::ModifyAlpha(theme.GetVec4f(c_sliderTipCenterColor), alpha),
+            settings.GetFloat(theme, s_sliderTipBorderRadius),
+            settings.GetFloat(theme, s_sliderTipShadowSize),
+            Zest::ModifyAlpha(settings.GetVec4f(theme, c_sliderTipShadowColor), alpha),
+            settings.GetFloat(theme, s_sliderTipBorderSize),
+            Zest::ModifyAlpha(settings.GetVec4f(theme, c_sliderTipBorderColor), alpha),
+            Zest::ModifyAlpha(settings.GetVec4f(theme, c_sliderTipCenterColor), alpha),
             tip.c_str(),
             4.0f,
-            Zest::ModifyAlpha(TextColorForBackground(theme.GetVec4f(c_sliderTipCenterColor)), alpha),
+            Zest::ModifyAlpha(TextColorForBackground(settings.GetVec4f(theme, c_sliderTipCenterColor)), alpha),
             fontSize);
     }
 }

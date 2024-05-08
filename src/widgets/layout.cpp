@@ -263,8 +263,9 @@ const WidgetList& Layout::GetChildren() const
 
 void Layout::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance();
-    if (theme.GetBool(b_debugShowLayout))
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
+    if (settings.GetBool(theme, b_debugShowLayout))
     {
         if (m_layoutType == LayoutType::Horizontal)
         {

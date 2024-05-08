@@ -5,16 +5,6 @@
 namespace NodeGraph
 {
 
-class ThemeManager : public Zest::SettingsManager
-{
-public:
-    static ThemeManager& Instance()
-    {
-        static ThemeManager theme;
-        return theme;
-    }
-};
-
 #ifdef DECLARE_THEME_SETTINGS
 #define DECLARE_THEME_SETTING_VALUE(name) Zest::StringId name(#name);
 #else

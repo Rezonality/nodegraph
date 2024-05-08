@@ -25,6 +25,7 @@ tags
 bld/
 [Bb]in/
 [Oo]bj/
+build_llvm/**
 
 imgui.ini
 git_stats

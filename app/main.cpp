@@ -11,7 +11,8 @@
 #include <stdlib.h> // abort
 #include <vulkan/vulkan.h>
 
-#include "config_nodegraph_app.h"
+#include <config_nodegraph_app.h>
+
 #include <filesystem>
 #include <fmt/format.h>
 
@@ -23,6 +24,7 @@
 #include <nodegraph/vulkan/vulkan_imgui_texture.h>
 #include <nodegraph/IconsFontAwesome5.h>
 #include <nodegraph/canvas.h>
+#include <nodegraph/theme.h>
 
 
 namespace fs = std::filesystem;
@@ -375,18 +377,19 @@ int main(int, char**)
         return -1;
     }
 
-    auto& settings = Zest::GlobalSettingManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
 
     settings.Load(fs::path(NODEGRAPH_ROOT) / "settings.toml");
 
-    auto windowSize = settings.GetVec2f(Zest::s_windowSize);
+    auto windowSize = settings.GetVec2f(theme, Zest::s_windowSize);
     if (windowSize.x == 0 || windowSize.y == 0)
     {
         windowSize.x = 1280;
         windowSize.y = 720;
     }
 
-    bool max = settings.GetBool(Zest::b_windowMaximized);
+    bool max = settings.GetBool(theme, Zest::b_windowMaximized);
 
     // Setup window
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
@@ -629,13 +632,13 @@ int main(int, char**)
     CleanupVulkan();
 
     SDL_GetWindowSize(window, &w, &h);
-    settings.Set(Zest::s_windowSize, glm::vec2(w, h));
-    settings.Set(Zest::b_windowMaximized, bool(SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED));
+    settings.Set(theme, Zest::s_windowSize, glm::vec2(w, h));
+    settings.Set(theme, Zest::b_windowMaximized, bool(SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED));
 
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    Zest::GlobalSettingManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "settings.toml");
+    Zest::GlobalSettingsManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "settings.toml");
 
     return 0;
 }

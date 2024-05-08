@@ -22,7 +22,9 @@ Socket::Socket(const std::string& label, SocketType type, ISocketCB* pCB)
 
 void Socket::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
+
     Widget::Draw(canvas);
 
     auto rc = GetWorldRect();
@@ -53,7 +55,7 @@ void Socket::Draw(Canvas& canvas)
         canvas.DrawLine(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), socketRadius);
     }
 
-    auto color = theme.GetVec4f(c_socketColor);
+    auto color = settings.GetVec4f(theme, c_socketColor);
 
     if (val.flags & SocketFlags::ReadOnly)
     {
@@ -63,7 +65,7 @@ void Socket::Draw(Canvas& canvas)
     else if (hover || captured)
     {
         markColor = markHLColor;
-        color = theme.Get(color_controlFillColorHL);
+        color = settings.Get(color_controlFillColorHL);
     }
     */
 

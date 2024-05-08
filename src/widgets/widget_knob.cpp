@@ -20,12 +20,13 @@ Knob::Knob(const std::string& label, IKnobCB* pCB)
 
 void Knob::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
     Widget::Draw(canvas);
 
     auto rc = GetWorldRect();
 
-    if (theme.GetBool(b_debugShowLayout))
+    if (settings.GetBool(theme, b_debugShowLayout))
     {
         DrawSlab(canvas,
             rc,
@@ -47,8 +48,8 @@ void Knob::Draw(Canvas& canvas)
         UpdateKnob(this, KnobOp::Get, val);
     }
 
-    auto textSize = theme.GetFloat(s_knobTextSize);
-    auto pack = theme.GetFloat(s_knobTextInset);
+    auto textSize = settings.GetFloat(theme, s_knobTextSize);
+    auto pack = settings.GetFloat(theme, s_knobTextInset);
 
     NRectf remain = rc.Adjusted(glm::vec4(0.0f, 0.0f, 0.0f, -(textSize - pack)));
     NRectf textRect = rc.Adjusted(glm::vec4(0.0f, rc.Height() - textSize, 0.0f, -pack));
@@ -75,26 +76,26 @@ void Knob::Draw(Canvas& canvas)
     float ratioOrigin = 0.0f;
     auto posArcBegin = startArc + arcRange * ratioOrigin;
 
-    auto channelWidth = theme.GetFloat(s_knobChannelWidth);
-    auto channelGap = theme.GetFloat(s_knobChannelGap);
+    auto channelWidth = settings.GetFloat(theme, s_knobChannelWidth);
+    auto channelGap = settings.GetFloat(theme, s_knobChannelGap);
 
     auto innerSize = knobSize - channelWidth - channelGap;
 
-    auto shadowColor = theme.GetVec4f(c_knobShadowColor);
+    auto shadowColor = settings.GetVec4f(theme, c_knobShadowColor);
 
     // Knob surrounding shadow; a filled circle behind it
     canvas.FilledCircle(knobRegion.Center(), innerSize, shadowColor);
 
-    innerSize -= theme.GetFloat(s_knobShadowSize);
+    innerSize -= settings.GetFloat(theme, s_knobShadowSize);
 
-    auto color = theme.GetVec4f(c_knobFillColor);
-    auto colorHL = theme.GetVec4f(c_knobFillHLColor);
-    auto markColor = theme.GetVec4f(c_knobMarkColor);
-    auto markHLColor = theme.GetVec4f(c_knobMarkHLColor);
-    auto channelHLColor = theme.GetVec4f(c_knobChannelHLColor);
-    auto channelColor = theme.GetVec4f(c_knobChannelColor);
+    auto color = settings.GetVec4f(theme, c_knobFillColor);
+    auto colorHL = settings.GetVec4f(theme, c_knobFillHLColor);
+    auto markColor = settings.GetVec4f(theme, c_knobMarkColor);
+    auto markHLColor = settings.GetVec4f(theme, c_knobMarkHLColor);
+    auto channelHLColor = settings.GetVec4f(theme, c_knobChannelHLColor);
+    auto channelColor = settings.GetVec4f(theme, c_knobChannelColor);
     
-    auto shadowSize = theme.GetFloat(s_knobShadowSize);
+    auto shadowSize = settings.GetFloat(theme, s_knobShadowSize);
 
     if (val.flags & KnobFlags::ReadOnly)
     {
@@ -107,7 +108,7 @@ void Knob::Draw(Canvas& canvas)
     else if (hover || captured)
     {
         markColor = markHLColor;
-        color = theme.Get(color_controlFillColorHL);
+        color = settings.Get(color_controlFillColorHL);
     }
     */
 
@@ -138,7 +139,7 @@ void Knob::Draw(Canvas& canvas)
 
     canvas.Arc(knobRegion.Center(), knobSize - channelWidth * .5f, channelWidth, channelHLColor, posArcBegin + arcOffset, posArc + arcOffset);
 
-    canvas.Text(textRect.Center(), textSize, TextColorForBackground(theme.GetVec4f(c_knobFillColor)), val.name.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
+    canvas.Text(textRect.Center(), textSize, TextColorForBackground(settings.GetVec4f(theme, c_knobFillColor)), val.name.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_CENTER);
     //canvas.Text()
     /*
     if (fCurrentVal > (fMax + std::numeric_limits<float>::epsilon()))

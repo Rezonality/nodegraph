@@ -6,7 +6,7 @@
 #include <nodegraph/fonts.h>
 #include <nodegraph/nodegraph.h>
 
-#include "config_nodegraph_app.h"
+#include <config_nodegraph_app.h>
 
 namespace fs = std::filesystem;
 

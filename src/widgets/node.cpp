@@ -1,3 +1,5 @@
+#include <zest/settings/settings.h>
+
 #include <nodegraph/canvas.h>
 #include <nodegraph/theme.h>
 #include <nodegraph/widgets/node.h>
@@ -13,39 +15,40 @@ Node::Node(const std::string& label)
 
 void Node::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
     Widget::Draw(canvas);
 
     auto rcWorld = GetWorldRect();
 
     rcWorld = DrawSlab(canvas,
         rcWorld,
-        theme.GetFloat(s_nodeBorderRadius),
-        theme.GetFloat(s_nodeShadowSize),
-        theme.GetVec4f(c_nodeShadowColor),
-        theme.GetFloat(s_nodeBorderSize),
-        theme.GetVec4f(c_nodeBorderColor),
-        theme.GetVec4f(c_nodeCenterColor));
+        settings.GetFloat(theme, s_nodeBorderRadius),
+        settings.GetFloat(theme, s_nodeShadowSize),
+        settings.GetVec4f(theme, c_nodeShadowColor),
+        settings.GetFloat(theme, s_nodeBorderSize),
+        settings.GetVec4f(theme, c_nodeBorderColor),
+        settings.GetVec4f(theme, c_nodeCenterColor));
 
-    auto fontSize = theme.GetFloat(s_nodeTitleSize);
-    auto titleHeight = fontSize + theme.GetFloat(s_nodeTitleFontPad) * 2.0f;
-    auto titlePad = theme.GetFloat(s_nodeTitlePad);
+    auto fontSize = settings.GetFloat(theme, s_nodeTitleSize);
+    auto titleHeight = fontSize + settings.GetFloat(theme, s_nodeTitleFontPad) * 2.0f;
+    auto titlePad = settings.GetFloat(theme, s_nodeTitlePad);
 
     auto titlePanelRect = NRectf(rcWorld.Left() + titlePad, rcWorld.Top() + titlePad, rcWorld.Width() - titlePad * 2.0f, titleHeight);
 
     rcWorld = DrawSlab(canvas,
         titlePanelRect,
-        theme.GetFloat(s_nodeTitleBorderRadius),
-        theme.GetFloat(s_nodeTitleShadowSize),
-        theme.GetVec4f(c_nodeTitleShadowColor),
-        theme.GetFloat(s_nodeTitleBorderSize),
-        theme.GetVec4f(c_nodeTitleBorderColor),
-        theme.GetVec4f(c_nodeTitleCenterColor),
+        settings.GetFloat(theme, s_nodeTitleBorderRadius),
+        settings.GetFloat(theme, s_nodeTitleShadowSize),
+        settings.GetVec4f(theme, c_nodeTitleShadowColor),
+        settings.GetFloat(theme, s_nodeTitleBorderSize),
+        settings.GetVec4f(theme, c_nodeTitleBorderColor),
+        settings.GetVec4f(theme, c_nodeTitleCenterColor),
         m_label.c_str(),
-        theme.GetFloat(s_nodeTitleFontPad),
-        TextColorForBackground(theme.GetVec4f(c_nodeTitleCenterColor)));
+        settings.GetFloat(theme, s_nodeTitleFontPad),
+        TextColorForBackground(settings.GetVec4f(theme, c_nodeTitleCenterColor)));
 
-    auto bottomGap = theme.GetFloat(s_nodeBorderSize) + theme.GetFloat(s_nodeShadowSize);
+    auto bottomGap = settings.GetFloat(theme, s_nodeBorderSize) + settings.GetFloat(theme, s_nodeShadowSize);
     
     // Layout in child coordinates
     auto layoutRect = NRectf(titlePanelRect.Left(), titlePanelRect.Bottom(), titlePanelRect.Width(), GetWorldRect().Bottom() - bottomGap - titlePanelRect.Bottom());

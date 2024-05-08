@@ -18,7 +18,9 @@ TextLabel::TextLabel(const std::string& label, const std::string& font)
 
 void TextLabel::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
+
     Widget::Draw(canvas);
 
     auto rc = GetWorldRect();
@@ -26,12 +28,12 @@ void TextLabel::Draw(Canvas& canvas)
     // Draw the background area
     rc = DrawSlab(canvas,
         rc,
-        theme.GetFloat(s_sliderBorderRadius),
-        theme.GetFloat(s_sliderShadowSize),
-        theme.GetVec4f(c_sliderShadowColor),
-        theme.GetFloat(s_sliderBorderSize),
-        theme.GetVec4f(c_sliderBorderColor),
-        theme.GetVec4f(c_sliderCenterColor),
+        settings.GetFloat(theme, s_sliderBorderRadius),
+        settings.GetFloat(theme, s_sliderShadowSize),
+        settings.GetVec4f(theme, c_sliderShadowColor),
+        settings.GetFloat(theme, s_sliderBorderSize),
+        settings.GetVec4f(theme, c_sliderBorderColor),
+        settings.GetVec4f(theme, c_sliderCenterColor),
         m_label.c_str(),
         2.0f,
         glm::vec4(1.0f), 

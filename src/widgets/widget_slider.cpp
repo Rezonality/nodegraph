@@ -20,8 +20,10 @@ Slider::Slider(const std::string& label, ISliderCB* pCB)
 
 float Slider::ThumbWorldSize(Canvas& canvas, float width) const
 {
-    auto& theme = ThemeManager::Instance();
-    auto thumbPad = theme.GetFloat(s_sliderThumbPad);
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
+
+    auto thumbPad = settings.GetFloat(theme, s_sliderThumbPad);
     width = std::max(width, 4.0f);
     auto pixelSize = canvas.WorldSizeToPixelSize(std::max(1.0f, width));
     if (pixelSize < 4.0f)
@@ -33,24 +35,25 @@ float Slider::ThumbWorldSize(Canvas& canvas, float width) const
 
 void Slider::Draw(Canvas& canvas)
 {
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
 
     auto rc = GetWorldRect();
 
     // Draw the background area
     rc = DrawSlab(canvas,
         rc,
-        theme.GetFloat(s_sliderBorderRadius),
-        theme.GetFloat(s_sliderShadowSize),
-        theme.GetVec4f(c_sliderShadowColor),
-        theme.GetFloat(s_sliderBorderSize),
-        theme.GetVec4f(c_sliderBorderColor),
-        theme.GetVec4f(c_sliderCenterColor));
+        settings.GetFloat(theme, s_sliderBorderRadius),
+        settings.GetFloat(theme, s_sliderShadowSize),
+        settings.GetVec4f(theme, c_sliderShadowColor),
+        settings.GetFloat(theme, s_sliderBorderSize),
+        settings.GetVec4f(theme, c_sliderBorderColor),
+        settings.GetVec4f(theme, c_sliderCenterColor));
 
     //canvas.FillRect(rc, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
-    auto thumbPad = theme.GetFloat(s_sliderThumbPad);
-    auto fontSize = rc.Height() - theme.GetFloat(s_sliderFontPad) * 2.0f - thumbPad * 2.0f;
+    auto thumbPad = settings.GetFloat(theme, s_sliderThumbPad);
+    auto fontSize = rc.Height() - settings.GetFloat(theme, s_sliderFontPad) * 2.0f - thumbPad * 2.0f;
     auto titlePanelRect = rc;
 
     // Our inside track is inside the thumb pad
@@ -87,16 +90,16 @@ void Slider::Draw(Canvas& canvas)
 
     DrawSlab(canvas,
         thumbRect,
-        theme.GetFloat(s_sliderThumbRadius),
-        theme.GetFloat(s_sliderThumbShadowSize),
-        theme.GetVec4f(c_sliderThumbShadowColor),
+        settings.GetFloat(theme, s_sliderThumbRadius),
+        settings.GetFloat(theme, s_sliderThumbShadowSize),
+        settings.GetVec4f(theme, c_sliderThumbShadowColor),
         0.0f,
         glm::vec4(0.0f),
-        theme.GetVec4f(c_sliderThumbColor));
+        settings.GetVec4f(theme, c_sliderThumbColor));
 
     if (val.valueFlags & WidgetValueFlags::ShowText)
     {
-        canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(theme.GetVec4f(c_sliderCenterColor)), val.name.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
+        canvas.Text(glm::vec2(titlePanelRect.Left(), titlePanelRect.Center().y), fontSize, TextColorForBackground(settings.GetVec4f(theme, c_sliderCenterColor)), val.name.c_str(), nullptr, TEXT_ALIGN_MIDDLE | TEXT_ALIGN_LEFT);
 
         DrawTip(canvas, glm::vec2(titlePanelRect.Center().x, titlePanelRect.Top()), val);
     }

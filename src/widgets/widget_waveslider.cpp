@@ -56,8 +56,9 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
             float width;
             glm::vec4 color;
 
-            auto& theme = ThemeManager::Instance();
-            auto thumbColor = theme.GetVec4f(c_sliderThumbColor);
+            auto& settings = Zest::GlobalSettingsManager::Instance();
+            auto theme = settings.GetCurrentTheme();
+            auto thumbColor = settings.GetVec4f(theme, c_sliderThumbColor);
             auto waveColor = glm::vec4(thumbColor.x * colorScale, thumbColor.y * colorScale, thumbColor.z * colorScale, 1.0f);
             // Shadow
             if (y == 0)
@@ -150,19 +151,20 @@ void WaveSlider::DrawGeneratedWave(Canvas& canvas, const NRectf& rc)
 
     auto rcWorld = ToWorldRect(rc);
     
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
 
     // Draw the background area
     rcWorld = DrawSlab(canvas,
         rcWorld,
-        theme.GetFloat(s_sliderBorderRadius),
-        theme.GetFloat(s_sliderShadowSize),
-        theme.GetVec4f(c_sliderShadowColor),
-        theme.GetFloat(s_sliderBorderSize),
-        theme.GetVec4f(c_sliderBorderColor),
-        theme.GetVec4f(c_sliderCenterColor));
+        settings.GetFloat(theme, s_sliderBorderRadius),
+        settings.GetFloat(theme, s_sliderShadowSize),
+        settings.GetVec4f(theme, c_sliderShadowColor),
+        settings.GetFloat(theme, s_sliderBorderSize),
+        settings.GetVec4f(theme, c_sliderBorderColor),
+        settings.GetVec4f(theme, c_sliderCenterColor));
 
-    auto waveColor = theme.GetVec4f(c_sliderThumbColor);
+    auto waveColor = settings.GetVec4f(theme, c_sliderThumbColor);
   
     rcWorld.Adjust(8, 8, -8, -8);
     canvas.BeginStroke(glm::vec2(rcWorld.Left(), rcWorld.Center().y), 4.0f, waveColor);

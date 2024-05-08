@@ -22,6 +22,7 @@ extern "C" {
 }
 
 #include <config_nodegraph_app.h>
+
 using namespace NodeGraph;
 using namespace Zest;
 namespace fs = std::filesystem;
@@ -239,7 +240,9 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
         spHorzLayout->AddChild(spSocket);
 
-        ThemeManager::Instance().Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
+        auto& settings = Zest::GlobalSettingsManager::Instance();
+        auto theme = settings.GetCurrentTheme();
+        settings.Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
     }
     spCanvas->SetPixelRegionSize(size);
 }
@@ -296,10 +299,11 @@ void demo_theme_editor()
 {
     if (ImGui::Begin("Theme"))
     {
-        auto& theme = ThemeManager::Instance();
+        auto& settings = Zest::GlobalSettingsManager::Instance();
+        auto theme = settings.GetCurrentTheme();
         std::vector<Zest::StringId> themeNames;
 
-        for (auto& [mstr, val] : theme.m_themes[theme.m_currentSetting])
+        for (auto& [mstr, val] : settings.GetSection(theme))
         {
             themeNames.push_back(mstr);
         }
@@ -309,7 +313,7 @@ void demo_theme_editor()
         });
 
         std::string last;
-        auto& themeMap = theme.m_themes[theme.m_currentSetting];
+        auto& themeMap = settings.GetSection(theme);
         for (auto& id : themeNames)
         {
             auto name = id.ToString();
@@ -367,7 +371,7 @@ void demo_draw()
 
     demo_theme_editor();
     demo_hierarchy_editor();
-    Zing::audio_show_gui();
+    Zing::audio_show_settings_gui();
 
     ImGui::End();
 
@@ -400,6 +404,10 @@ void demo_draw()
 void demo_cleanup()
 {
     Zing::audio_destroy();
-    ThemeManager::Instance().Save(fs::path(NODEGRAPH_ROOT) / "theme.toml");
+
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
+    settings.Save(fs::path(NODEGRAPH_ROOT) / "theme.toml");
+
     spCanvas.reset();
 }

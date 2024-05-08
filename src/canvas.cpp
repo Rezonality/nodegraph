@@ -32,29 +32,30 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
     spFontContext = std::make_shared<FontContext>();
     fonts_init(*spFontContext, pFontTexture);
 
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
 
     // For connectors around side
-    // theme.Set(s_nodeOuter, 20.0f);
+    // settings.Set(s_nodeOuter, 20.0f);
 
     float margin = 2.0f;
 
     // Title and padding
-    theme.Set(s_nodeTitleSize, 26.0f);
-    theme.Set(s_nodeTitleFontPad, 2.0f);
-    theme.Set(s_nodeBorderRadius, 4.0f);
-    theme.Set(s_nodeTitleBorderRadius, 8.0f);
-    theme.Set(s_nodeShadowSize, 4.0f);
+    settings.Set(theme, s_nodeTitleSize, 26.0f);
+    settings.Set(theme, s_nodeTitleFontPad, 2.0f);
+    settings.Set(theme, s_nodeBorderRadius, 4.0f);
+    settings.Set(theme, s_nodeTitleBorderRadius, 8.0f);
+    settings.Set(theme, s_nodeShadowSize, 4.0f);
 
-    theme.Set(s_nodeShadowSize, 2.0f);
-    theme.Set(c_nodeShadowColor, glm::vec4(0.1f, 0.1f, 0.1f, 0.5f));
-    theme.Set(c_nodeCenterColor, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+    settings.Set(theme, s_nodeShadowSize, 2.0f);
+    settings.Set(theme, c_nodeShadowColor, glm::vec4(0.1f, 0.1f, 0.1f, 0.5f));
+    settings.Set(theme, c_nodeCenterColor, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 
-    theme.Set(s_gridLineSize, 2.0f);
+    settings.Set(theme, s_gridLineSize, 2.0f);
 
-    theme.Set(c_gridLines, glm::vec4(0.25f, 0.25f, 0.25f, 1.0f));
+    settings.Set(theme, c_gridLines, glm::vec4(0.25f, 0.25f, 0.25f, 1.0f));
 
-    theme.Set(c_nodeTitleCenterColor, glm::vec4(0.2f, 0.2f, 0.2f, 0.7f));
+    settings.Set(theme, c_nodeTitleCenterColor, glm::vec4(0.2f, 0.2f, 0.2f, 0.7f));
 }
 
 Canvas::~Canvas()
@@ -194,14 +195,15 @@ void Canvas::HandleMouse()
 
 void Canvas::DrawGrid(float worldStep)
 {
-    auto& theme = ThemeManager::Instance();
+    auto& settings = Zest::GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
 
     auto startPos = m_worldOrigin;
     startPos.x = std::floor(m_worldOrigin.x / worldStep) * worldStep;
     startPos.y = std::floor(m_worldOrigin.y / worldStep) * worldStep;
 
-    auto size = (theme.GetVec2f(s_gridLineSize) / m_worldScale);
-    auto lineColor = theme.GetVec4f(c_gridLines);
+    auto size = (settings.GetVec2f(theme, s_gridLineSize) / m_worldScale);
+    auto lineColor = settings.GetVec4f(theme, c_gridLines);
 
     while (startPos.x < PixelToWorld(m_pixelSize).x)
     {
