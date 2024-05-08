@@ -31,31 +31,6 @@ Canvas::Canvas(IFontTexture* pFontTexture, float worldScale, const glm::vec2& sc
 
     spFontContext = std::make_shared<FontContext>();
     fonts_init(*spFontContext, pFontTexture);
-
-    auto& settings = Zest::GlobalSettingsManager::Instance();
-    auto theme = settings.GetCurrentTheme();
-
-    // For connectors around side
-    // settings.Set(s_nodeOuter, 20.0f);
-
-    float margin = 2.0f;
-
-    // Title and padding
-    settings.Set(theme, s_nodeTitleSize, 26.0f);
-    settings.Set(theme, s_nodeTitleFontPad, 2.0f);
-    settings.Set(theme, s_nodeBorderRadius, 4.0f);
-    settings.Set(theme, s_nodeTitleBorderRadius, 8.0f);
-    settings.Set(theme, s_nodeShadowSize, 4.0f);
-
-    settings.Set(theme, s_nodeShadowSize, 2.0f);
-    settings.Set(theme, c_nodeShadowColor, glm::vec4(0.1f, 0.1f, 0.1f, 0.5f));
-    settings.Set(theme, c_nodeCenterColor, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
-
-    settings.Set(theme, s_gridLineSize, 2.0f);
-
-    settings.Set(theme, c_gridLines, glm::vec4(0.25f, 0.25f, 0.25f, 1.0f));
-
-    settings.Set(theme, c_nodeTitleCenterColor, glm::vec4(0.2f, 0.2f, 0.2f, 0.7f));
 }
 
 Canvas::~Canvas()
