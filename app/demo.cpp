@@ -240,9 +240,10 @@ void demo_resize(const glm::vec2& size, IFontTexture* pFontTexture)
         spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
         spHorzLayout->AddChild(spSocket);
 
+        /*
         auto& settings = Zest::GlobalSettingsManager::Instance();
         auto theme = settings.GetCurrentTheme();
-        settings.Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");
+        settings.Load(fs::path(NODEGRAPH_ROOT) / "theme.toml");*/
     }
     spCanvas->SetPixelRegionSize(size);
 }
@@ -405,9 +406,11 @@ void demo_cleanup()
 {
     Zing::audio_destroy();
 
+    /*
     auto& settings = Zest::GlobalSettingsManager::Instance();
     auto theme = settings.GetCurrentTheme();
     settings.Save(fs::path(NODEGRAPH_ROOT) / "theme.toml");
+    */
 
     spCanvas.reset();
 }

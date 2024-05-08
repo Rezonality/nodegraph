@@ -20,6 +20,7 @@
 
 #include <zest/logger/logger.h>
 #include <zest/settings/settings.h>
+#include <zest/time/profiler.h>
 
 #include <nodegraph/vulkan/vulkan_imgui_texture.h>
 #include <nodegraph/IconsFontAwesome5.h>
@@ -370,6 +371,8 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
 // A plain old vulkan window.  Just to get an IMGUI surface
 int main(int, char**)
 {
+    Zest::Profiler::Init();
+
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {

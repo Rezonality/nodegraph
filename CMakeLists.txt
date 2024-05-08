@@ -30,7 +30,6 @@ include(cmake/utils.cmake)
 find_package(SDL2 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(freetype CONFIG REQUIRED)
-find_package(imgui REQUIRED)
 
 set(NODEGRAPH_ROOT ${CMAKE_CURRENT_LIST_DIR})
 set(M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)

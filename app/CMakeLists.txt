@@ -42,7 +42,6 @@ target_include_directories(${APP_NAME}
 target_link_libraries (${APP_NAME}
     PRIVATE
     NodeGraph::NodeGraph
-    imgui::imgui
     SDL2::SDL2main
     Zing::Zing
     ${PLATFORM_LINKLIBS}
