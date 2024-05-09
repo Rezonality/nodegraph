@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <fmt/format.h>
+
 #include <nodes/node_oscillator.h>
 #include <utils/wavetable.h>
 
@@ -7,12 +10,81 @@
 #include <earlevel/el_wavetable.h>
 #include <earlevel/el_wavetable_utils.h>
 
-namespace
-{
-const int NumWaves = 4;
-}
+#include <nodegraph/IconsFontAwesome5.h>
+#include <nodegraph/canvas.h>
+#include <nodegraph/canvas_imgui.h>
+#include <nodegraph/theme.h>
+#include <nodegraph/widgets/layout.h>
+#include <nodegraph/widgets/node.h>
+#include <nodegraph/widgets/widget.h>
+#include <nodegraph/widgets/widget_knob.h>
+#include <nodegraph/widgets/widget_label.h>
+#include <nodegraph/widgets/widget_slider.h>
+#include <nodegraph/widgets/widget_socket.h>
+#include <nodegraph/widgets/widget_waveslider.h>
 
 using namespace AudioUtils;
+using namespace NodeGraph;
+using namespace Zest;
+
+namespace {
+const int NumWaves = 4;
+
+struct SetterWave : public ISliderCB
+{
+    SliderValue myVal;
+    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
+    {
+        myVal.type = SliderType::Mark;
+        myVal.step = 0.33f;
+        if (op == SliderOp::Get)
+        {
+            myVal.name = pSlider->GetLabel();
+            myVal.valueText = fmt::format("{:1.2f}", myVal.value);
+            myVal.units = "dB";
+            myVal.valueFlags = WidgetValueFlags::NoQuantization;
+            val = myVal;
+        }
+        else
+        {
+            myVal = val;
+        }
+    }
+};
+
+SetterWave swave;
+
+struct Setter : public ISliderCB
+{
+    SliderValue myVal;
+    std::string m_units;
+    Setter(std::string units)
+        : m_units(units)
+    {
+    }
+
+    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
+    {
+        myVal.type = SliderType::Mark;
+        myVal.step = 0.2f;
+        if (op == SliderOp::Get)
+        {
+            myVal.name = pSlider->GetLabel();
+            myVal.valueText = fmt::format("{:1.2f}", myVal.value);
+            myVal.units = m_units;
+            val = myVal;
+        }
+        else
+        {
+            myVal = val;
+        }
+    }
+};
+
+Setter s1 = Setter("dB");
+Setter s2 = Setter("Hz");
+
+} // Namespace
 
 struct AudioSettings
 {
@@ -22,12 +94,59 @@ struct AudioSettings
 
 AudioSettings maud;
 
-namespace Nodegraph
-{
-
 Oscillator::~Oscillator()
 {
-    //CleanUp();
+    // CleanUp();
+}
+
+void Oscillator::BuildNode(Canvas& canvas)
+{
+    auto m_spNode = std::make_shared<Node>("Oscillator" ICON_FA_SEARCH);
+    m_spNode->SetRect(NRectf(0.0f, 0.0f, 400.0f, 240.0f));
+    canvas.GetRootLayout()->AddChild(m_spNode);
+
+    auto spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
+    m_spNode->SetLayout(spRootLayout);
+
+    auto spWaveSlider = std::make_shared<WaveSlider>("Wave", &swave);
+    spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+    spWaveSlider->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+
+    spRootLayout->AddChild(spWaveSlider);
+
+    // Keep same height, expand the width
+    auto spCustom = std::make_shared<Widget>("Custom");
+    spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+    spCustom->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+    spCustom->AddPostDrawCB([=](Canvas& canvas, const NRectf& rect) {
+        spWaveSlider->DrawGeneratedWave(canvas, rect);
+    });
+    spRootLayout->AddChild(spCustom);
+
+    // Sliders
+    auto spHorzLayout = std::make_shared<Layout>(LayoutType::Horizontal);
+    spHorzLayout->SetContentsMargins(glm::vec4(0.0f));
+    spHorzLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+    spHorzLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+    spRootLayout->AddChild(spHorzLayout);
+
+    auto spSocket = std::make_shared<Socket>("Freq", SocketType::Left);
+    spSocket->SetRect(NRectf(0.0f, 0.0f, 30.0f, 30.0f));
+    spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
+    spHorzLayout->AddChild(spSocket);
+
+    auto spSlider = std::make_shared<Slider>("Amp", &s1);
+    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+    spHorzLayout->AddChild(spSlider);
+
+    spSlider = std::make_shared<Slider>("Freq", &s2);
+    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+    spHorzLayout->AddChild(spSlider);
+
+    spSocket = std::make_shared<Socket>("Amp", SocketType::Right);
+    spSocket->SetRect(NRectf(0.0f, 0.0f, 30.0f, 30.0f));
+    spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
+    spHorzLayout->AddChild(spSocket);
 }
 
 void Oscillator::CleanUp()
@@ -49,7 +168,7 @@ void Oscillator::CleanUp()
     */
 }
 
-Oscillator::Oscillator( const std::string& strName, WaveTableType t, float f, float p)
+Oscillator::Oscillator(const std::string& strName, WaveTableType t, float f, float p)
     : m_phase(p)
 {
     // Output pins
@@ -341,7 +460,7 @@ void Oscillator::Compute()
     m_pFrequency->GetAttributes().flags |= ParameterFlags::ReadOnly;
 
     auto& notes = GetAudioGraph().GetActiveNotes();
-    
+
     m_outFlow.FreeChannels();
 
     for (auto& [id, note] : notes)
@@ -360,4 +479,3 @@ void Oscillator::Compute()
 
 */
 
-} // namespace MAudio

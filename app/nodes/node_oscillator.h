@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <cmath>
 #include <string>
 #include <cstdint>
@@ -12,8 +13,11 @@ extern "C"
 #include <soundpipe_extensions/soundpipeextension.h>
 }
 
-namespace Nodegraph
+namespace NodeGraph
 {
+class Node;
+class Canvas;
+}
 
 class Oscillator
 {
@@ -34,7 +38,9 @@ public:
         PWM,
         Saw
     };
-   
+
+    virtual void BuildNode(NodeGraph::Canvas& canvas);
+
 protected:
     // Inputs
     /*
@@ -61,6 +67,7 @@ protected:
     std::vector<float> m_vecTableFrequencies;
     
     int m_numBandLimitedTables = 0;
+
+    std::shared_ptr<NodeGraph::Node> m_spNode;
 };
 
-} // namespace Nodegraph
