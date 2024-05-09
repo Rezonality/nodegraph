@@ -59,7 +59,6 @@ target_link_libraries(NodeGraph
 PRIVATE
 PUBLIC
     Zing::Zing
-    fmt::fmt-header-only
     glm::glm
     Vulkan::Vulkan
     date::date

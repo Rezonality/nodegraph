@@ -28,7 +28,7 @@ project(NodeGraph
 include(cmake/utils.cmake)
 
 find_package(SDL2 REQUIRED)
-find_package(fmt REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 find_package(freetype CONFIG REQUIRED)
 
 set(NODEGRAPH_ROOT ${CMAKE_CURRENT_LIST_DIR})
