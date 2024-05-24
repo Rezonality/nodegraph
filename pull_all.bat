@@ -1,10 +1,9 @@
-cd libs/zing/libs/zest
 git pull
-git submodule update --init --recursive
-cd ../../
+cd libs/zing
+git checkout main
 git pull
-git submodule update --init --recursive
-cd ../../
+cmd /c subs.bat
+cd ../..
 git pull
 git submodule update --init --recursive
 
