@@ -52,38 +52,6 @@ struct SetterWave : public ISliderCB
     }
 };
 
-SetterWave swave;
-
-struct Setter : public ISliderCB
-{
-    SliderValue myVal;
-    std::string m_units;
-    Setter(std::string units)
-        : m_units(units)
-    {
-    }
-
-    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
-    {
-        myVal.type = SliderType::Mark;
-        myVal.step = 0.2f;
-        if (op == SliderOp::Get)
-        {
-            myVal.name = pSlider->GetLabel();
-            myVal.valueText = fmt::format("{:1.2f}", myVal.value);
-            myVal.units = m_units;
-            val = myVal;
-        }
-        else
-        {
-            myVal = val;
-        }
-    }
-};
-
-Setter s1 = Setter("dB");
-Setter s2 = Setter("Hz");
-
 } // Namespace
 
 struct AudioSettings
@@ -108,8 +76,13 @@ void Oscillator::BuildNode(Canvas& canvas)
     auto spRootLayout = std::make_shared<Layout>(LayoutType::Vertical);
     m_spNode->SetLayout(spRootLayout);
 
-    auto spWaveSlider = std::make_shared<WaveSlider>("Wave", &swave);
-    spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+    SliderValue sliderVal;
+    sliderVal.valueFlags = WidgetValueFlags::NoQuantization;
+    sliderVal.step = 0.333f;
+    sliderVal.type = SliderType::Mark;
+
+    auto spWaveSlider = std::make_shared<WaveSlider>("Wave", sliderVal);
+    spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
     spWaveSlider->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
 
     spRootLayout->AddChild(spWaveSlider);
@@ -117,7 +90,7 @@ void Oscillator::BuildNode(Canvas& canvas)
     // Keep same height, expand the width
     auto spCustom = std::make_shared<Widget>("Custom");
     spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
-    spCustom->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+    spCustom->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
     spCustom->AddPostDrawCB([=](Canvas& canvas, const NRectf& rect) {
         spWaveSlider->DrawGeneratedWave(canvas, rect);
     });
@@ -127,7 +100,7 @@ void Oscillator::BuildNode(Canvas& canvas)
     auto spHorzLayout = std::make_shared<Layout>(LayoutType::Horizontal);
     spHorzLayout->SetContentsMargins(glm::vec4(0.0f));
     spHorzLayout->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
-    spHorzLayout->SetRect(NRectf(0.0f, 0.0f, 100.0f, 50.0f));
+    spHorzLayout->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
     spRootLayout->AddChild(spHorzLayout);
 
     auto spSocket = std::make_shared<Socket>("Freq", SocketType::Left);
@@ -135,12 +108,20 @@ void Oscillator::BuildNode(Canvas& canvas)
     spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
     spHorzLayout->AddChild(spSocket);
 
-    auto spSlider = std::make_shared<Slider>("Amp", &s1);
-    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+    sliderVal.step = 0.2f;
+    sliderVal.units = "dB";
+    sliderVal.valueFlags = WidgetValueFlags::Default;
+
+    auto spSlider = std::make_shared<Slider>("Amp", sliderVal);
+    spSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 0.0f));
     spHorzLayout->AddChild(spSlider);
 
-    spSlider = std::make_shared<Slider>("Freq", &s2);
-    spSlider->SetRect(NRectf(0.0f, 0.0f, 190.0f, 50.0f));
+    sliderVal.units = "Hz";
+    sliderVal.name = "Freq";
+    sliderVal.valueText = "Freq";
+
+    spSlider = std::make_shared<Slider>("Freq", sliderVal);
+    spSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 0.0f));
     spHorzLayout->AddChild(spSlider);
 
     spSocket = std::make_shared<Socket>("Amp", SocketType::Right);

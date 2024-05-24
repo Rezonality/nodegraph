@@ -29,10 +29,19 @@ struct ISliderCB
     virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val) = 0;
 };
 
+struct DefaultSliderCB : public ISliderCB
+{
+    SliderValue myVal;
+    DefaultSliderCB();
+    DefaultSliderCB(const SliderValue& value);
+    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val) override;
+};
+
 class Slider : public Widget
 {
 public:
-    Slider(const std::string& label, ISliderCB* pCB = nullptr);
+    Slider(const std::string& label, const SliderValue& value);
+    Slider(const std::string& label, std::shared_ptr<ISliderCB> pCB = nullptr);
     virtual void Draw(Canvas& canvas) override;
     virtual Widget* MouseDown(CanvasInputState& input) override;
     virtual void MouseUp(CanvasInputState& input) override;
@@ -46,11 +55,7 @@ public:
     virtual const NRectf& GetSliderRangeArea() const;
 
 protected:
-    void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val);
-
-protected:
-    ISliderCB* m_pCB = nullptr;
-    SliderValue m_value;
+    std::shared_ptr<ISliderCB> m_pCB;
     NRectf m_sliderRangeArea;
 };
 

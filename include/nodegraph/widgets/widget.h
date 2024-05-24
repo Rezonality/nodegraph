@@ -42,7 +42,8 @@ enum
 {
     None,
     ShowText,
-    NoQuantization
+    NoQuantization,
+    Default = ShowText
 };
 };
 

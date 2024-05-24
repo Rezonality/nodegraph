@@ -10,7 +10,13 @@
 
 namespace NodeGraph {
 
-WaveSlider::WaveSlider(const std::string& label, ISliderCB* pCB)
+WaveSlider::WaveSlider(const std::string& label, const SliderValue& value)
+    : Slider(label, value)
+{
+
+}
+
+WaveSlider::WaveSlider(const std::string& label, std::shared_ptr<ISliderCB> pCB)
     : Slider(label, pCB)
 {
 }
@@ -24,14 +30,7 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
     auto types = std::vector<WaveType>{ WaveType::Triangle, WaveType::Square, WaveType::PWM, WaveType::Saw };
 
     SliderValue val;
-    if (m_pCB)
-    {
-        m_pCB->UpdateSlider(this, SliderOp::Get, val);
-    }
-    else
-    {
-        UpdateSlider(this, SliderOp::Get, val);
-    }
+    m_pCB->UpdateSlider(this, SliderOp::Get, val);
 
     canvas.SetLineCap(LineCap::ROUND);
     for (uint32_t index = 0; index < types.size(); index++)

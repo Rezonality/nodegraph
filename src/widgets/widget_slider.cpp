@@ -10,12 +10,45 @@
 
 namespace NodeGraph {
 
-Slider::Slider(const std::string& label, ISliderCB* pCB)
+DefaultSliderCB::DefaultSliderCB()
+{
+    myVal.type = SliderType::Mark;
+    myVal.step = 0.2f;
+}
+
+DefaultSliderCB::DefaultSliderCB(const SliderValue& value)
+    : myVal(value)
+{
+}
+
+void DefaultSliderCB::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
+{
+    if (op == SliderOp::Get)
+    {
+        myVal.name = pSlider->GetLabel();
+        myVal.valueText = fmt::format("{:1.2f}", myVal.value);
+        val = myVal;
+    }
+    else
+    {
+        myVal = val;
+    }
+}
+
+Slider::Slider(const std::string& label, const SliderValue& value)
+    : Slider(label, std::make_shared<DefaultSliderCB>(value))
+{
+
+}
+
+Slider::Slider(const std::string& label, std::shared_ptr<ISliderCB> pCB)
     : Widget(label)
     , m_pCB(pCB)
 {
-    m_value.name = label;
-    m_value.step = 0.01f;
+    if (!m_pCB)
+    {
+        m_pCB = std::make_shared<DefaultSliderCB>();
+    }
 }
 
 float Slider::ThumbWorldSize(Canvas& canvas, float width) const
@@ -50,7 +83,7 @@ void Slider::Draw(Canvas& canvas)
         settings.GetVec4f(theme, c_sliderBorderColor),
         settings.GetVec4f(theme, c_sliderCenterColor));
 
-    //canvas.FillRect(rc, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    // canvas.FillRect(rc, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
     auto thumbPad = settings.GetFloat(theme, s_sliderThumbPad);
     auto fontSize = rc.Height() - settings.GetFloat(theme, s_sliderFontPad) * 2.0f - thumbPad * 2.0f;
@@ -60,14 +93,7 @@ void Slider::Draw(Canvas& canvas)
     titlePanelRect.Adjust(thumbPad, thumbPad, -thumbPad, -thumbPad);
 
     SliderValue val;
-    if (m_pCB)
-    {
-        m_pCB->UpdateSlider(this, SliderOp::Get, val);
-    }
-    else
-    {
-        UpdateSlider(this, SliderOp::Get, val);
-    }
+    m_pCB->UpdateSlider(this, SliderOp::Get, val);
 
     ClampNormalized(val);
 
@@ -114,11 +140,8 @@ void Slider::Draw(Canvas& canvas)
 
 void Slider::ClampNormalized(SliderValue& value)
 {
-    value.value = std::max(0.0f, value.value);
-    value.value = std::min(1.0f, value.value);
-
-    value.step = std::max(0.001f, value.step);
-    value.step = std::min(1.0f, value.step);
+    value.value = std::clamp(value.value, 0.0f, 1.0f);
+    value.step = std::clamp(value.step, 0.001f, 1.0f);
 }
 
 Widget* Slider::MouseDown(CanvasInputState& input)
@@ -138,14 +161,7 @@ void Slider::MouseUp(CanvasInputState& input)
 void Slider::Update(CanvasInputState& input)
 {
     SliderValue val;
-    if (m_pCB)
-    {
-        m_pCB->UpdateSlider(this, SliderOp::Get, val);
-    }
-    else
-    {
-        UpdateSlider(this, SliderOp::Get, val);
-    }
+    m_pCB->UpdateSlider(this, SliderOp::Get, val);
 
     ClampNormalized(val);
 
@@ -163,14 +179,7 @@ void Slider::Update(CanvasInputState& input)
 
     ClampNormalized(val);
 
-    if (m_pCB)
-    {
-        m_pCB->UpdateSlider(this, SliderOp::Set, val);
-    }
-    else
-    {
-        UpdateSlider(this, SliderOp::Set, val);
-    }
+    m_pCB->UpdateSlider(this, SliderOp::Set, val);
 }
 
 bool Slider::MouseMove(CanvasInputState& input)
@@ -182,19 +191,6 @@ bool Slider::MouseMove(CanvasInputState& input)
         return true;
     }
     return false;
-}
-
-void Slider::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
-{
-    if (op == SliderOp::Set)
-    {
-        m_value = val;
-    }
-    else
-    {
-        m_value.valueText = fmt::format("{:1.2f}", m_value.value);
-        val = m_value;
-    }
 }
 
 const NRectf& Slider::GetSliderRangeArea() const

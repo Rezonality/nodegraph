@@ -14,7 +14,8 @@ public:
         Saw
     };
 
-    WaveSlider(const std::string& label, ISliderCB* pCB = nullptr);
+    WaveSlider(const std::string& label, std::shared_ptr<ISliderCB> pCB = nullptr);
+    WaveSlider(const std::string& label, const SliderValue& value);
     virtual void PostDraw(Canvas& canvas, const NRectf& rc);
     virtual void DrawGeneratedWave(Canvas& canvas, const NRectf& rc);
 };
