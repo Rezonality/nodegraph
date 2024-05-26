@@ -84,7 +84,10 @@ public:
 
     ~TipTimer()
     {
-        ActiveTips.erase(m_pOwner);
+        if (ActiveTips.find(m_pOwner) != ActiveTips.end())
+        {
+            ActiveTips.erase(m_pOwner);
+        }
     }
     TipState Update()
     {
@@ -217,6 +220,7 @@ class Widget;
 using WidgetList = std::vector<std::shared_ptr<Widget>>;
 
 using fnPostDraw = std::function<void(Canvas& canvas, const Zest::NRectf& hintRect)>;
+using fnValueUpdated = std::function<void()>;
 class Widget
 {
 public:
@@ -230,6 +234,7 @@ public:
    
     // Post Draw
     virtual void AddPostDrawCB(const fnPostDraw& fnCB);
+    virtual void AddValueUpdatedCB(const fnValueUpdated& fnCB);
 
     virtual const Zest::NRectf& GetRect() const;
     virtual void SetRect(const Zest::NRectf& sz);
@@ -280,6 +285,8 @@ public:
 
     void Visit(const std::function<void(Widget*)>& fnVisit);
 
+    void SendValueUpdated();
+
 protected:
     Zest::NRectf m_rect;
     Widget* m_pParent = nullptr;
@@ -290,6 +297,7 @@ protected:
     uint64_t m_flags = 0;
     glm::vec2 m_sizeHint = glm::vec2(0.0f);
     fnPostDraw m_postDrawCB;
+    fnValueUpdated m_valueUpdatedCB;
     TipTimer m_tipTimer;
 };
 

@@ -83,5 +83,9 @@ DECLARE_THEME_SETTING_VALUE(b_debugShowLayout);
 DECLARE_THEME_SETTING_VALUE(c_socketColor);
 DECLARE_THEME_SETTING_VALUE(c_socketShadowColor);
 
+// Wave slider
+DECLARE_THEME_SETTING_VALUE(c_waveSliderCenterColor);
+DECLARE_THEME_SETTING_VALUE(c_waveSliderBorderColor);
+
 } // namespace Nodegraph
 

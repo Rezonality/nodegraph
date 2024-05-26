@@ -13,7 +13,6 @@ namespace NodeGraph {
 WaveSlider::WaveSlider(const std::string& label, const SliderValue& value)
     : Slider(label, value)
 {
-
 }
 
 WaveSlider::WaveSlider(const std::string& label, std::shared_ptr<ISliderCB> pCB)
@@ -45,8 +44,8 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
             waveRect.Adjust(instep, instep, -instep, -instep);
 
             float valIndex = val.value * (types.size() - 1);
-            float diff = std::fabs(valIndex - float(index));// *types.size(); 
-            //diff /= types.size();
+            float diff = std::fabs(valIndex - float(index)); // *types.size();
+            // diff /= types.size();
             diff = std::clamp(diff, 0.0f, 1.0f);
             diff = 1.0f - diff;
 
@@ -57,14 +56,14 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
 
             auto& settings = Zest::GlobalSettingsManager::Instance();
             auto theme = settings.GetCurrentTheme();
-            auto thumbColor = settings.GetVec4f(theme, c_sliderThumbColor);
+            auto thumbColor = settings.GetVec4f(theme, c_waveSliderCenterColor);
             auto waveColor = glm::vec4(thumbColor.x * colorScale, thumbColor.y * colorScale, thumbColor.z * colorScale, 1.0f);
             // Shadow
             if (y == 0)
             {
                 width = 7.0f;
-                color = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-                color = Zest::ColorForBackground(waveColor);
+                color = settings.GetVec4f(theme, c_waveSliderBorderColor);
+                // color = Zest::ColorForBackground(waveColor);
             }
             else
             {
@@ -138,18 +137,25 @@ void WaveSlider::PostDraw(Canvas& canvas, const NRectf& rc)
     }
     canvas.SetLineCap(LineCap::BUTT);
 }
-    
+
+void WaveSlider::SetWave(const std::vector<float>& vals)
+{
+    m_wave = vals;
+}
+
 void WaveSlider::DrawGeneratedWave(Canvas& canvas, const NRectf& rc)
 {
+    /*
     std::vector<float> wave;
     wave.resize(1000);
     for (int i = 0; i < wave.size(); ++i)
     {
         wave[i] = std::sin(float((i * 8.0 * glm::pi<float>()) / wave.size()));
     }
+    */
 
     auto rcWorld = ToWorldRect(rc);
-    
+
     auto& settings = Zest::GlobalSettingsManager::Instance();
     auto theme = settings.GetCurrentTheme();
 
@@ -164,16 +170,26 @@ void WaveSlider::DrawGeneratedWave(Canvas& canvas, const NRectf& rc)
         settings.GetVec4f(theme, c_sliderCenterColor));
 
     auto waveColor = settings.GetVec4f(theme, c_sliderThumbColor);
-  
-    rcWorld.Adjust(8, 8, -8, -8);
-    canvas.BeginStroke(glm::vec2(rcWorld.Left(), rcWorld.Center().y), 4.0f, waveColor);
-    for (uint32_t x = 1; x < rcWorld.Width(); x++)
+
+    if (m_wave.empty())
     {
-        auto y = wave[size_t(x * wave.size() / rc.Width())];
-        canvas.LineTo(glm::vec2(rcWorld.Left() + x, rcWorld.Center().y + y * rcWorld.Height() * 0.5f));
+        return;
+    }
+
+    rcWorld.Adjust(8, 8, -8, -8);
+    for (uint32_t x = 0; x < rcWorld.Width(); x++)
+    {
+        auto y = m_wave[size_t(x * m_wave.size() / rc.Width())];
+        if (x == 0)
+        {
+            canvas.BeginStroke(glm::vec2(rcWorld.Left(), rcWorld.Center().y + y * rcWorld.Height() * 0.5f), 4.0f, waveColor);
+        }
+        else
+        {
+            canvas.LineTo(glm::vec2(rcWorld.Left() + x, rcWorld.Center().y + y * rcWorld.Height() * 0.5f));
+        }
     }
     canvas.EndStroke();
-    //canvas.FillRect(rcWorld, glm::vec4(0.5f, 0.5, 0.5f, 1.0f));
 }
 
 } // Nodegraph

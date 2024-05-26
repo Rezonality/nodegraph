@@ -7,6 +7,8 @@
 
 #include <zest/logger/logger.h>
 
+#include <zing/audio/audio.h>
+
 #include <earlevel/el_wavetable.h>
 #include <earlevel/el_wavetable_utils.h>
 
@@ -30,37 +32,8 @@ using namespace Zest;
 namespace {
 const int NumWaves = 4;
 
-struct SetterWave : public ISliderCB
-{
-    SliderValue myVal;
-    virtual void UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& val)
-    {
-        myVal.type = SliderType::Mark;
-        myVal.step = 0.33f;
-        if (op == SliderOp::Get)
-        {
-            myVal.name = pSlider->GetLabel();
-            myVal.valueText = fmt::format("{:1.2f}", myVal.value);
-            myVal.units = "dB";
-            myVal.valueFlags = WidgetValueFlags::NoQuantization;
-            val = myVal;
-        }
-        else
-        {
-            myVal = val;
-        }
-    }
-};
 
 } // Namespace
-
-struct AudioSettings
-{
-    uint32_t sampleRate = 22000;
-    sp_data* pSP = nullptr;
-};
-
-AudioSettings maud;
 
 Oscillator::~Oscillator()
 {
@@ -81,18 +54,21 @@ void Oscillator::BuildNode(Canvas& canvas)
     sliderVal.step = 0.333f;
     sliderVal.type = SliderType::Mark;
 
-    auto spWaveSlider = std::make_shared<WaveSlider>("Wave", sliderVal);
-    spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
-    spWaveSlider->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+    m_spWaveSlider = std::make_shared<WaveSlider>("Wave", sliderVal);
+    m_spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
+    m_spWaveSlider->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
+    m_spWaveSlider->AddValueUpdatedCB([=]() {
+        UpdateWave();
+    });
 
-    spRootLayout->AddChild(spWaveSlider);
+    spRootLayout->AddChild(m_spWaveSlider);
 
     // Keep same height, expand the width
     auto spCustom = std::make_shared<Widget>("Custom");
     spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
     spCustom->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
     spCustom->AddPostDrawCB([=](Canvas& canvas, const NRectf& rect) {
-        spWaveSlider->DrawGeneratedWave(canvas, rect);
+        m_spWaveSlider->DrawGeneratedWave(canvas, rect);
     });
     spRootLayout->AddChild(spCustom);
 
@@ -128,6 +104,47 @@ void Oscillator::BuildNode(Canvas& canvas)
     spSocket->SetRect(NRectf(0.0f, 0.0f, 30.0f, 30.0f));
     spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
     spHorzLayout->AddChild(spSocket);
+
+    Reset();
+
+    UpdateWave();
+}
+
+void Oscillator::UpdateWave()
+{
+    auto& ctx = Zing::GetAudioContext();
+
+    sp_oscmorph2d* pOsc = nullptr;
+    sp_oscmorph2d_create(&pOsc);
+
+    // Setup the oscillator
+    sp_oscmorph2d_init(ctx.pSP, pOsc, &m_vecTables[0], NumWaves, m_numBandLimitedTables, &m_vecTableFrequencies[0], 0);
+    pOsc->freq = 0;
+    pOsc->amp = 0;
+    pOsc->wtpos = 0;
+    pOsc->enableBandlimit = 1;
+    pOsc->bandlimitIndexOverride = -1;
+
+    SliderValue val;
+    m_spWaveSlider->GetCB()->UpdateSlider(m_spWaveSlider.get(), SliderOp::Get, val);
+
+    pOsc->wtpos = val.value;
+
+    pOsc->amp = 1.0;
+    pOsc->iphs = 0;
+
+    pOsc->freq = 100;
+
+    std::vector<float> wave;
+    wave.resize(1000);
+    for (size_t i = 0; i < wave.size(); i++)
+    {
+        sp_oscmorph2d_compute(ctx.pSP, pOsc, nullptr, &wave[i]);
+    }
+
+    sp_oscmorph2d_destroy(&pOsc);
+
+    m_spWaveSlider->SetWave(wave);
 }
 
 void Oscillator::CleanUp()
@@ -248,6 +265,8 @@ void Oscillator::Reset()
 {
     CleanUp();
 
+    auto& ctx = Zing::GetAudioContext();
+
     int tableLen = 2048;
 
     // The wave table to use
@@ -287,7 +306,7 @@ void Oscillator::Reset()
             m_vecTableFrequencies.resize(m_numBandLimitedTables);
             for (int table = 0; table < m_numBandLimitedTables; table++)
             {
-                m_vecTableFrequencies[table] = float(osc->GetTables()[table].topFreq * maud.sampleRate);
+                m_vecTableFrequencies[table] = float(osc->GetTables()[table].topFreq * ctx.outputState.sampleRate);
             }
         }
         // Ensure all have the same table size
@@ -306,7 +325,7 @@ void Oscillator::Reset()
 
             // Create the wave table and copy in the data
             sp_ftbl* pTable = nullptr;
-            sp_ftbl_create(maud.pSP, &pTable, sourceTable.waveTableLen);
+            sp_ftbl_create(ctx.pSP, &pTable, sourceTable.waveTableLen);
 
             // Create our wavetable for the oscillator
             for (size_t i = 0; i < sourceTable.waveTableLen; i++)

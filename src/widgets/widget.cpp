@@ -24,6 +24,11 @@ void Widget::AddPostDrawCB(const fnPostDraw& fnCB)
     m_postDrawCB = fnCB;
 }
 
+void Widget::AddValueUpdatedCB(const fnValueUpdated& fnCB)
+{
+    m_valueUpdatedCB = fnCB;
+}
+
 Widget* Widget::GetParent() const
 {
     return m_pParent;
@@ -376,6 +381,14 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
             4.0f,
             Zest::ModifyAlpha(TextColorForBackground(settings.GetVec4f(theme, c_sliderTipCenterColor)), alpha),
             fontSize);
+    }
+}
+    
+void Widget::SendValueUpdated()
+{
+    if (m_valueUpdatedCB)
+    {
+        m_valueUpdatedCB();
     }
 }
 

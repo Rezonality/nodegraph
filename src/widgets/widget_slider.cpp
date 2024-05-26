@@ -32,6 +32,7 @@ void DefaultSliderCB::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& va
     else
     {
         myVal = val;
+        pSlider->SendValueUpdated();
     }
 }
 

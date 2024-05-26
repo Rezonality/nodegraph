@@ -18,6 +18,11 @@ public:
     WaveSlider(const std::string& label, const SliderValue& value);
     virtual void PostDraw(Canvas& canvas, const NRectf& rc);
     virtual void DrawGeneratedWave(Canvas& canvas, const NRectf& rc);
+
+    void SetWave(const std::vector<float>& vals);
+
+private:
+    std::vector<float> m_wave;
 };
 
 }

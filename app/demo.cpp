@@ -215,6 +215,8 @@ void demo_cleanup()
     */
 
     spCanvas.reset();
+
+    spOsc.reset();
 }
 /*
 

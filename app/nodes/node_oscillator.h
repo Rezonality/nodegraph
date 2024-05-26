@@ -17,6 +17,7 @@ namespace NodeGraph
 {
 class Node;
 class Canvas;
+class WaveSlider;
 }
 
 class Oscillator
@@ -25,6 +26,7 @@ public:
     Oscillator(const std::string& strName, AudioUtils::WaveTableType type, float frequency = 440.0f, float phase = 0.0f);
     virtual ~Oscillator();
 
+    void UpdateWave();
     void Reset();
     void CleanUp(); 
     /*
@@ -69,5 +71,6 @@ protected:
     int m_numBandLimitedTables = 0;
 
     std::shared_ptr<NodeGraph::Node> m_spNode;
+    std::shared_ptr<NodeGraph::WaveSlider> m_spWaveSlider;
 };
 

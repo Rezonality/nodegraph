@@ -54,6 +54,7 @@ public:
 
     virtual const NRectf& GetSliderRangeArea() const;
 
+    ISliderCB* GetCB() const { return m_pCB.get(); }
 protected:
     std::shared_ptr<ISliderCB> m_pCB;
     NRectf m_sliderRangeArea;
