@@ -8,6 +8,8 @@
 
 #include <utils/wavetable.h>
 
+#include <signals/signals.hpp>
+
 extern "C"
 {
 #include <soundpipe_extensions/soundpipeextension.h>
@@ -44,6 +46,9 @@ public:
     virtual void BuildNode(NodeGraph::Canvas& canvas);
 
 protected:
+
+    std::vector<fteng::connection> m_connections;
+
     // Inputs
     /*
     NodeGraph::Pin* m_pWave;

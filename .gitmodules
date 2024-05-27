@@ -7,3 +7,6 @@
 	url = https://github.com/Rezonality/zing
 [submodule "zing"]
 	branch = main
+[submodule "libs/signals"]
+	path = libs/signals
+	url = https://github.com/TheWisp/signals.git

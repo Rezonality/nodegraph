@@ -7,6 +7,8 @@
 #include <zest/math/math_utils.h>
 #include <zest/time/timer.h>
 
+#include <signals/signals.hpp>
+
 namespace NodeGraph {
 
 class Canvas;
@@ -219,8 +221,6 @@ class Layout;
 class Widget;
 using WidgetList = std::vector<std::shared_ptr<Widget>>;
 
-using fnPostDraw = std::function<void(Canvas& canvas, const Zest::NRectf& hintRect)>;
-using fnValueUpdated = std::function<void()>;
 class Widget
 {
 public:
@@ -232,10 +232,6 @@ public:
     virtual Widget* GetParent() const;
     virtual void SetParent(Widget* pParent);
    
-    // Post Draw
-    virtual void AddPostDrawCB(const fnPostDraw& fnCB);
-    virtual void AddValueUpdatedCB(const fnValueUpdated& fnCB);
-
     virtual const Zest::NRectf& GetRect() const;
     virtual void SetRect(const Zest::NRectf& sz);
     virtual const glm::uvec2& GetConstraints() const;
@@ -285,7 +281,8 @@ public:
 
     void Visit(const std::function<void(Widget*)>& fnVisit);
 
-    void SendValueUpdated();
+    fteng::signal<void()> ValueUpdatedSignal;
+    fteng::signal<void(Canvas& canvas, const Zest::NRectf& hintRect)> PostDrawSignal;
 
 protected:
     Zest::NRectf m_rect;
@@ -296,8 +293,6 @@ protected:
     std::shared_ptr<Layout> m_spLayout;
     uint64_t m_flags = 0;
     glm::vec2 m_sizeHint = glm::vec2(0.0f);
-    fnPostDraw m_postDrawCB;
-    fnValueUpdated m_valueUpdatedCB;
     TipTimer m_tipTimer;
 };
 

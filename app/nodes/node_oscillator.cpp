@@ -57,9 +57,9 @@ void Oscillator::BuildNode(Canvas& canvas)
     m_spWaveSlider = std::make_shared<WaveSlider>("Wave", sliderVal);
     m_spWaveSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
     m_spWaveSlider->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
-    m_spWaveSlider->AddValueUpdatedCB([=]() {
+    m_connections.push_back(m_spWaveSlider->ValueUpdatedSignal.connect([=]() {
         UpdateWave();
-    });
+    }));
 
     spRootLayout->AddChild(m_spWaveSlider);
 
@@ -67,7 +67,7 @@ void Oscillator::BuildNode(Canvas& canvas)
     auto spCustom = std::make_shared<Widget>("Custom");
     spCustom->SetConstraints(glm::uvec2(LayoutConstraint::Expanding, LayoutConstraint::Preferred));
     spCustom->SetRect(NRectf(0.0f, 0.0f, 0.0f, 50.0f));
-    spCustom->AddPostDrawCB([=](Canvas& canvas, const NRectf& rect) {
+    spCustom->PostDrawSignal.connect([=](Canvas& canvas, const NRectf& rect) {
         m_spWaveSlider->DrawGeneratedWave(canvas, rect);
     });
     spRootLayout->AddChild(spCustom);
