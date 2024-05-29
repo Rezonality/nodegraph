@@ -20,6 +20,7 @@ namespace NodeGraph
 class Node;
 class Canvas;
 class WaveSlider;
+class Slider;
 }
 
 class Oscillator
@@ -77,5 +78,6 @@ protected:
 
     std::shared_ptr<NodeGraph::Node> m_spNode;
     std::shared_ptr<NodeGraph::WaveSlider> m_spWaveSlider;
+    std::shared_ptr<NodeGraph::Slider> m_spAmplitude;
 };
 

@@ -84,20 +84,22 @@ void Oscillator::BuildNode(Canvas& canvas)
     spSocket->SetConstraints(glm::uvec2(LayoutConstraint::Preferred, LayoutConstraint::Expanding));
     spHorzLayout->AddChild(spSocket);
 
-    sliderVal.step = 0.2f;
-    sliderVal.units = "dB";
+    sliderVal.step = 0.1f;
+    sliderVal.units = "";
     sliderVal.valueFlags = WidgetValueFlags::Default;
+    sliderVal.value = 1.0f;
 
-    auto spSlider = std::make_shared<Slider>("Amp", sliderVal);
-    spSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 0.0f));
-    spHorzLayout->AddChild(spSlider);
+    m_spAmplitude = std::make_shared<Slider>("Amp", sliderVal);
+    spHorzLayout->AddChild(m_spAmplitude);
+    m_connections.push_back(m_spAmplitude->ValueUpdatedSignal.connect([=]() {
+        UpdateWave();
+    }));
 
     sliderVal.units = "Hz";
     sliderVal.name = "Freq";
     sliderVal.valueText = "Freq";
 
-    spSlider = std::make_shared<Slider>("Freq", sliderVal);
-    spSlider->SetRect(NRectf(0.0f, 0.0f, 0.0f, 0.0f));
+    auto spSlider = std::make_shared<Slider>("Freq", sliderVal);
     spHorzLayout->AddChild(spSlider);
 
     spSocket = std::make_shared<Socket>("Amp", SocketType::Right);
@@ -125,12 +127,15 @@ void Oscillator::UpdateWave()
     pOsc->enableBandlimit = 1;
     pOsc->bandlimitIndexOverride = -1;
 
-    SliderValue val;
-    m_spWaveSlider->GetCB()->UpdateSlider(m_spWaveSlider.get(), SliderOp::Get, val);
+    SliderValue sliderType;
+    m_spWaveSlider->GetCB()->UpdateSlider(m_spWaveSlider.get(), SliderOp::Get, sliderType);
+    
+    SliderValue amplitude;
+    m_spAmplitude->GetCB()->UpdateSlider(m_spAmplitude.get(), SliderOp::Get, amplitude);
 
-    pOsc->wtpos = val.value;
+    pOsc->wtpos = sliderType.value;
 
-    pOsc->amp = 1.0;
+    pOsc->amp = amplitude.value;
     pOsc->iphs = 0;
 
     pOsc->freq = 100;
