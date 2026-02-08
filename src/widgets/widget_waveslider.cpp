@@ -178,7 +178,12 @@ void WaveSlider::DrawGeneratedWave(Canvas& canvas, const NRectf& rc)
     rcWorld.Adjust(8, 8, -8, -8);
     for (uint32_t x = 0; x < rcWorld.Width(); x++)
     {
-        auto y = m_wave[size_t(x * m_wave.size() / rc.Width())];
+        auto index = size_t(x * m_wave.size() / rc.Width());
+        if (index >= m_wave.size())
+        {
+            continue;
+        }
+        auto y = m_wave[index];
         if (x == 0)
         {
             canvas.BeginStroke(glm::vec2(rcWorld.Left(), rcWorld.Center().y + y * rcWorld.Height() * 0.5f), 4.0f, waveColor);
