@@ -1,5 +1,5 @@
 #include <filesystem>
-#include <fmt/format.h>
+#include <format>
 #include <memory>
 
 #include <nodegraph/IconsFontAwesome5.h>
@@ -64,7 +64,7 @@ void demo_hierarchy_editor()
         }
 
         std::string type = widget->GetLayout()->GetLayoutType() == LayoutType::Horizontal ? "Horizontal" : "Vertical";
-        node_open = ImGui::TreeNode(widget, fmt::format("{} ({})", widget->GetLabel(), type).c_str());
+        node_open = ImGui::TreeNode(widget, std::format("{} ({})", widget->GetLabel(), type).c_str());
 
         if (node_open)
         {
@@ -72,7 +72,7 @@ void demo_hierarchy_editor()
             if (!layout->GetChildren().empty())
             {
                 // std::string type = layout->GetLayoutType() == LayoutType::Horizontal ? "Horizontal" : "Vertical";
-                // bool node_open = ImGui::TreeNode(layout, fmt::format("({} Children)", type).c_str());
+                // bool node_open = ImGui::TreeNode(layout, std::format("({} Children)", type).c_str());
                 // if (node_open)
                 {
 

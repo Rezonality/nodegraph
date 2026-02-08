@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <fmt/format.h>
+#include <format>
 
 #include <zest/logger/logger.h>
 
@@ -26,7 +26,7 @@ void DefaultSliderCB::UpdateSlider(Slider* pSlider, SliderOp op, SliderValue& va
     if (op == SliderOp::Get)
     {
         myVal.name = pSlider->GetLabel();
-        myVal.valueText = fmt::format("{:1.2f}", myVal.value);
+        myVal.valueText = std::format("{:1.2f}", myVal.value);
         val = myVal;
     }
     else

@@ -10,7 +10,7 @@ if not exist "vcpkg\vcpkg.exe" (
 
 cd vcpkg
 echo Installing Libraries
-vcpkg install pkgconf cppcodec ableton-link concurrentqueue tinydir kissfft portaudio stb date fmt clipp tomlplusplus glm sdl2[vulkan] magic-enum catch2 --triplet x64-windows-static-md --recurse
+vcpkg install pkgconf tinyfiledialogs tinydir cppcodec ableton-link concurrentqueue tinydir kissfft portaudio stb date fmt clipp tomlplusplus glm sdl3[vulkan] magic-enum catch2 --triplet x64-windows-static-md --recurse
 cd %~dp0
 echo %Time%
 

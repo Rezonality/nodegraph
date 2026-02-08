@@ -1,5 +1,3 @@
-#include <fmt/format.h>
-
 #include <zest/logger/logger.h>
 
 #include <nodegraph/canvas.h>

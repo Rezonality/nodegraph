@@ -123,22 +123,22 @@ void CanvasImGui::FillGradientRoundedRectVarying(const NRectf& rc, const glm::ve
     auto flags = 0;
     if (radius.x > 0.0f)
     {
-        flags |= ImDrawCornerFlags_TopLeft;
+        flags |= ImDrawFlags_RoundCornersTopLeft;
         worldSize0 = WorldSizeToPixelSize(radius.x);
     }
     if (radius.y > 0.0f)
     {
-        flags |= ImDrawCornerFlags_TopRight;
+        flags |= ImDrawFlags_RoundCornersTopRight;
         worldSize0 = WorldSizeToPixelSize(radius.y);
     }
     if (radius.z > 0.0f)
     {
-        flags |= ImDrawCornerFlags_BotRight;
+        flags |= ImDrawFlags_RoundCornersBottomRight;
         worldSize0 = WorldSizeToPixelSize(radius.z);
     }
     if (radius.w > 0.0f)
     {
-        flags |= ImDrawCornerFlags_BotLeft;
+        flags |= ImDrawFlags_RoundCornersBottomLeft;
         worldSize0 = WorldSizeToPixelSize(radius.w);
     }
 

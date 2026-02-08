@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <fmt/format.h>
+#include <format>
 
 #include <zest/logger/logger.h>
 
@@ -237,7 +237,7 @@ void Knob::UpdateKnob(Knob* pKnob, KnobOp op, KnobValue& val)
     }
     else
     {
-        m_value.valueText = fmt::format("{:1.2f}", m_value.value);
+        m_value.valueText = std::format("{:1.2f}", m_value.value);
         val = m_value;
     }
 }

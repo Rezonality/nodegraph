@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 4.0)
 
 message(STATUS " CMakeLists: NodeGraph")
 
@@ -6,7 +6,7 @@ option(BUILD_NODEGRAPH_TESTS "Build Tests" OFF)
 option(BUILD_NODEGRAPH_APP "Build APP" ON)
 
 # Global Settings
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -27,8 +27,7 @@ project(NodeGraph
 
 include(cmake/utils.cmake)
 
-find_package(SDL2 REQUIRED)
-find_package(fmt CONFIG REQUIRED)
+find_package(SDL3 REQUIRED)
 find_package(freetype CONFIG REQUIRED)
 
 set(NODEGRAPH_ROOT ${CMAKE_CURRENT_LIST_DIR})

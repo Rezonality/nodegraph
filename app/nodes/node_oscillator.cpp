@@ -1,7 +1,5 @@
 #include <cassert>
 
-#include <fmt/format.h>
-
 #include <nodes/node_oscillator.h>
 #include <utils/wavetable.h>
 

@@ -1,6 +1,6 @@
 #include <functional>
 
-#include <fmt/format.h>
+#include <format>
 
 #include <zest/logger/logger.h>
 
@@ -341,7 +341,7 @@ void Widget::DrawTip(Canvas& canvas, const glm::vec2& widgetTopCenter, const Wid
             return;
         }
         //std::string tip = fmt::format("{}: {} {}", val.name, val.value, val.units);
-        std::string tip = fmt::format("{} {}", val.valueText, val.units);
+        std::string tip = std::format("{} {}", val.valueText, val.units);
 
         auto& settings = Zest::GlobalSettingsManager::Instance();
         auto theme = settings.GetCurrentTheme();
